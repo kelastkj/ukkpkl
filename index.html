@@ -37,6 +37,7 @@
           <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
           <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
           <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
         <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100">
           <i data-lucide="menu" id="burgerIcon" class="w-5 h-5"></i>
@@ -52,6 +53,7 @@
           <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
           <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
           <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
       </div>
     </div>
@@ -177,6 +179,8 @@
         <a href="penguji.html" class="hover:underline">Penguji PKL</a>
         <a href="peserta.html" class="hover:underline">Peserta</a>
         <a href="ukk.html" class="hover:underline">UKK Industri</a>
+        <a href="login.html" class="hover:underline">Login</a>
+        <a href="dashboard.html" class="hover:underline">Dashboard</a>
       </div>
     </div>
   </footer>
@@ -194,6 +198,29 @@
       closeIcon.classList.toggle('hidden');
     });
     document.getElementById('year').textContent=new Date().getFullYear();
+
+    // Toggle Login/Logout menu based on auth status
+    (function(){
+      const navAuth = document.getElementById('navAuth');
+      const navAuthMobile = document.getElementById('navAuthMobile');
+      const token = localStorage.getItem('auth_token');
+      function makeLogout(el){
+        if(!el) return;
+        el.textContent = 'Logout';
+        el.href = '#';
+        el.addEventListener('click', function(ev){
+          ev.preventDefault();
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_profile');
+          // Return to login page
+          location.href = 'login.html';
+        });
+      }
+      if(token){
+        makeLogout(navAuth);
+        makeLogout(navAuthMobile);
+      }
+    })();
   </script>
 </body>
 </html>

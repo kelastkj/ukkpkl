@@ -32,9 +32,10 @@
         <ul class="hidden md:flex items-center gap-1 text-sm">
           <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
           <li><a href="pembimbing.html" aria-current="page" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Pembimbing</a></li>
-          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK</a></li>
           <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
         <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" aria-controls="mobileMenu" aria-expanded="false" aria-label="Buka menu">
           <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/></svg>
@@ -48,9 +49,10 @@
         <ul class="flex flex-col gap-1 text-sm">
           <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
           <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white">Pembimbing</a></li>
-          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">UKK</a></li>
           <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
       </div>
     </div>
@@ -155,9 +157,11 @@
       <nav aria-label="Tautan footer">
         <a href="index.html" class="hover:underline mr-3">Home</a>
         <a href="pembimbing.html" class="hover:underline mr-3">Pembimbing</a>
+        <a href="penguji.html" class="hover:underline mr-3">Penguji PKL</a>
         <a href="peserta.html" class="hover:underline mr-3">Peserta</a>
-        <a href="ukk.html" class="hover:underline mr-3">UKK</a>
-        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
+        <a href="ukk.html" class="hover:underline mr-3">UKK Industri</a>
+        <a href="login.html" class="hover:underline mr-3">Login</a>
+        <a href="dashboard.html" class="hover:underline">Dashboard</a>
       </nav>
     </div>
   </footer>
@@ -176,6 +180,21 @@
       burgerIcon.classList.toggle('hidden');
       closeIcon.classList.toggle('hidden');
     });
+
+    // Toggle Login/Logout
+    (function(){
+      const token = localStorage.getItem('auth_token');
+      function makeLogout(el){
+        if(!el) return;
+        el.textContent = 'Logout';
+        el.href = '#';
+        el.addEventListener('click', function(e){ e.preventDefault(); localStorage.removeItem('auth_token'); localStorage.removeItem('auth_profile'); location.href='login.html'; });
+      }
+      if(token){
+        makeLogout(document.getElementById('navAuth'));
+        makeLogout(document.getElementById('navAuthMobile'));
+      }
+    })();
   </script>
 
   <!-- ===================== SCRIPT: Data Handler ===================== -->

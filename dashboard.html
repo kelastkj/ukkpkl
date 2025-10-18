@@ -1,0 +1,782 @@
+﻿<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="config.js"></script>
+  <style>
+    :root{ color-scheme: light; }
+    body{ background: linear-gradient(180deg, rgba(240,253,250,1) 0%, rgba(239,246,255,1) 100%); }
+    /* Minimal fallback so layout tidak terlalu mepet jika Tailwind gagal dimuat */
+    .card{ background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.06); padding:16px; }
+    .hidden{ display:none !important; }
+    .overflow-auto{ overflow:auto; }
+    /* Table fallback styling inside cards */
+    .card table{ width:100%; border-collapse: collapse; }
+    .card th, .card td{ border:1px solid #e5e7eb; padding:6px 10px; }
+    .card thead th{ background:#f8fafc; }
+    .badge{ display:inline-block; font-size:11px; padding:2px 8px; border-radius:999px; background:#e2e8f0; color:#334155; }
+    /* Grid fallback if Tailwind not present */
+    #main-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
+  @media (min-width: 768px){ #main-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    #main-grid > section{ align-self: stretch; }
+    #card-pkl, #card-ukk, #card-my{ display:flex; flex-direction:column; gap:12px; }
+    #card-pkl{ order:1; }
+    #card-ukk{ order:2; }
+    #card-my{ order:3; grid-column:1 / -1; }
+    #card-my table,
+    #guru-section table{ width:100%; }
+    #pkl-msg, #ukk-msg{ min-height:24px; }
+    /* Header fallback */
+    header{ position:sticky; top:0; z-index:10; background:#ffffffcc; backdrop-filter: blur(6px); border-bottom:1px solid #e5e7eb; }
+    /* Responsive table → cards on small screens */
+    .resp-table{ width:100%; border-collapse:collapse; }
+    .resp-th, .resp-td{ border-bottom:1px solid #e5e7eb; padding:8px 12px; vertical-align:top; }
+    @media (max-width: 640px){
+      .resp-table thead{ display:none; }
+      .resp-table tr{ display:block; border:none; border-radius:12px; margin:12px 0; overflow:hidden; background:#fff; box-shadow:0 10px 26px rgba(2,6,23,.06); position:relative; }
+      /* Category accent bar on the left */
+      .resp-table tr::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--accent, #cbd5e1); }
+      .resp-table tr[data-category="pkl"]{ --accent:#10b981; }
+      .resp-table tr[data-category="ukk"]{ --accent:#3b82f6; }
+      .resp-table td.resp-td{ display:grid; grid-template-columns: 40% 60%; gap:8px; border-bottom:1px solid #f1f5f9; }
+      .resp-table td.resp-td:last-child{ border-bottom:none; }
+      .resp-table td.resp-td::before{ content: attr(data-label); font-weight:600; color:#475569; }
+      /* Remove outer border to avoid double-border look */
+      .table-wrap{ border-color: transparent !important; }
+    }
+    /* Colored badges for categories */
+    .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
+    .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+    .badge-ukk{ background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800">
+  <!-- NAV (selaras dengan index.html) -->
+  <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="flex h-14 items-center justify-between gap-3">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <img src="logo.png" alt="Logo TKJ SMKN 1 Telagasari" class="h-8 w-8 rounded-lg" />
+          <div class="leading-tight">
+            <div class="font-bold tracking-tight">SI PKL & UKK Industri</div>
+            <div class="text-[11px] text-slate-500">Dashboard</div>
+          </div>
+        </a>
+        <ul class="hidden md:flex items-center gap-1 text-sm">
+          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
+          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
+          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
+          <li><a href="dashboard.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Dashboard</a></li>
+        </ul>
+        <div class="flex items-center gap-3">
+          <div class="relative">
+            <button id="profileToggle" type="button" class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-sm font-medium text-slate-600 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200" aria-haspopup="true" aria-expanded="false">
+              <span id="profileInitial" class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-semibold">U</span>
+              <span class="hidden sm:flex flex-col items-start leading-tight">
+                <span id="profileName" class="text-sm font-medium text-slate-700">Pengguna</span>
+                <span id="profileRole" class="text-xs text-slate-500 uppercase tracking-wide">ROLE</span>
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.584l3.71-3.353a.75.75 0 111.04 1.08l-4.24 3.83a.75.75 0 01-1.04 0l-4.24-3.83a.75.75 0 01.02-1.1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div id="profileMenu" class="absolute right-0 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 hidden">
+              <div class="border-b border-slate-100 px-4 py-3">
+                <div id="profileFullName" class="text-sm font-semibold text-slate-800">Pengguna</div>
+                <div id="profileFullRole" class="text-xs font-medium uppercase tracking-wide text-slate-500">ROLE</div>
+              </div>
+              <button id="logout" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="banner" class="max-w-6xl mx-auto px-4 mt-4 hidden"></div>
+
+  <div id="loading" class="hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+    <div class="rounded-xl bg-white shadow p-4 flex items-center gap-3">
+      <svg class="animate-spin h-5 w-5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+      <div class="text-sm text-slate-700">Memproses...</div>
+    </div>
+  </div>
+
+  <main id="main-grid" class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <section id="card-pkl" class="card p-5 space-y-3 order-1">
+      <div>
+        <h2 class="font-semibold text-lg">Upload Laporan PKL</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Format PDF dengan ukuran maksimum 10 MB.</p>
+      </div>
+      <form id="form-pkl" class="space-y-3" method="post" target="upload_iframe">
+        <label class="block">
+          <span class="sr-only">File laporan PKL</span>
+          <input type="file" id="pkl-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
+        </label>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Upload</button>
+          <div id="pkl-msg" class="text-sm text-slate-500 min-h-[1.5rem]"></div>
+        </div>
+        <input type="hidden" name="action" value="upload" />
+        <input type="hidden" name="token" />
+        <input type="hidden" name="category" value="pkl" />
+        <input type="hidden" name="file_name" />
+        <input type="hidden" name="mime_type" />
+        <input type="hidden" name="file_b64" />
+        <input type="hidden" name="redirect" value="" />
+      </form>
+      <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Terima kasih.</div>
+    </section>
+
+    <section id="card-ukk" class="card p-5 space-y-3 order-2">
+      <div>
+        <h2 class="font-semibold text-lg">Upload Dokumentasi UKK</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Zip, foto, video, atau PDF dengan ukuran maksimum 35 MB per file.</p>
+      </div>
+      <form id="form-ukk" class="space-y-3" method="post" target="upload_iframe">
+        <label class="block">
+          <span class="sr-only">File dokumentasi UKK</span>
+          <input type="file" id="ukk-file" accept=".zip,.rar,image/*,video/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
+        </label>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Upload</button>
+          <div id="ukk-msg" class="text-sm text-slate-500 min-h-[1.5rem]"></div>
+        </div>
+        <input type="hidden" name="action" value="upload" />
+        <input type="hidden" name="token" />
+        <input type="hidden" name="category" value="ukk" />
+        <input type="hidden" name="file_name" />
+        <input type="hidden" name="mime_type" />
+        <input type="hidden" name="file_b64" />
+        <input type="hidden" name="redirect" value="" />
+      </form>
+      <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Terima kasih.</div>
+    </section>
+
+  <section id="card-my" class="card p-5 space-y-3 order-3 col-span-full md:col-span-2">
+      <div>
+        <h2 class="font-semibold text-lg">Unggahan Saya</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Daftar unggahan yang sudah dikirim ke sistem.</p>
+      </div>
+    <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+  <table class="resp-table text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+              <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+              <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+              <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="my-tbody">
+            <tr><td colspan="4" class="px-3 py-3 text-slate-500">Memuat...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <section id="guru-section" class="max-w-6xl mx-auto px-4 mt-6 hidden">
+    <div class="card p-5 space-y-3">
+      <div>
+        <h2 class="font-semibold text-lg">Monitoring Unggahan Siswa</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Daftar file yang diunggah siswa yang Anda bimbing atau uji.</p>
+      </div>
+    <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+  <table class="resp-table text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+              <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+              <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+              <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+              <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+              <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+              <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="guru-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hidden iframe untuk upload tanpa popup; Apps Script telah diizinkan di iframe -->
+  <iframe name="upload_iframe" id="upload_iframe" class="hidden" title="upload" loading="lazy"></iframe>
+
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative w-full max-w-sm mx-4 rounded-xl bg-white shadow-lg">
+      <div class="border-b px-4 py-3 flex items-center gap-2">
+        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+        <div class="font-semibold">Konfirmasi</div>
+      </div>
+      <div class="px-4 py-3 text-sm text-slate-700">Apakah Anda yakin ingin menghapus file ini? Tindakan ini akan menghapus data pada sheet dan memindahkan file ke Trash di Google Drive.</div>
+      <div class="px-4 py-3 flex items-center justify-end gap-2 border-t">
+        <button id="modalCancel" class="px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50">Batal</button>
+        <button id="modalConfirm" class="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700">Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const BASE = (window.APP_CONFIG||{}).BASE_URL;
+  let pendingDeleteId = null;
+  let deleteNotified = false; // prevent double banners for delete
+  let uploadNotified = false; // prevent double banners for upload
+  let isUploading = false;    // prevent double upload clicks
+  let isDeleting = false;     // prevent double delete clicks
+  let lastUploadFormId = null; // remember which form is uploading
+
+    function requireAuth(){
+      const token = localStorage.getItem('auth_token');
+      if(!token){ location.href = 'login.html?to=' + encodeURIComponent(location.pathname.split('/').pop()); return null; }
+      return token;
+    }
+
+    function greet(){
+      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const nameRaw = (prof.nama || prof.username || 'Pengguna').trim();
+      const name = nameRaw || 'Pengguna';
+      const parts = name.split(/\s+/).filter(Boolean);
+      const shortName = parts.slice(0, 2).join(' ') || name;
+      const initial = (parts[0] ? parts[0][0] : name[0] || 'U').toUpperCase();
+      const roleRaw = (prof.role || '').toString().trim().toLowerCase();
+      const role = roleRaw ? roleRaw.toUpperCase() : 'USER';
+      const nameEl = document.getElementById('profileName');
+      const roleEl = document.getElementById('profileRole');
+      const fullNameEl = document.getElementById('profileFullName');
+      const fullRoleEl = document.getElementById('profileFullRole');
+      const initialEl = document.getElementById('profileInitial');
+      if(nameEl) nameEl.textContent = shortName;
+      if(roleEl) roleEl.textContent = role;
+      if(fullNameEl) fullNameEl.textContent = name;
+      if(fullRoleEl) fullRoleEl.textContent = role;
+      if(initialEl) initialEl.textContent = initial;
+      const toggle = document.getElementById('profileToggle');
+      if(toggle) toggle.setAttribute('aria-label', `${name} (${role})`);
+    }
+
+    function fileToB64(file){
+      return new Promise((res, rej)=>{
+        const fr = new FileReader();
+        fr.onload = ()=> res(fr.result.split(',')[1]);
+        fr.onerror = rej;
+        fr.readAsDataURL(file);
+      });
+    }
+    function banner(type, text){
+      const el = document.getElementById('banner');
+      const color = type==='ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200';
+      el.className = `max-w-6xl mx-auto px-4 mt-4 border ${color} rounded-lg py-2`;
+      el.textContent = text || '';
+      el.classList.remove('hidden');
+      setTimeout(()=>{ el.classList.add('hidden'); }, 6000);
+    }
+
+    function setFormLock(formId, locked){
+      const form = document.getElementById(formId);
+      if(!form) return;
+      const input = form.querySelector('input[type="file"]');
+      const btn = form.querySelector('button[type="submit"]');
+      if(input){ input.disabled = !!locked; input.classList.toggle('opacity-60', !!locked); input.classList.toggle('cursor-not-allowed', !!locked); }
+      if(btn){ btn.disabled = !!locked; btn.classList.toggle('opacity-60', !!locked); btn.classList.toggle('cursor-not-allowed', !!locked); }
+    }
+
+    function setAllDeleteButtonsDisabled(disabled){
+      document.querySelectorAll('button[data-del]').forEach(b=>{
+        b.disabled = !!disabled;
+        b.classList.toggle('opacity-60', !!disabled);
+        b.classList.toggle('cursor-not-allowed', !!disabled);
+      });
+    }
+
+    async function getMyUploadsCount(){
+      try{
+        const token = localStorage.getItem('auth_token');
+        const data = await jsonp(`${BASE}?dataset=uploads&route=my&token=${encodeURIComponent(token)}`);
+        return (data && data.ok && Array.isArray(data.data)) ? data.data.length : 0;
+      }catch{ return 0; }
+    }
+
+    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    function prepareAndSubmit(formId, inputId, msgId){
+      return async (e)=>{
+        e.preventDefault();
+        const token = requireAuth(); if(!token) return;
+        if(isUploading){
+          const msgEl = document.getElementById(msgId);
+          if(msgEl) msgEl.textContent = 'Sedang memproses unggahan sebelumnya...';
+          return;
+        }
+        const form = document.getElementById(formId);
+        const file = document.getElementById(inputId).files[0];
+        if(!file){ document.getElementById(msgId).textContent = 'Pilih file terlebih dahulu.'; return; }
+        // Optional size limits (10MB PKL, 35MB UKK)
+        const cat = form.querySelector('input[name="category"]').value;
+        const max = cat==='pkl' ? 10*1024*1024 : 35*1024*1024; // batasi ~35MB untuk menghindari overhead base64 > 50MB
+        if(file.size > max){ document.getElementById(msgId).textContent = 'Ukuran file melebihi batas.'; return; }
+        // Lock UI immediately to avoid double click
+        isUploading = true; lastUploadFormId = formId;
+        setFormLock(formId, true);
+        showLoading(true); // show overlay as early as possible
+        // Ambil jumlah data sebelum submit untuk fallback polling
+        let beforeCount = 0;
+        try{ beforeCount = await getMyUploadsCount(); }catch(_){ beforeCount = 0; }
+        document.getElementById(msgId).textContent = 'Menyiapkan unggahan...';
+        try{
+          // Upload via hidden iframe (tanpa popup)
+          const b64 = await fileToB64(file);
+          form.action = BASE;
+          form.querySelector('input[name="token"]').value = token;
+          form.querySelector('input[name="file_name"]').value = file.name.replace(/"/g,'');
+          form.querySelector('input[name="mime_type"]').value = (file.type||'application/octet-stream').replace(/"/g,'');
+          form.querySelector('input[name="file_b64"]').value = b64;
+          uploadNotified = false;
+          form.submit();
+          document.getElementById(msgId).textContent = 'Mengunggah...';
+          // Catatan: overlay akan ditutup hanya saat ada konfirmasi selesai (postMessage atau polling)
+          // Fallback: polling sampai jumlah unggahan bertambah (maks ~25 detik)
+          (async ()=>{
+            const start = Date.now();
+            while(Date.now() - start < 25000){
+              await sleep(1500);
+              try{
+                const now = await getMyUploadsCount();
+                if(now > beforeCount){
+                  if(!uploadNotified){
+                    banner('ok','Upload berhasil.');
+                  }
+                  uploadNotified = true;
+                  document.getElementById(msgId).textContent = 'Berhasil diunggah.';
+                  loadMyUploads();
+                  loadStudentsUploads();
+                  showLoading(false);
+                  isUploading = false; setFormLock(formId, false);
+                  break;
+                }
+              }catch(_){/* ignore */}
+            }
+            if(!uploadNotified){
+              // Jika belum ada sinyal, biarkan pesan terakhir; user bisa refresh daftar manual
+              document.getElementById(msgId).textContent = 'Sedang memproses di server...';
+            }
+          })();
+        }catch(err){
+          document.getElementById(msgId).textContent = 'Gagal menyiapkan unggahan: ' + err.message;
+          showLoading(false);
+          isUploading = false; setFormLock(formId, false);
+        }
+      };
+    }
+
+    function setupProfileMenu(){
+      const toggle = document.getElementById('profileToggle');
+      const menu = document.getElementById('profileMenu');
+      const logoutBtn = document.getElementById('logout');
+      if(!toggle || !menu){
+        if(logoutBtn){
+          logoutBtn.addEventListener('click', ()=>{
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_profile');
+            location.href='login.html';
+          });
+        }
+        return;
+      }
+      const closeMenu = ()=>{
+        menu.classList.add('hidden');
+        toggle.setAttribute('aria-expanded', 'false');
+      };
+      const openMenu = ()=>{
+        menu.classList.remove('hidden');
+        toggle.setAttribute('aria-expanded', 'true');
+      };
+      toggle.addEventListener('click', (ev)=>{
+        ev.stopPropagation();
+        if(menu.classList.contains('hidden')){ openMenu(); } else { closeMenu(); }
+      });
+      document.addEventListener('click', (ev)=>{
+        if(menu.classList.contains('hidden')) return;
+        if(toggle.contains(ev.target) || menu.contains(ev.target)) return;
+        closeMenu();
+      });
+      document.addEventListener('keydown', (ev)=>{
+        if(ev.key === 'Escape') closeMenu();
+      });
+      if(logoutBtn){
+        logoutBtn.addEventListener('click', ()=>{
+          closeMenu();
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_profile');
+          location.href='login.html';
+        });
+      }
+    }
+
+    // JSONP helper (avoids CORS)
+    function jsonp(url){
+      return new Promise((resolve, reject)=>{
+        const cb = 'cb_' + Math.random().toString(36).slice(2);
+        const sep = url.includes('?') ? '&' : '?';
+        const full = url + sep + 'callback=' + cb;
+        window[cb] = (data)=>{ resolve(data); cleanup(); };
+        const s = document.createElement('script');
+        s.src = full; s.onerror = (e)=>{ reject(new Error('Gagal memuat JSONP')); cleanup(); };
+        document.body.appendChild(s);
+        function cleanup(){ try{ delete window[cb]; s.remove(); }catch(_){} }
+      });
+    }
+
+    function renderRows(tbodyId, rows, cols){
+      const tb = document.getElementById(tbodyId);
+      tb.innerHTML = '';
+      if(!rows || rows.length === 0){
+        tb.innerHTML = `<tr><td colspan="${cols.length}" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>`;
+        return;
+      }
+      const labels = { waktu: 'Waktu', category: 'Kategori', fileName: 'Nama File', aksi: 'Aksi' };
+      rows.forEach(r=>{
+        const tr = document.createElement('tr');
+        tr.setAttribute('data-category', (r.category||'').toLowerCase());
+        const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
+        tr.innerHTML = cols.map(c => {
+          if(c === 'aksi'){
+            const open = `
+              <a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="https://drive.google.com/file/d/${r.fileId}/view" aria-label="Buka file">
+                <i data-lucide="eye" class="w-4 h-4"></i>
+                <span class="sr-only">Buka</span>
+              </a>`;
+            const del = `
+              <button data-del="${r.fileId}" class="inline-flex items-center justify-center text-slate-600 hover:text-red-600" type="button" aria-label="Hapus file">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                <span class="sr-only">Hapus</span>
+              </button>`;
+            return `<td class="resp-td px-3 py-2" data-label="${labels[c]||c}"><div class="flex items-center gap-3">${open}${del}</div></td>`;
+          }
+          if(c === 'waktu') return `<td class="resp-td px-3 py-2 whitespace-nowrap" data-label="${labels[c]||c}">${t}</td>`;
+          if(c === 'category'){
+            const cat = (r[c]||'').toLowerCase();
+            const cls = cat==='pkl' ? 'badge-pkl' : (cat==='ukk' ? 'badge-ukk' : '');
+            return `<td class="resp-td px-3 py-2" data-label="${labels[c]||c}"><span class="badge-cat ${cls}">${r[c]||''}</span></td>`;
+          }
+          return `<td class="resp-td px-3 py-2" data-label="${labels[c]||c}">${r[c]||''}</td>`;
+        }).join('');
+        tb.appendChild(tr);
+      });
+      // Wire delete buttons
+      tb.querySelectorAll('button[data-del]').forEach(btn=>{
+        btn.addEventListener('click', ()=> openConfirm(btn.getAttribute('data-del')));
+      });
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){
+        window.lucide.createIcons();
+      }
+    }
+
+    // Parse ?status&msg after redirect
+    (function(){
+      const p = new URLSearchParams(location.search);
+      const status = p.get('status');
+      const msg = p.get('msg');
+      if(status){ banner(status==='ok'?'ok':'err', msg || (status==='ok'?'Berhasil':'Gagal')); }
+      if(status){
+        p.delete('status'); p.delete('msg');
+        const url = location.pathname + (p.toString() ? ('?'+p.toString()) : '');
+        history.replaceState({}, '', url);
+      }
+    })();
+
+    function applyRoleLayout(){
+      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const role = (prof.role||'').toLowerCase();
+      if(role === 'guru'){
+        ['card-pkl','card-ukk','card-my'].forEach(id => {
+          const el = document.getElementById(id);
+          if(el) el.classList.add('hidden');
+        });
+        const grid = document.getElementById('main-grid');
+        if(grid){
+          grid.classList.add('hidden');
+          grid.style.gridTemplateColumns = '';
+        }
+      } else {
+        const grid = document.getElementById('main-grid');
+        if(grid){
+          grid.classList.remove('hidden');
+          grid.style.gridTemplateColumns = '';
+        }
+        ['card-pkl','card-ukk','card-my'].forEach(id => {
+          const el = document.getElementById(id);
+          if(el) el.classList.remove('hidden');
+        });
+      }
+    }
+
+    async function loadMyUploads(){
+      try{
+        const token = localStorage.getItem('auth_token');
+        const url = `${BASE}?dataset=uploads&route=my&token=${encodeURIComponent(token)}`;
+        const data = await jsonp(url);
+        if(!data.ok) throw new Error(data.error||'Gagal memuat');
+        renderRows('my-tbody', data.data, ['waktu','category','fileName','aksi']);
+        updateUploadAvailability(Array.isArray(data.data) ? data.data : []);
+      }catch(e){
+        document.getElementById('my-tbody').innerHTML = `<tr><td colspan="4" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
+      }
+    }
+
+    async function loadStudentsUploads(){
+      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      if((prof.role||'') !== 'guru') return;
+      document.getElementById('guru-section').classList.remove('hidden');
+      try{
+        const token = localStorage.getItem('auth_token');
+        const url = `${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`;
+        const data = await jsonp(url);
+        if(!data.ok) throw new Error(data.error||'Gagal memuat');
+        const rows = data.data;
+        const tb = document.getElementById('guru-tbody');
+        tb.innerHTML = '';
+        rows.forEach(r=>{
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-category', (r.category||'').toLowerCase());
+          const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
+          tr.innerHTML = `
+            <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Waktu">${t}</td>
+            <td class="resp-td px-3 py-2" data-label="Siswa">${r.nama||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Kelas">${r.kelas||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Kategori"><span class="badge-cat ${(r.category||'').toLowerCase()==='pkl'?'badge-pkl':((r.category||'').toLowerCase()==='ukk'?'badge-ukk':'')}">${r.category||''}</span></td>
+            <td class="resp-td px-3 py-2" data-label="Nama File">${r.fileName||''}</td>
+            <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">
+              <div class="flex items-center gap-3">
+                <a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="https://drive.google.com/file/d/${r.fileId}/view" aria-label="Buka file">
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                  <span class="sr-only">Buka</span>
+                </a>
+                <button data-del="${r.fileId}" class="inline-flex items-center justify-center text-slate-600 hover:text-red-600" type="button" aria-label="Hapus file">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <span class="sr-only">Hapus</span>
+                </button>
+              </div>
+            </td>
+          `;
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll('button[data-del]').forEach(btn=>{
+          btn.addEventListener('click', ()=> openConfirm(btn.getAttribute('data-del')));
+        });
+        if(window.lucide && typeof window.lucide.createIcons === 'function'){
+          window.lucide.createIcons();
+        }
+      }catch(e){
+        document.getElementById('guru-tbody').innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
+      }
+    }
+
+    function openConfirm(fileId){
+      if(!fileId) return;
+      if(isDeleting) return;
+      pendingDeleteId = fileId;
+      const m = document.getElementById('confirmModal');
+      if(m) m.classList.remove('hidden');
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){
+        window.lucide.createIcons();
+      }
+    }
+
+    function closeConfirm(){
+      const m = document.getElementById('confirmModal');
+      if(m) m.classList.add('hidden');
+      pendingDeleteId = null;
+    }
+
+    function performDelete(){
+      if(!pendingDeleteId) return;
+      if(isDeleting) return;
+      isDeleting = true;
+      const fileId = pendingDeleteId;
+      closeConfirm();
+      const token = localStorage.getItem('auth_token');
+      const form = document.createElement('form');
+      form.method = 'post';
+      form.target = 'upload_iframe';
+      form.action = BASE;
+      const add = (n,v)=>{ const i = document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+      add('action','delete'); add('token', token); add('fileId', fileId);
+      document.body.appendChild(form);
+      showLoading(true);
+      deleteNotified = false;
+      setAllDeleteButtonsDisabled(true);
+      form.submit();
+      form.remove();
+      // Polling fallback: verify deletion by checking list if postMessage blocked
+      pollDeleteConfirmation(fileId);
+  // Catatan: overlay akan ditutup hanya saat ada konfirmasi selesai (postMessage atau polling)
+    }
+
+    async function pollDeleteConfirmation(fileId){
+      try{
+        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const token = localStorage.getItem('auth_token');
+        const route = (prof.role||'').toLowerCase() === 'guru' ? 'students' : 'my';
+        const start = Date.now();
+        while(Date.now() - start < 25000){
+          await sleep(1500);
+          if(deleteNotified) return; // already handled via postMessage
+          const data = await jsonp(`${BASE}?dataset=uploads&route=${route}&token=${encodeURIComponent(token)}`);
+          if(data && data.ok && Array.isArray(data.data)){
+            const exists = data.data.some(r => String(r.fileId) === String(fileId));
+            if(!exists){
+              deleteNotified = true;
+              banner('ok', 'File dan data berhasil dihapus.');
+              loadMyUploads();
+              loadStudentsUploads();
+              showLoading(false);
+              isDeleting = false; setAllDeleteButtonsDisabled(false);
+              return;
+            }
+          }
+        }
+      }catch(_){/* ignore */}
+    }
+
+    function initDashboard(){
+      const formPkl = document.getElementById('form-pkl');
+      if(formPkl) formPkl.addEventListener('submit', prepareAndSubmit('form-pkl','pkl-file','pkl-msg'));
+      const formUkk = document.getElementById('form-ukk');
+      if(formUkk) formUkk.addEventListener('submit', prepareAndSubmit('form-ukk','ukk-file','ukk-msg'));
+      const mc = document.getElementById('modalCancel');
+      const mcf = document.getElementById('modalConfirm');
+      const modal = document.getElementById('confirmModal');
+      if(mc) mc.addEventListener('click', closeConfirm);
+      if(mcf) mcf.addEventListener('click', performDelete);
+      if(modal){
+        modal.addEventListener('click', (e)=>{
+          if(e.target === modal || e.target.classList.contains('bg-black/40')) closeConfirm();
+        });
+      }
+      document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeConfirm(); });
+      setupProfileMenu();
+      const token = requireAuth();
+      if(!token) return;
+      greet();
+      applyRoleLayout();
+      loadMyUploads();
+      loadStudentsUploads();
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){
+        window.lucide.createIcons();
+      }
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', initDashboard);
+    } else {
+      initDashboard();
+    }
+
+    // Listen result from Apps Script (postMessage) dari iframe
+    window.addEventListener('message', (ev)=>{
+  if(!ev || !ev.data) return;
+      if(ev.data.type === 'upload'){
+        const ok = !!ev.data.ok;
+        const m = (ok ? 'Berhasil: ' : 'Gagal: ') + (ev.data.message || '');
+        const m1 = document.getElementById('pkl-msg');
+        const m2 = document.getElementById('ukk-msg');
+        if(m1) m1.textContent = m;
+        if(m2) m2.textContent = m;
+        if(!uploadNotified){
+          banner(ok?'ok':'err', ev.data.message || (ok?'Upload berhasil':'Upload gagal'));
+        }
+        uploadNotified = true;
+        loadMyUploads();
+        loadStudentsUploads();
+        showLoading(false);
+        isUploading = false; if(lastUploadFormId) setFormLock(lastUploadFormId, false);
+      } else if(ev.data.type === 'delete'){
+        const ok = !!ev.data.ok;
+        deleteNotified = true;
+        banner(ok?'ok':'err', ev.data.message || (ok?'Berhasil dihapus':'Gagal menghapus'));
+        loadMyUploads();
+        loadStudentsUploads();
+        showLoading(false);
+        isDeleting = false; setAllDeleteButtonsDisabled(false);
+      }
+    });
+
+    function showLoading(v){
+      const el = document.getElementById('loading');
+      if(!el) return;
+      if(v) el.classList.remove('hidden'); else el.classList.add('hidden');
+    }
+
+    function updateUploadAvailability(rows){
+      const hasPKL = rows.some(r => (r.category||'').toLowerCase() === 'pkl');
+      const hasUKK = rows.some(r => (r.category||'').toLowerCase() === 'ukk');
+      const formPKL = document.getElementById('form-pkl');
+      const formUKK = document.getElementById('form-ukk');
+      const donePKL = document.getElementById('pkl-done');
+      const doneUKK = document.getElementById('ukk-done');
+      if(formPKL && donePKL){
+        if(hasPKL){
+          formPKL.classList.add('hidden');
+          donePKL.classList.remove('hidden');
+          try{
+            const input = document.getElementById('pkl-file');
+            const btn = formPKL.querySelector('button[type="submit"]');
+            if(input) input.disabled = true;
+            if(btn) btn.disabled = true, btn.classList.add('opacity-60','cursor-not-allowed');
+          }catch(_){/* noop */}
+        } else {
+          formPKL.classList.remove('hidden');
+          donePKL.classList.add('hidden');
+          try{
+            const input = document.getElementById('pkl-file');
+            const btn = formPKL.querySelector('button[type="submit"]');
+            if(input) input.disabled = false;
+            if(btn) btn.disabled = false, btn.classList.remove('opacity-60','cursor-not-allowed');
+          }catch(_){/* noop */}
+        }
+      }
+      if(formUKK && doneUKK){
+        if(hasUKK){
+          formUKK.classList.add('hidden');
+          doneUKK.classList.remove('hidden');
+          try{
+            const input = document.getElementById('ukk-file');
+            const btn = formUKK.querySelector('button[type="submit"]');
+            if(input) input.disabled = true;
+            if(btn) btn.disabled = true, btn.classList.add('opacity-60','cursor-not-allowed');
+          }catch(_){/* noop */}
+        } else {
+          formUKK.classList.remove('hidden');
+          doneUKK.classList.add('hidden');
+          try{
+            const input = document.getElementById('ukk-file');
+            const btn = formUKK.querySelector('button[type="submit"]');
+            if(input) input.disabled = false;
+            if(btn) btn.disabled = false, btn.classList.remove('opacity-60','cursor-not-allowed');
+          }catch(_){/* noop */}
+        }
+      }
+    }
+
+    // end: prepareAndSubmit
+  </script>
+</body>
+</html>
+
+
+

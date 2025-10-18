@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Masuk - PKL & UKK</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="config.js"></script>
+  <style>
+    :root{ color-scheme: light; }
+    body{ background: rgb(248 250 252); }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 text-slate-800">
+  <div class="w-full max-w-md bg-white shadow rounded-xl p-6">
+    <a href="index.html" class="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-800 mb-2">
+      <i data-lucide="arrow-left" class="w-4 h-4"></i>
+      <span>Kembali ke Beranda</span>
+    </a>
+    <h1 class="text-xl font-bold text-center">Masuk</h1>
+    <p class="text-center text-sm text-slate-500">Sistem PKL & UKK</p>
+    <form id="form" class="mt-5 space-y-3">
+      <div>
+        <label class="block text-sm mb-1">Username</label>
+        <input id="u" class="w-full border rounded px-3 py-2" autocomplete="username" required />
+      </div>
+      <div>
+        <label class="block text-sm mb-1">Password</label>
+        <div class="relative">
+          <input id="p" type="password" class="w-full border rounded px-3 py-2 pr-10" autocomplete="current-password" required />
+          <button type="button" id="togglePwd" aria-label="Tampilkan password" class="absolute inset-y-0 right-0 px-3 text-slate-500 hover:text-slate-700">
+            <i data-lucide="eye" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <button class="w-full bg-blue-600 text-white rounded py-2 font-medium">Masuk</button>
+      <p id="err" class="text-red-600 text-sm hidden"></p>
+    </form>
+  </div>
+
+  <script>
+    const BASE = (window.APP_CONFIG||{}).BASE_URL;
+    const q = new URLSearchParams(location.search);
+    const to = q.get('to') || 'dashboard.html';
+
+    function saveSess(resp){
+      localStorage.setItem('auth_token', resp.token);
+      localStorage.setItem('auth_profile', JSON.stringify(resp.profile));
+    }
+
+    // Init icons
+    if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
+
+    // Toggle show/hide password
+    (function(){
+      const btn = document.getElementById('togglePwd');
+      const pwd = document.getElementById('p');
+      if(!btn || !pwd) return;
+      let shown = false;
+      btn.addEventListener('click', ()=>{
+        shown = !shown;
+        pwd.type = shown ? 'text' : 'password';
+        const icon = btn.querySelector('i[data-lucide]');
+        if(icon){
+          icon.setAttribute('data-lucide', shown ? 'eye-off' : 'eye');
+          if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
+        }
+        btn.setAttribute('aria-label', shown ? 'Sembunyikan password' : 'Tampilkan password');
+      });
+    })();
+
+    // If already logged in, verify quickly and redirect to dashboard
+    (function(){
+      const token = localStorage.getItem('auth_token');
+      if(!token) return;
+      const cb = 'cb'+Math.random().toString(36).slice(2);
+      let redirected = false;
+      window[cb] = (resp)=>{
+        if(resp && resp.ok){
+          redirected = true;
+          location.href = to;
+        }
+        delete window[cb];
+      };
+      // Call auth check via JSONP; backend should accept dataset=auth&route=check
+      const s = document.createElement('script');
+      s.src = `${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}&callback=${cb}`;
+      s.onerror = ()=>{
+        // If server unreachable, keep login page; user can relogin
+      };
+      document.body.appendChild(s);
+      // Fallback: if no response within 1500ms but token exists, proceed to dashboard
+      setTimeout(()=>{ if(!redirected){ location.href = to; } },1500);
+    })();
+
+    document.getElementById('form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const u = document.getElementById('u').value.trim();
+      const p = document.getElementById('p').value.trim();
+      const cb = 'cb'+Math.random().toString(36).slice(2);
+      const url = `${BASE}?dataset=auth&route=login&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}&callback=${cb}`;
+      window[cb] = (resp)=>{
+        if(resp && resp.ok){
+          saveSess(resp);
+          location.href = to;
+        } else {
+          document.getElementById('err').textContent = resp && resp.error ? resp.error : 'Login gagal';
+          document.getElementById('err').classList.remove('hidden');
+        }
+        delete window[cb];
+      };
+      const s = document.createElement('script'); s.src = url; s.onerror = ()=>{
+        document.getElementById('err').textContent = 'Tidak dapat menghubungi server';
+        document.getElementById('err').classList.remove('hidden');
+      }; document.body.appendChild(s);
+    });
+  </script>
+</body>
+</html>

@@ -223,3 +223,35 @@ Konfigurasi terpusat sudah diterapkan. Cukup ubah `config.js` saat URL Web App b
 - Build: PASS (tidak ada proses build)
 - Lint/Typecheck: N/A (tanpa tool lint/type terkonfigurasi)
 - Tests: N/A (belum ada test otomatis)
+
+---
+
+## Login & Dashboard (Baru)
+
+Halaman baru:
+- `login.html` — halaman masuk untuk Siswa dan Pembimbing/Penguji.
+- `dashboard.html` — setelah login, pengguna dapat mengunggah:
+  - Laporan PKL (PDF) ke Google Drive.
+  - Dokumentasi UKK (zip/foto/video/PDF) ke Google Drive.
+
+Konfigurasi yang diperlukan:
+1) Google Sheets — tambahkan sheet berikut (header baris pertama persis):
+  - `USERS`: username | password_hash | role | nama | kelas | mitra
+    - password_hash diisi hasil formula: `=HASH_SHA256("password_plain")` (fungsi custom dari code.gs)
+    - role: `siswa` atau `guru` (untuk pembimbing/penguji). Anda bisa menambah kolom lain bila perlu.
+  - `UPLOADS`: akan dibuat otomatis saat unggahan pertama. Kolom: timestamp | username | role | category | fileId | fileName | mimeType | size | mitra | nama | kelas
+
+2) Google Drive — buat 2 folder, salin ID-nya:
+  - Folder PKL → isi ke konstanta `FOLDER_PKL_ID` di `code.gs`.
+  - Folder UKK → isi ke konstanta `FOLDER_UKK_ID` di `code.gs`.
+
+3) Deploy Apps Script sebagai Web App (Anyone with the link) dan perbarui `config.js` → `BASE_URL` sesuai URL Web App.
+
+4) Alur penggunaan:
+  - Buka `login.html`, masukkan kredensial sesuai data pada sheet `USERS`.
+  - Setelah login berhasil, akan diarahkan ke `dashboard.html`.
+  - Unggah file melalui kartu yang tersedia. File akan tersimpan ke Google Drive dan dicatat ke sheet `UPLOADS`.
+
+Catatan keamanan:
+- Token sesi disimpan di Script Properties dan dievaluasi pada setiap unggahan.
+- Pastikan Web App dijalankan sebagai akun yang memiliki akses ke folder Drive tujuan.

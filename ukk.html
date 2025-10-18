@@ -33,9 +33,10 @@
         <ul class="hidden md:flex items-center gap-1 text-sm">
           <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
           <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK</a></li>
           <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
         <button id="burgerBtn" class="md:hidden h-9 w-9 flex items-center justify-center border rounded-lg hover:bg-slate-100">
           <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,9 +53,10 @@
         <ul class="flex flex-col gap-1 text-sm">
           <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
           <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK</a></li>
           <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
         </ul>
       </div>
     </div>
@@ -142,9 +144,11 @@
       <nav aria-label="Tautan footer">
         <a href="index.html" class="hover:underline mr-3">Home</a>
         <a href="pembimbing.html" class="hover:underline mr-3">Pembimbing</a>
+        <a href="penguji.html" class="hover:underline mr-3">Penguji PKL</a>
         <a href="peserta.html" class="hover:underline mr-3">Peserta</a>
-        <a href="ukk.html" class="hover:underline mr-3">UKK</a>
-        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
+        <a href="ukk.html" class="hover:underline mr-3">UKK Industri</a>
+        <a href="login.html" class="hover:underline mr-3">Login</a>
+        <a href="dashboard.html" class="hover:underline">Dashboard</a>
       </nav>
     </div>
   </footer>
@@ -165,6 +169,28 @@
       printBtn=document.getElementById('printBtn'),
           alertEl=document.getElementById('app-alert');
     document.getElementById('year').textContent=new Date().getFullYear();
+
+    // Toggle Login/Logout menu based on auth status
+    (function(){
+      const navAuth=document.getElementById('navAuth');
+      const navAuthMobile=document.getElementById('navAuthMobile');
+      const token=localStorage.getItem('auth_token');
+      function makeLogout(el){
+        if(!el) return;
+        el.textContent='Logout';
+        el.href='#';
+        el.addEventListener('click',function(ev){
+          ev.preventDefault();
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_profile');
+          location.href='login.html';
+        });
+      }
+      if(token){
+        makeLogout(navAuth);
+        makeLogout(navAuthMobile);
+      }
+    })();
 
     // Burger menu
     const burgerBtn=document.getElementById('burgerBtn'),burgerIcon=document.getElementById('burgerIcon'),
