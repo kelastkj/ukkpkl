@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistem Informasi PKL & UKK Industri — Peserta PKL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config.js"></script>
+  <style>
+    :root { color-scheme: light; }
+    @media print { nav, #app-alert, #filters { display: none !important; } }
+    .shimmer { position: relative; overflow: hidden; background-color: rgb(241 245 249); }
+    .shimmer::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+      animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+    @keyframes slidebar { 0%{transform:translateX(-66%)} 50%{transform:translateX(0)} 100%{transform:translateX(66%)} }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+
+  <!-- NAV (disamakan dengan index: logo.png + Penguji PKL) -->
+  <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="flex h-14 items-center justify-between">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <img src="logo.png" alt="Logo TKJ SMKN 1 Telagasari" class="h-8 w-8 rounded-lg" />
+          <div class="leading-tight">
+            <div class="font-bold tracking-tight">SI PKL & UKK Industri</div>
+            <div class="text-[11px] text-slate-500">TKJ SMKN 1 Telagasari</div>
+          </div>
+        </a>
+
+        <!-- Desktop menu -->
+        <ul class="hidden md:flex items-center gap-1 text-sm">
+          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
+          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
+          <li><a href="peserta.html" aria-current="page" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK</a></li>
+          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+        </ul>
+
+        <!-- Burger -->
+        <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" aria-controls="mobileMenu" aria-expanded="false" aria-label="Toggle menu">
+          <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
+          <svg id="closeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <!-- Mobile menu -->
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+      <div class="mx-auto max-w-6xl px-4 py-2">
+        <ul class="flex flex-col gap-1 text-sm">
+          <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
+          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">UKK</a></li>
+          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="border-b bg-gradient-to-r from-emerald-50 via-sky-50 to-teal-50">
+    <div class="mx-auto max-w-6xl px-4 py-6">
+      <h1 class="text-xl md:text-2xl font-bold tracking-tight">Peserta PKL per Mitra</h1>
+      <p class="text-sm text-slate-600">Pilih mitra atau cari nama siswa untuk melihat lokasi PKL.</p>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    <!-- Filter -->
+    <section id="filters" class="mb-4">
+      <div class="rounded-2xl border bg-white p-4 md:p-5 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
+        <label class="block">
+          <span class="block text-sm font-medium text-slate-600">Mitra Industri</span>
+          <select id="mitraSelect" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300" disabled>
+            <option value="">Memuat mitra…</option>
+          </select>
+        </label>
+
+        <label class="md:col-span-2 block">
+          <span class="block text-sm font-medium text-slate-600">Cari Nama Siswa</span>
+          <input id="searchInput" type="text" placeholder="Ketik minimal 2 huruf nama siswa…" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+        </label>
+
+        <div class="md:col-span-3 flex justify-between items-center">
+          <span id="metaLoading" class="hidden text-xs inline-flex items-center gap-2 text-slate-500">
+            <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span> memuat…
+          </span>
+          <span id="searchHint" class="text-xs text-slate-500">Tips: ketik nama lengkap/parsial lalu tunggu hasil muncul di bawah.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alert -->
+    <div id="app-alert" class="hidden mb-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-800 px-4 py-3"></div>
+
+    <!-- Hasil pencarian siswa -->
+    <section id="searchSection" class="hidden mb-4">
+      <div class="rounded-2xl border bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h2 class="text-sm font-semibold text-slate-700">Hasil Pencarian Siswa</h2>
+          <button id="clearSearchBtn" class="text-xs px-2 py-1 rounded-lg border hover:bg-slate-50">Bersihkan</button>
+        </div>
+        <div id="searchResults" class="divide-y"></div>
+      </div>
+    </section>
+
+    <!-- Summary -->
+    <section id="summary" class="mb-4 hidden">
+      <div class="rounded-2xl border bg-white p-4 shadow-sm">
+        <div class="flex flex-wrap items-center gap-4 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+            <span class="text-slate-600">Mitra</span>
+            <span class="font-semibold" id="summaryMitra">-</span>
+          </div>
+          <div class="text-slate-600">Jumlah Peserta: <span class="font-semibold" id="summaryCount">0</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TABLE -->
+    <section class="rounded-2xl border bg-white p-0 shadow-sm overflow-hidden">
+      <div class="border-b bg-slate-50/80 px-4 py-3">
+        <h2 class="text-sm font-semibold text-slate-700">Daftar Peserta PKL</h2>
+      </div>
+
+      <div class="px-2 md:px-4 pb-4 pt-2 overflow-x-auto">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr class="border-b">
+              <th class="w-20 text-left text-xs font-semibold tracking-wide text-slate-500 px-3 py-2">No</th>
+              <th class="text-left text-xs font-semibold tracking-wide text-slate-500 px-3 py-2">Nama Peserta</th>
+              <th class="text-left text-xs font-semibold tracking-wide text-slate-500 px-3 py-2">Kelas</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+
+        <!-- Loading bar below header -->
+        <div id="dataLoading" class="hidden mt-2">
+          <div class="h-2 w-full bg-slate-100 overflow-hidden rounded-full">
+            <div class="h-2 w-1/3 bg-emerald-500 rounded-full" style="animation: slidebar 1.2s ease-in-out infinite;"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton rows -->
+        <div id="skeleton" class="hidden mt-3 space-y-2">
+          <div class="h-10 w-full shimmer rounded-lg"></div>
+          <div class="h-10 w-full shimmer rounded-lg"></div>
+          <div class="h-10 w-full shimmer rounded-lg"></div>
+        </div>
+
+        <p id="emptyState" class="hidden text-sm text-slate-500 mt-3 px-2">Silakan pilih mitra untuk melihat peserta.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER (disamakan dengan index) -->
+  <footer class="border-t bg-white mt-10">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
+      <div>© <span id="year"></span> Sistem Informasi PKL & UKK Industri — TKJ SMKN 1 Telagasari.</div>
+      <nav aria-label="Tautan footer">
+        <a href="index.html" class="hover:underline mr-3">Home</a>
+        <a href="pembimbing.html" class="hover:underline mr-3">Pembimbing</a>
+        <a href="peserta.html" class="hover:underline mr-3">Peserta</a>
+        <a href="ukk.html" class="hover:underline mr-3">UKK</a>
+        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    const BASE_URL = (window.APP_CONFIG && window.APP_CONFIG.BASE_URL) || '';
+
+    // Elements
+    const burgerBtn=document.getElementById('burgerBtn'),
+          burgerIcon=document.getElementById('burgerIcon'),
+          closeIcon=document.getElementById('closeIcon'),
+          mobileMenu=document.getElementById('mobileMenu');
+
+    const mitraSelect=document.getElementById('mitraSelect'),
+          searchInput=document.getElementById('searchInput'),
+          clearSearchBtn=document.getElementById('clearSearchBtn'),
+          searchSection=document.getElementById('searchSection'),
+          searchResults=document.getElementById('searchResults');
+
+    const tableBody=document.getElementById('tableBody'),
+          summary=document.getElementById('summary'),
+          summaryMitra=document.getElementById('summaryMitra'),
+          summaryCount=document.getElementById('summaryCount'),
+          metaLoading=document.getElementById('metaLoading'),
+          dataLoading=document.getElementById('dataLoading'),
+          skeleton=document.getElementById('skeleton'),
+          emptyState=document.getElementById('emptyState'),
+          alertEl=document.getElementById('app-alert');
+
+    document.getElementById('year').textContent=new Date().getFullYear();
+
+    // Burger menu
+    burgerBtn?.addEventListener('click',()=>{
+      const expanded = burgerBtn.getAttribute('aria-expanded') === 'true';
+      burgerBtn.setAttribute('aria-expanded', String(!expanded));
+      mobileMenu.classList.toggle('hidden');
+      burgerIcon.classList.toggle('hidden');
+      closeIcon.classList.toggle('hidden');
+    });
+
+    // Helpers
+    function show(e){e.classList.remove('hidden')}
+    function hide(e){e.classList.add('hidden')}
+    function showAlert(t){alertEl.textContent=t;show(alertEl)}
+    function hideAlert(){hide(alertEl)}
+    async function fetchJSON(u){const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json();}
+
+    // Render
+    function renderTable(list){
+      tableBody.innerHTML='';
+      if(!list.length){ show(emptyState); hide(summary); return; }
+      hide(emptyState);
+      const frag=document.createDocumentFragment();
+      list.forEach((row,i)=>{
+        const tr=document.createElement('tr');
+        tr.className='border-b hover:bg-slate-50';
+        tr.innerHTML=`
+          <td class="px-3 py-2 text-sm text-slate-600">${i+1}</td>
+          <td class="px-3 py-2 text-sm">${row.siswa || '-'}</td>
+          <td class="px-3 py-2 text-sm">${row.kelas || '-'}</td>`;
+        frag.appendChild(tr);
+      });
+      tableBody.appendChild(frag);
+      summaryMitra.textContent = mitraSelect.value || '-';
+      summaryCount.textContent = list.length;
+      show(summary);
+    }
+
+    // Loading control
+    function startMetaLoading(){ show(metaLoading); }
+    function stopMetaLoading(){ hide(metaLoading); }
+    function startDataLoading(){ tableBody.innerHTML=''; hide(summary); hide(emptyState); show(dataLoading); show(skeleton); }
+    function stopDataLoading(){ hide(dataLoading); hide(skeleton); }
+
+    // Data flows
+    async function loadMeta(){
+      try{
+        hideAlert(); startMetaLoading();
+        const meta = await fetchJSON(`${BASE_URL}?dataset=peserta&route=meta`);
+        const mitraList = (meta && meta.meta && meta.meta.mitra) || [];
+        mitraSelect.innerHTML = '<option value="">— Pilih Mitra —</option>';
+        mitraList.forEach(m => mitraSelect.innerHTML += `<option value="${m}">${m}</option>`);
+        mitraSelect.disabled = false;
+      }catch(e){
+        console.error(e);
+        mitraSelect.innerHTML = '<option>Gagal memuat</option>';
+        showAlert('Gagal memuat daftar mitra.');
+      }finally{
+        stopMetaLoading();
+      }
+    }
+
+    async function loadDataFor(mitra){
+      if(!mitra) return;
+      try{
+        hideAlert(); startDataLoading();
+        const json = await fetchJSON(`${BASE_URL}?dataset=peserta&mitra=${encodeURIComponent(mitra)}`);
+        if(!json.ok) throw new Error(json.error || 'Gagal memuat data');
+        const rows = (json.data || []).map(r => ({ siswa: r.siswa, kelas: r.kelas }));
+        renderTable(rows);
+      }catch(e){
+        console.error(e);
+        showAlert('Gagal memuat data peserta.');
+      }finally{
+        stopDataLoading();
+      }
+    }
+
+    // Search
+    function debounce(fn, delay){ let t; return (...args)=>{ clearTimeout(t); t=setTimeout(()=>fn(...args), delay); }; }
+    async function doSearch(q){
+      const qq = (q||'').trim();
+      if(qq.length < 2){ hide(searchSection); searchResults.innerHTML=''; return; }
+      try{
+        hideAlert();
+        show(searchSection);
+        searchResults.innerHTML = '<div class="py-2 text-sm text-slate-500">Mencari…</div>';
+        const json = await fetchJSON(`${BASE_URL}?dataset=peserta&q=${encodeURIComponent(qq)}`);
+        if(!json.ok) throw new Error(json.error || 'Gagal mencari');
+        const rows = json.data || [];
+        if(!rows.length){
+          searchResults.innerHTML = '<div class="py-2 text-sm text-slate-500">Tidak ditemukan.</div>';
+          return;
+        }
+        // render results
+        const frag = document.createDocumentFragment();
+        rows.forEach(item => {
+          const div = document.createElement('div');
+          div.className = 'py-2 flex items-center justify-between gap-3';
+          div.innerHTML = `
+            <div class="text-sm">
+              <div class="font-medium text-slate-800">${item.siswa}</div>
+              <div class="text-slate-500 text-xs">Kelas: ${item.kelas || '-'} • Mitra: <span class="font-medium">${item.mitra || '-'}</span></div>
+            </div>
+            <button class="text-xs px-2 py-1 rounded-lg border hover:bg-slate-50" data-mitra="${item.mitra}">Lihat</button>
+          `;
+          frag.appendChild(div);
+        });
+        searchResults.innerHTML = '';
+        searchResults.appendChild(frag);
+
+        // Bind “Lihat”
+        searchResults.querySelectorAll('button[data-mitra]').forEach(btn=>{
+          btn.addEventListener('click', ()=>{
+            const m = btn.getAttribute('data-mitra') || '';
+            if(m){
+              mitraSelect.value = m;
+              hide(searchSection);
+              searchInput.value='';
+              loadDataFor(m);
+            }
+          });
+        });
+
+      }catch(e){
+        console.error(e);
+        searchResults.innerHTML = '<div class="py-2 text-sm text-red-600">Terjadi kesalahan saat mencari.</div>';
+      }
+    }
+    const onSearch = debounce(()=>doSearch(searchInput.value), 350);
+
+    // Events
+    mitraSelect.addEventListener('change', ()=> loadDataFor(mitraSelect.value));
+    searchInput.addEventListener('input', onSearch);
+    clearSearchBtn.addEventListener('click', ()=>{ searchInput.value=''; hide(searchSection); searchResults.innerHTML=''; });
+
+    // Init
+    loadMeta();
+  </script>
+</body>
+</html>
