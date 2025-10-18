@@ -126,6 +126,11 @@
         </div>
 
         <p id="emptyState" class="hidden text-sm text-slate-500 mt-3 px-2">Silakan pilih mitra untuk melihat kompetensi.</p>
+
+        <!-- Cetak -->
+        <div id="printBar" class="hidden mt-4 flex items-center justify-end gap-2">
+          <button id="printBtn" class="px-3 py-2 text-sm rounded-lg border hover:bg-slate-50">Cetak</button>
+        </div>
       </div>
     </section>
   </main>
@@ -155,7 +160,9 @@
           metaLoading=document.getElementById('metaLoading'),
           dataLoading=document.getElementById('dataLoading'),
           skeleton=document.getElementById('skeleton'),
-          emptyState=document.getElementById('emptyState'),
+      emptyState=document.getElementById('emptyState'),
+      printBar=document.getElementById('printBar'),
+      printBtn=document.getElementById('printBtn'),
           alertEl=document.getElementById('app-alert');
     document.getElementById('year').textContent=new Date().getFullYear();
 
@@ -170,9 +177,13 @@
     function hideAlert(){hide(alertEl)}
     async function fetchJSON(u){const r=await fetch(u,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
 
+    // Cache data terakhir untuk cetak
+    let lastData = [];
+
     function renderTable(l){
       tableBody.innerHTML='';
-      if(!l.length){show(emptyState);hide(summary);return;}
+      lastData = l.slice();
+      if(!l.length){show(emptyState);hide(summary); printBar.classList.add('hidden'); return;}
       hide(emptyState);
       l.forEach((x,i)=>{
         const tr=document.createElement('tr');
@@ -183,6 +194,7 @@
       summaryMitra.textContent=mitraSelect.value||'-';
       summaryCount.textContent=l.length;
       show(summary);
+      printBar.classList.remove('hidden');
     }
 
     function startDataLoading(){
@@ -190,6 +202,8 @@
       hide(summary);
       hide(emptyState);
       show(dataLoading);show(skeleton);
+      // Sembunyikan tombol Cetak saat loading agar tidak memakai data lama
+      printBar?.classList.add('hidden');
     }
     function stopDataLoading(){hide(dataLoading);hide(skeleton);}
 
@@ -214,11 +228,28 @@
         const j=await fetchJSON(`${BASE_URL}?mitra=${encodeURIComponent(m)}`);
         if(!j.ok)throw new Error(j.error||'Gagal memuat data');
         renderTable(j.data||[]);
-      }catch(e){showAlert('Gagal memuat data kompetensi.');}
+      }catch(e){
+        showAlert('Gagal memuat data kompetensi.');
+        // Pastikan tombol Cetak tetap tersembunyi pada error
+        printBar?.classList.add('hidden');
+      }
       finally{stopDataLoading();}
     }
 
     mitraSelect.addEventListener('change',()=>loadDataFor(mitraSelect.value));
+    // Cetak -> buka ppsp.html dengan parameter mitra dan list kompetensi
+    printBtn?.addEventListener('click', ()=>{
+      const m = mitraSelect.value || '';
+      const params = new URLSearchParams();
+      if(m) params.set('mitra', m);
+      // kirim kompetensi sebagai komp=... berulang
+      lastData.forEach(row=>{ if(row && row.kompetensi) params.append('komp', row.kompetensi); });
+      // metadata default
+      params.set('konsentrasi','Teknik Komputer Jaringan');
+      params.set('bentuk','Penguasaan Perorangan');
+      const url = `ppsp.html?${params.toString()}`;
+      window.open(url, '_blank');
+    });
     loadMeta();
   </script>
 </body>

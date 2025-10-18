@@ -8,6 +8,7 @@ Proyek statis berbasis HTML yang menampilkan informasi seputar Praktik Kerja Lap
 - Halaman Penguji PKL: pilih penguji, lihat daftar siswa yang diuji, serta pencarian siswa lintas penguji.
 - Halaman Peserta: pilih mitra industri untuk melihat daftar peserta PKL; dukung pencarian siswa lintas mitra.
 - Halaman UKK: pilih mitra industri untuk melihat daftar kompetensi UKK yang diuji.
+- Halaman Cetak Penilaian (P3-PPsp 3 Penyesuaian): lembar penilaian UKK siap cetak ukuran A4 dengan perhitungan otomatis nilai.
 - Navigasi responsif (desktop + mobile menu), skeleton/loading bar, dan ringkasan data.
 
 ## Struktur Berkas
@@ -17,6 +18,7 @@ pembimbing.html
 penguji.html
 peserta.html
 ukk.html
+ppsp.html
 config.js
 README.md
 ```
@@ -133,6 +135,18 @@ Catatan: Halaman ini memanggil endpoint tanpa parameter `dataset`. Pastikan Apps
     ```json
     { "ok": true, "data": [ { "kompetensi": "..." } ] }
     ```
+
+### 5) Halaman Cetak Penilaian UKK (`ppsp.html`)
+Halaman ini meniru format P3-PPsp 3 (Penyesuaian) sebagai lembar penilaian siap-cetak ukuran A4. Tidak membutuhkan API. Field identitas bisa diisi manual atau diisi otomatis via parameter URL. Nilai dihitung otomatis dari Bobot (%) dan Skor (1–4) per baris.
+
+- Field yang didukung (parameter URL opsional):
+  - `nama`, `nisn`, `kelas`, `mitra`, `kompetensi`, `tanggal`, `penguji`, `pembimbing`
+- Baris penilaian default dan bobot dapat diedit langsung di tabel. Rumus: Nilai = Bobot × (Skor/4). Nilai Akhir = Σ Nilai (maks 100). Predikat: A ≥90, B ≥80, C ≥70, D <70.
+- Contoh akses lokal:
+  - `http://localhost/ukkpkl/ppsp.html?nama=Ahmad%20Setiawan&nisn=1234567890&kelas=XII%20TKJ-1&mitra=PT%20Contoh%20Jaya&kompetensi=Instalasi%20Jaringan%20LAN&tanggal=18-10-2025&penguji=Bpk.%20Dedi&pembimbing=Ibu%20Rina`
+- Cara cetak: buka halaman lalu klik tombol "Cetak" di toolbar (atau Ctrl+P). Ukuran halaman otomatis A4 dengan margin 12 mm.
+
+Catatan: Struktur presisi P3-PPsp 3 mungkin berbeda antar instansi. Jika Anda ingin menyesuaikan label, jumlah baris, atau ruang tanda tangan agar 100% sama dengan dokumen, silakan beri contoh perubahan—kita bisa sesuaikan.
 
 ## Aksesibilitas & UX
 - Navigasi responsif dengan tombol burger pada lebar layar kecil.

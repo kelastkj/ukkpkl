@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PPSP</title>
+  <link rel="icon" href="logo.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="config.js"></script>
+  <style>
+    :root { color-scheme: light; }
+  /* Layout A4 untuk print */
+  @page { size: A4; margin: 12mm; }
+  @page :first { margin: 0.5cm 12mm 12mm 12mm; }
+    @media print {
+      #toolbar { display: none !important; }
+      body { background: #fff !important; }
+      .sheet { box-shadow: none !important; margin: 0 !important; }
+      .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+      /* Paksa ukuran huruf 12pt saat cetak */
+      body, body * { font-size: 12pt !important; }
+    }
+    body { background: rgb(248 250 252); font-size: 12pt; }
+    .sheet {
+      width: 210mm; min-height: 297mm; background: white;
+      margin: 12px auto; box-shadow: 0 10px 25px rgba(0,0,0,.08);
+    }
+    .doc-title { letter-spacing: .2px; }
+    .table th, .table td { border: 1px solid #000; }
+    .table th { background: #f8fafc; }
+  /* Hindari pemotongan baris tabel saat cetak */
+  thead { display: table-header-group; }
+  tfoot { display: table-row-group; }
+  tr { page-break-inside: avoid; break-inside: avoid; }
+    .inp { width: 100%; border-bottom: 1px dashed rgb(148 163 184); padding: 2px 4px; }
+    .narrow { width: 16mm; }
+    .row-h { height: 28px; }
+    .muted { color: #4b5563; }
+    .page-break { page-break-before: always; }
+    .grid-detail { grid-template-columns: 60mm auto; column-gap: 4mm; }
+    .nowrap { white-space: nowrap; }
+  /* Hilangkan layout samping, gunakan tumpuk vertikal */
+  .mt-1em { margin-top: 1em; }
+  .title-upk { font-weight: 800; font-size: 16pt; }
+  </style>
+</head>
+<body class="text-slate-800">
+
+  <!-- Tidak ada toolbar/nav untuk versi cetak otomatis -->
+
+  <!-- Sheet: Halaman Gabungan (penilaian + keterangan) -->
+  <div class="sheet">
+    <div class="p-6 md:p-8">
+      <!-- Bagian atas: Identitas + Tabel Penilaian -->
+      <div class="mt-2">
+          <!-- Judul Dokumen -->
+          <div class="text-center leading-tight">
+            <div class="title-upk">UJI KOMPETENSI KEAHLIAN</div>
+            <div class="title-upk">TAHUN PELAJARAN <span id="tapel">2025/2026</span></div>
+            <div class="mt-2 font-bold">LEMBAR PENILAIAN</div>
+            <div class="font-bold">UJIAN PRAKTIK KEJURUAN</div>
+          </div>
+
+          <!-- Detail Satuan/Mitra -->
+          <div class="mt-3 text-sm grid grid-detail gap-y-1">
+            <div class="nowrap">Satuan Pendidikan</div><div>: <span id="satuan">SMKN 1 Telagasari</span></div>
+            <div class="nowrap">Mitra Industri</div><div>: <span id="mitra">-</span></div>
+            <div class="nowrap">Kompetensi/Konsentrasi Keahlian</div><div>: <span id="konsentrasi">Teknik Komputer Jaringan</span></div>
+            <div class="nowrap">Bentuk Soal</div><div>: <span id="bentuk">Penguasaan Perorangan</span></div>
+            <div class="nowrap">Nama Peserta</div><div>: <span id="nama">...................................................</span></div>
+          </div>
+
+          <!-- Tabel Elemen Kompetensi -->
+          <div class="mt-3">
+            <table class="min-w-full table text-[12px]">
+              <thead>
+                <tr class="text-center">
+                  <th class="px-2 py-1 align-middle" style="width:10mm" rowspan="2">No</th>
+                  <th class="px-2 py-1 align-middle" rowspan="2">ELEMEN KOMPETENSI</th>
+                  <th class="px-2 py-1" colspan="2">Capaian</th>
+                  <th class="px-2 py-1 align-middle" style="width:50mm" rowspan="2">Catatan</th>
+                </tr>
+                <tr class="text-center">
+                  <th class="px-2 py-1" style="width:35mm">Kompeten</th>
+                  <th class="px-2 py-1" style="width:35mm">Belum Kompeten</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+
+          <!-- Kesimpulan akhir -->
+          <div class="mt-2 text-[12px]">
+            <div><span class="min-w-[42mm] inline-block">Kesimpulan Akhir</span>: Kompeten pada seluruh kompetensi / Kompeten pada sebagian kompetensi (Cukup Kompeten) / Belum kompeten (seluruh elemen belum kompeten)</div>
+          </div>
+      </div>
+
+      <!-- Bagian bawah: Keterangan & TTD (ditumpuk) -->
+      <div class="mt-1em text-[12px]">
+        <div class="font-semibold mb-1">Keterangan:</div>
+        <ul class="list-disc ml-5 space-y-1">
+          <li>Beri tanda pada kolom “Kompeten” atau “Belum Kompeten” untuk setiap elemen kompetensi.</li>
+          <li>Definisi kesimpulan: 
+            <ul class="list-disc ml-5">
+              <li><strong>Belum kompeten</strong>: seluruh elemen kompetensi bernilai “Belum Kompeten”.</li>
+              <li><strong>Cukup Kompeten</strong>: kompeten pada sebagian kompetensi (campuran kompeten dan belum kompeten).</li>
+              <li><strong>Kompeten</strong>: kompeten pada seluruh kompetensi.</li>
+            </ul>
+          </li>
+          <li>Kesimpulan akhir: coret yang tidak perlu — “Kompeten pada seluruh kompetensi / Kompeten pada sebagian kompetensi / Belum kompeten”.</li>
+          <li>Untuk peserta “Cukup Kompeten”, sertifikat dicetak “Kompeten” dan kompetensi yang tercantum hanya yang dinyatakan kompeten.</li>
+        </ul>
+      </div>
+
+      <!-- Keterangan (lanjutan) + Tanda Tangan dalam satu blok agar turun bersama -->
+      <div class="mt-6 text-[12px] avoid-break">
+        <ul class="list-disc ml-5">
+          <li>Peserta “Belum kompeten” dapat diberi kesempatan mengulang sesuai ketentuan.</li>
+        </ul>
+        <div class="text-right mt-8 mb-12">
+          <div>..............................., ............................ <span id="ttdYear">2025</span></div>
+          <div>Penilai</div>
+        </div>
+        <div class="text-right" style="margin-right: 10mm;">..............................................</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helpers
+    const $ = (s, r=document) => r.querySelector(s);
+    const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+    function getAllParams(){ return new URLSearchParams(location.search); }
+
+    function parseKompetensi(params){
+      // dukung beberapa cara pengiriman: komp=...&komp=... atau komp1, komp2, atau kompjson (JSON-encoded array)
+      const list = [];
+      params.forEach((v,k)=>{ if(k.toLowerCase()==='komp') list.push(v); });
+      if(!list.length){
+        // cek komp1, komp2...
+        const arr = [];
+        params.forEach((v,k)=>{ if(/^komp\d+$/i.test(k)) arr.push({k, v}); });
+        arr.sort((a,b)=> parseInt(a.k.replace(/\D/g,'')) - parseInt(b.k.replace(/\D/g,'')) );
+        arr.forEach(x=>list.push(x.v));
+      }
+      if(!list.length && params.get('kompjson')){
+        try { const j = JSON.parse(decodeURIComponent(params.get('kompjson'))); if(Array.isArray(j)) j.forEach(x=>list.push(String(x))); } catch {}
+      }
+      return list.filter(Boolean);
+    }
+
+    function renderRows(kompetensi){
+      const tbody = $('#rows');
+      tbody.innerHTML = '';
+      const rows = kompetensi.slice();
+      rows.forEach((text, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="px-2 text-center">${i+1}</td>
+          <td class="px-2">${text || '&nbsp;'}</td>
+          <td class="px-2">&nbsp;</td>
+          <td class="px-2">&nbsp;</td>
+          <td class="px-2">&nbsp;</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function initMeta(){
+      const p = getAllParams();
+      const tapel = p.get('tapel') || '2025/2026';
+      const satuan = p.get('satuan') || 'SMKN 1 Telagasari';
+      const mitra = p.get('mitra') || '-';
+      const kons = p.get('konsentrasi') || 'Teknik Komputer Jaringan';
+      const bentuk = p.get('bentuk') || 'Penguasaan Perorangan';
+      const nama = p.get('nama') || '';
+
+      $('#tapel').textContent = tapel;
+      $('#satuan').textContent = satuan;
+      $('#mitra').textContent = mitra;
+      $('#konsentrasi').textContent = kons;
+      $('#bentuk').textContent = bentuk;
+      $('#nama').textContent = nama || '...................................................';
+  // Tanggal/kota pada area tanda tangan dibiarkan kosong (titik-titik) sesuai permintaan
+
+      const komp = parseKompetensi(p);
+      renderRows(komp);
+
+      // Set dokumen title: PPSP - Nama Industri (Mitra)
+      const titleMitra = (mitra && mitra !== '-') ? ` - ${mitra}` : '';
+      document.title = `PPSP${titleMitra}`;
+
+      // Set tahun pada tanda tangan: gunakan 2025 atau akhir dari tahun pelajaran jika cocok pola "YYYY/YYYY"
+      let year = 2025;
+      const m = /^(\d{4})\/(\d{4})$/.exec(tapel.trim());
+      if (m) {
+        // Gunakan tahun kedua dari tapel, namun jika user minta 2025 secara eksplisit, prioritaskan 2025
+        const parsed = parseInt(m[2], 10);
+        year = Number.isFinite(parsed) ? parsed : year;
+      }
+      // Override ke 2025 sesuai permintaan terbaru
+      year = 2025;
+      const ttdYearEl = document.getElementById('ttdYear');
+      if (ttdYearEl) ttdYearEl.textContent = String(year);
+    }
+
+    (function(){
+      initMeta();
+      // Auto print setelah render agar langsung cetak saat dibuka
+      setTimeout(()=>{ try{ window.print(); }catch(e){} }, 300);
+    })();
+  </script>
+</body>
+</html>
