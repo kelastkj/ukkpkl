@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Sistem Informasi PKL & UKK Industri — UKK</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
   <script src="config.js"></script>
   <style>
     :root { color-scheme: light; }
@@ -31,12 +32,12 @@
           </div>
         </a>
         <ul class="hidden md:flex items-center gap-1 text-sm">
-          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
-          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
-          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK Industri</a></li>
-          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
+          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>Home</a></li>
+          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i><span id="navAuthText">Login</span></a></li>
         </ul>
         <button id="burgerBtn" class="md:hidden h-9 w-9 flex items-center justify-center border rounded-lg hover:bg-slate-100">
           <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,12 +52,12 @@
     <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
       <div class="mx-auto max-w-6xl px-4 py-2">
         <ul class="flex flex-col gap-1 text-sm">
-          <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
-          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
-          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">UKK Industri</a></li>
-          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
+          <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
+          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-5 h-5"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="briefcase" class="w-5 h-5"></i>UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-5 h-5"></i><span id="navAuthMobileText">Login</span></a></li>
         </ul>
       </div>
     </div>
@@ -147,14 +148,13 @@
         <a href="penguji.html" class="hover:underline mr-3">Penguji PKL</a>
         <a href="peserta.html" class="hover:underline mr-3">Peserta</a>
         <a href="ukk.html" class="hover:underline mr-3">UKK Industri</a>
-        <a href="login.html" class="hover:underline mr-3">Login</a>
-        <a href="dashboard.html" class="hover:underline">Dashboard</a>
       </nav>
     </div>
   </footer>
 
   <!-- SCRIPT -->
   <script>
+    lucide.createIcons();
     const BASE_URL=(window.APP_CONFIG && window.APP_CONFIG.BASE_URL) || '';
     const mitraSelect=document.getElementById('mitraSelect'),
           tableBody=document.getElementById('tableBody'),
@@ -171,24 +171,30 @@
     document.getElementById('year').textContent=new Date().getFullYear();
 
     // Toggle Login/Logout menu based on auth status
+    // Toggle Login/Logout menu based on auth status
     (function(){
       const navAuth=document.getElementById('navAuth');
       const navAuthMobile=document.getElementById('navAuthMobile');
+      const navAuthText=document.getElementById('navAuthText');
+      const navAuthMobileText=document.getElementById('navAuthMobileText');
       const token=localStorage.getItem('auth_token');
-      function makeLogout(el){
+      function makeLogout(el,textEl){
         if(!el) return;
-        el.textContent='Logout';
         el.href='#';
+        if(textEl) textEl.textContent='Logout';
         el.addEventListener('click',function(ev){
           ev.preventDefault();
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_profile');
           location.href='login.html';
         });
+        const ic = el.querySelector('i[data-lucide]');
+        if(ic) ic.setAttribute('data-lucide','log-out');
+        if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
       }
       if(token){
-        makeLogout(navAuth);
-        makeLogout(navAuthMobile);
+        makeLogout(navAuth, navAuthText);
+        makeLogout(navAuthMobile, navAuthMobileText);
       }
     })();
 

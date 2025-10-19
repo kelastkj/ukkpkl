@@ -32,12 +32,12 @@
           </div>
         </a>
         <ul class="hidden md:flex items-center gap-1 text-sm">
-          <li><a href="index.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Home</a></li>
-          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
-          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
-          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
+          <li><a href="index.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>Home</a></li>
+          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i><span id="navAuthText">Login</span></a></li>
         </ul>
         <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100">
           <i data-lucide="menu" id="burgerIcon" class="w-5 h-5"></i>
@@ -48,12 +48,12 @@
     <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
       <div class="mx-auto max-w-6xl px-4 py-2">
         <ul class="flex flex-col gap-1 text-sm">
-          <li><a href="index.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white">Home</a></li>
-          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
-          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
-          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100">Login</a></li>
+          <li><a href="index.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
+          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-5 h-5"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="briefcase" class="w-5 h-5"></i>UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-5 h-5"></i><span id="navAuthMobileText">Login</span></a></li>
         </ul>
       </div>
     </div>
@@ -173,14 +173,12 @@
   <footer class="border-t bg-white mt-10">
     <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
       <div>© <span id="year"></span> Sistem Informasi PKL & UKK Industri — TKJ SMKN 1 Telagasari</div>
-      <div class="flex gap-3">
+        <div class="flex gap-3">
         <a href="index.html" class="hover:underline">Home</a>
         <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
         <a href="penguji.html" class="hover:underline">Penguji PKL</a>
         <a href="peserta.html" class="hover:underline">Peserta</a>
         <a href="ukk.html" class="hover:underline">UKK Industri</a>
-        <a href="login.html" class="hover:underline">Login</a>
-        <a href="dashboard.html" class="hover:underline">Dashboard</a>
       </div>
     </div>
   </footer>
@@ -199,15 +197,17 @@
     });
     document.getElementById('year').textContent=new Date().getFullYear();
 
-    // Toggle Login/Logout menu based on auth status
+    // Toggle Login/Logout menu based on auth status (update icon + label)
     (function(){
       const navAuth = document.getElementById('navAuth');
       const navAuthMobile = document.getElementById('navAuthMobile');
+      const navAuthText = document.getElementById('navAuthText');
+      const navAuthMobileText = document.getElementById('navAuthMobileText');
       const token = localStorage.getItem('auth_token');
-      function makeLogout(el){
+      function makeLogout(el, textEl){
         if(!el) return;
-        el.textContent = 'Logout';
         el.href = '#';
+        if(textEl) textEl.textContent = 'Logout';
         el.addEventListener('click', function(ev){
           ev.preventDefault();
           localStorage.removeItem('auth_token');
@@ -215,10 +215,14 @@
           // Return to login page
           location.href = 'login.html';
         });
+        // swap icon to log-out if lucide available
+        const ic = el.querySelector('i[data-lucide]');
+        if(ic) ic.setAttribute('data-lucide', 'log-out');
+        if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
       }
       if(token){
-        makeLogout(navAuth);
-        makeLogout(navAuthMobile);
+        makeLogout(navAuth, navAuthText);
+        makeLogout(navAuthMobile, navAuthMobileText);
       }
     })();
   </script>
