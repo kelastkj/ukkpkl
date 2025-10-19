@@ -52,21 +52,6 @@
     .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
     .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
     .badge-ukk{ background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe; }
-    /* Hero fallback styling */
-    #hero-student{ display:block; }
-    .hero-card{ position:relative; overflow:hidden; border-radius:16px; background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); color:white; }
-    .hero-card .hero-overlay{ position:absolute; inset:0; background: radial-gradient(80% 60% at 10% 10%, rgba(255,255,255,.15), rgba(255,255,255,0)), radial-gradient(60% 60% at 90% 20%, rgba(255,255,255,.1), rgba(255,255,255,0)); }
-    .hero-content{ position:relative; padding:18px; }
-    .hero-title{ font-size:20px; font-weight:800; letter-spacing:.2px; }
-    .hero-sub{ margin-top:6px; font-size:14px; opacity:.95; }
-    .hero-badges{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
-    .hero-badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); font-size:12px; font-weight:600; }
-    /* Tabs fallback styling for guru section */
-    .tabs{ display:flex; align-items:center; gap:8px; }
-    .tab-btn{ appearance:none; border:1px solid #dbe3ef; background:#f8fafc; color:#334155; font-weight:600; padding:6px 12px; border-radius:999px; cursor:pointer; }
-    .tab-btn[aria-selected="true"], .tab-btn.active{ background:#ffffff; color:#0f172a; border-color:#cbd5e1; box-shadow:0 2px 6px rgba(15,23,42,.06); }
-    .tab-panel{ display:none; }
-    .tab-panel.active{ display:block; }
   </style>
 </head>
 <body class="min-h-screen text-slate-800">
@@ -127,32 +112,6 @@
       <div class="text-sm text-slate-700">Memproses...</div>
     </div>
   </div>
-
-  <!-- HERO siswa -->
-  <section id="hero-student" class="max-w-6xl mx-auto px-4 mt-4">
-    <div class="hero-card shadow-xl ring-1 ring-white/10">
-      <div class="hero-overlay"></div>
-      <div class="hero-content p-5 sm:p-6 md:p-7">
-        <div class="flex items-start gap-4">
-          <div class="hidden sm:flex items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 p-3">
-            <i data-lucide="building-2" class="w-6 h-6"></i>
-          </div>
-          <div class="flex-1">
-            <div class="hero-title tracking-tight">
-              Halo, <span id="heroName">Siswa</span> 👋
-            </div>
-            <p class="hero-sub">
-              Saat ini kamu sedang magang di <span class="font-semibold" id="heroMitra">-</span>.
-            </p>
-            <div class="hero-badges">
-              <span class="hero-badge"><i data-lucide="smile" class="w-4 h-4"></i><span id="heroRole">SISWA</span></span>
-              <span class="hero-badge"><i data-lucide="map-pin" class="w-4 h-4"></i><span id="heroKelas">-</span></span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <main id="main-grid" class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 gap-4 md:grid-cols-2">
     <section id="card-pkl" class="card p-5 space-y-3 order-1">
@@ -229,136 +188,26 @@
   </main>
 
   <section id="guru-section" class="max-w-6xl mx-auto px-4 mt-6 hidden">
-    <div class="space-y-4">
-      <div id="guru-stats" class="card p-5">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-500">Siswa Dibimbing</div>
-              <div id="stat-bimbing-count" class="text-2xl font-extrabold text-slate-800">0</div>
-            </div>
-            <i data-lucide="users" class="w-6 h-6 text-emerald-600"></i>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-500">Siswa Diuji</div>
-              <div id="stat-penguji-count" class="text-2xl font-extrabold text-slate-800">0</div>
-            </div>
-            <i data-lucide="clipboard-check" class="w-6 h-6 text-blue-600"></i>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-500">Unggahan PKL</div>
-              <div id="stat-uploads-pkl" class="text-2xl font-extrabold text-slate-800">0</div>
-            </div>
-            <i data-lucide="file-text" class="w-6 h-6 text-emerald-600"></i>
-          </div>
-          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
-            <div>
-              <div class="text-xs uppercase tracking-wide text-slate-500">Unggahan UKK</div>
-              <div id="stat-uploads-ukk" class="text-2xl font-extrabold text-slate-800">0</div>
-            </div>
-            <i data-lucide="folder" class="w-6 h-6 text-blue-600"></i>
-          </div>
-        </div>
+    <div class="card p-5 space-y-3">
+      <div>
+        <h2 class="font-semibold text-lg">Monitoring Unggahan Siswa</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Daftar file yang diunggah siswa yang Anda bimbing atau uji.</p>
       </div>
-
-      <div id="guru-bimbingan" class="card p-5 space-y-4">
-        <div>
-          <h2 class="font-semibold text-lg">Bimbingan</h2>
-          <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda bimbing.</p>
-        </div>
-        <div class="flex items-center justify-between gap-3">
-          <div class="tabs" role="tablist" aria-label="Kategori unggahan bimbingan">
-            <button id="tab-btn-bm-pkl" class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-bm-pkl">PKL <span id="tab-count-bm-pkl" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
-            <button id="tab-btn-bm-ukk" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-bm-ukk">UKK <span id="tab-count-bm-ukk" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
-          </div>
-        </div>
-        <div id="panel-bm-pkl" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-bm-pkl">
-          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
-            <table class="resp-table text-sm">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="guru-bm-tbody-pkl"></tbody>
-            </table>
-          </div>
-        </div>
-        <div id="panel-bm-ukk" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-bm-ukk">
-          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
-            <table class="resp-table text-sm">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="guru-bm-tbody-ukk"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="guru-pengujian" class="card p-5 space-y-4">
-        <div>
-          <h2 class="font-semibold text-lg">Pengujian</h2>
-          <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda uji.</p>
-        </div>
-        <div class="flex items-center justify-between gap-3">
-          <div class="tabs" role="tablist" aria-label="Kategori unggahan pengujian">
-            <button id="tab-btn-pj-pkl" class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-pj-pkl">PKL <span id="tab-count-pj-pkl" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
-            <button id="tab-btn-pj-ukk" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-pj-ukk">UKK <span id="tab-count-pj-ukk" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
-          </div>
-        </div>
-        <div id="panel-pj-pkl" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-pj-pkl">
-          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
-            <table class="resp-table text-sm">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="guru-pj-tbody-pkl"></tbody>
-            </table>
-          </div>
-        </div>
-        <div id="panel-pj-ukk" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-pj-ukk">
-          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
-            <table class="resp-table text-sm">
-              <thead class="bg-slate-50">
-                <tr>
-                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
-                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="guru-pj-tbody-ukk"></tbody>
-            </table>
-          </div>
-        </div>
+    <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+  <table class="resp-table text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+              <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+              <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+              <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+              <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+              <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+              <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="guru-tbody"></tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -417,15 +266,6 @@
       if(initialEl) initialEl.textContent = initial;
       const toggle = document.getElementById('profileToggle');
       if(toggle) toggle.setAttribute('aria-label', `${name} (${role})`);
-      // Hero content
-      const heroName = document.getElementById('heroName');
-      const heroMitra = document.getElementById('heroMitra');
-      const heroKelas = document.getElementById('heroKelas');
-      const heroRole = document.getElementById('heroRole');
-      if(heroName) heroName.textContent = shortName;
-      if(heroMitra) heroMitra.textContent = (prof.mitra||'-');
-      if(heroKelas) heroKelas.textContent = (prof.kelas||'-');
-      if(heroRole) heroRole.textContent = (role||'USER');
     }
 
     function fileToB64(file){
@@ -671,10 +511,6 @@
           grid.classList.add('hidden');
           grid.style.gridTemplateColumns = '';
         }
-        const hero = document.getElementById('hero-student');
-        if(hero) hero.classList.add('hidden');
-        const gs = document.getElementById('guru-section');
-        if(gs) gs.classList.remove('hidden');
       } else {
         const grid = document.getElementById('main-grid');
         if(grid){
@@ -685,10 +521,6 @@
           const el = document.getElementById(id);
           if(el) el.classList.remove('hidden');
         });
-        const hero = document.getElementById('hero-student');
-        if(hero) hero.classList.remove('hidden');
-        const gs = document.getElementById('guru-section');
-        if(gs) gs.classList.add('hidden');
       }
     }
 
@@ -705,121 +537,55 @@
       }
     }
 
-    function renderGuruRows(tbodyId, rows){
-      const tb = document.getElementById(tbodyId);
-      if(!tb) return;
-      tb.innerHTML = '';
-      if(!rows || rows.length===0){
-        tb.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>`;
-        return;
-      }
-      rows.forEach(r=>{
-        const tr = document.createElement('tr');
-        tr.setAttribute('data-category', (r.category||'').toLowerCase());
-        const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
-        tr.innerHTML = `
-          <td class=\"resp-td px-3 py-2 whitespace-nowrap\" data-label=\"Waktu\">${t}</td>
-          <td class=\"resp-td px-3 py-2\" data-label=\"Siswa\">${r.nama||''}</td>
-          <td class=\"resp-td px-3 py-2\" data-label=\"Kelas\">${r.kelas||''}</td>
-          <td class=\"resp-td px-3 py-2\" data-label=\"Mitra\">${r.mitra||''}</td>
-          <td class=\"resp-td px-3 py-2\" data-label=\"Kategori\"><span class=\"badge-cat ${(r.category||'').toLowerCase()==='pkl'?'badge-pkl':((r.category||'').toLowerCase()==='ukk'?'badge-ukk':'')}\">${r.category||''}</span></td>
-          <td class=\"resp-td px-3 py-2\" data-label=\"Nama File\">${r.fileName||''}</td>
-          <td class=\"resp-td px-3 py-2 whitespace-nowrap\" data-label=\"Aksi\">
-            <div class=\"flex items-center gap-3\">
-              <a class=\"inline-flex items-center justify-center text-slate-600 hover:text-blue-600\" target=\"_blank\" href=\"https://drive.google.com/file/d/${r.fileId}/view\" aria-label=\"Buka file\">
-                <i data-lucide=\"eye\" class=\"w-4 h-4\"></i>
-                <span class=\"sr-only\">Buka</span>
-              </a>
-              <button data-del=\"${r.fileId}\" class=\"inline-flex items-center justify-center text-slate-600 hover:text-red-600\" type=\"button\" aria-label=\"Hapus file\">
-                <i data-lucide=\"trash-2\" class=\"w-4 h-4\"></i>
-                <span class=\"sr-only\">Hapus</span>
-              </button>
-            </div>
-          </td>`;
-        tb.appendChild(tr);
-      });
-      tb.querySelectorAll('button[data-del]').forEach(btn=>{
-        btn.addEventListener('click', ()=> openConfirm(btn.getAttribute('data-del')));
-      });
-      if(window.lucide && typeof window.lucide.createIcons === 'function'){
-        window.lucide.createIcons();
-      }
-    }
-
-    function setTabCounts(group, pkl, ukk){
-      const c1 = document.getElementById(`tab-count-${group}-pkl`);
-      const c2 = document.getElementById(`tab-count-${group}-ukk`);
-      if(c1) c1.textContent = `(${pkl||0})`;
-      if(c2) c2.textContent = `(${ukk||0})`;
-    }
-
-    function setupTabs(group){
-      const btnPKL = document.getElementById(`tab-btn-${group}-pkl`);
-      const btnUKK = document.getElementById(`tab-btn-${group}-ukk`);
-      const panelPKL = document.getElementById(`panel-${group}-pkl`);
-      const panelUKK = document.getElementById(`panel-${group}-ukk`);
-      if(!btnPKL || !btnUKK || !panelPKL || !panelUKK) return;
-      const activate = (which)=>{
-        const showPKL = which === 'pkl';
-        btnPKL.setAttribute('aria-selected', showPKL ? 'true' : 'false');
-        btnUKK.setAttribute('aria-selected', showPKL ? 'false' : 'true');
-        panelPKL.classList.toggle('active', showPKL);
-        panelUKK.classList.toggle('active', !showPKL);
-      };
-      btnPKL.addEventListener('click', ()=> activate('pkl'));
-      btnUKK.addEventListener('click', ()=> activate('ukk'));
-      activate('pkl');
-    }
-
-    function setupGuruTabs(){
-      setupTabs('bm');
-      setupTabs('pj');
-    }
-
-    function getGuruName(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
-      return (prof.nama || prof.username || '').trim();
-    }
-
     async function loadStudentsUploads(){
       const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
       if((prof.role||'') !== 'guru') return;
       document.getElementById('guru-section').classList.remove('hidden');
       try{
         const token = localStorage.getItem('auth_token');
-        const guruName = getGuruName();
-        const [pb, pj] = await Promise.all([
-          jsonp(`${BASE}?dataset=pembimbing&pembimbing=${encodeURIComponent(guruName)}`),
-          jsonp(`${BASE}?dataset=penguji&penguji=${encodeURIComponent(guruName)}`)
-        ]);
-        const bmNames = new Set((pb && pb.ok && Array.isArray(pb.data) ? pb.data : []).map(r => r.siswa).filter(Boolean));
-        const pjNames = new Set((pj && pj.ok && Array.isArray(pj.data) ? pj.data : []).map(r => r.siswa).filter(Boolean));
-        const stBm = document.getElementById('stat-bimbing-count'); if(stBm) stBm.textContent = String(bmNames.size);
-        const stPj = document.getElementById('stat-penguji-count'); if(stPj) stPj.textContent = String(pjNames.size);
-        const uploadsResp = await jsonp(`${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`);
-        if(!uploadsResp.ok) throw new Error(uploadsResp.error||'Gagal memuat');
-        const rows = Array.isArray(uploadsResp.data) ? uploadsResp.data : [];
-        const rowsBM = rows.filter(r => bmNames.has(r.nama));
-        const rowsPJ = rows.filter(r => pjNames.has(r.nama));
-        const totalPKL = rows.filter(r => (r.category||'').toLowerCase()==='pkl').length;
-        const totalUKK = rows.filter(r => (r.category||'').toLowerCase()==='ukk').length;
-        const stPKL = document.getElementById('stat-uploads-pkl'); if(stPKL) stPKL.textContent = String(totalPKL);
-        const stUKK = document.getElementById('stat-uploads-ukk'); if(stUKK) stUKK.textContent = String(totalUKK);
-        const bmPKL = rowsBM.filter(r => (r.category||'').toLowerCase()==='pkl');
-        const bmUKK = rowsBM.filter(r => (r.category||'').toLowerCase()==='ukk');
-        renderGuruRows('guru-bm-tbody-pkl', bmPKL);
-        renderGuruRows('guru-bm-tbody-ukk', bmUKK);
-        setTabCounts('bm', bmPKL.length, bmUKK.length);
-        const pjPKL = rowsPJ.filter(r => (r.category||'').toLowerCase()==='pkl');
-        const pjUKK = rowsPJ.filter(r => (r.category||'').toLowerCase()==='ukk');
-        renderGuruRows('guru-pj-tbody-pkl', pjPKL);
-        renderGuruRows('guru-pj-tbody-ukk', pjUKK);
-        setTabCounts('pj', pjPKL.length, pjUKK.length);
+        const url = `${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`;
+        const data = await jsonp(url);
+        if(!data.ok) throw new Error(data.error||'Gagal memuat');
+        const rows = data.data;
+        const tb = document.getElementById('guru-tbody');
+        tb.innerHTML = '';
+        rows.forEach(r=>{
+          const tr = document.createElement('tr');
+          tr.setAttribute('data-category', (r.category||'').toLowerCase());
+          const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
+          tr.innerHTML = `
+            <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Waktu">${t}</td>
+            <td class="resp-td px-3 py-2" data-label="Siswa">${r.nama||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Kelas">${r.kelas||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>
+            <td class="resp-td px-3 py-2" data-label="Kategori"><span class="badge-cat ${(r.category||'').toLowerCase()==='pkl'?'badge-pkl':((r.category||'').toLowerCase()==='ukk'?'badge-ukk':'')}">${r.category||''}</span></td>
+            <td class="resp-td px-3 py-2" data-label="Nama File">${r.fileName||''}</td>
+            <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">
+              <div class="flex items-center gap-3">
+                <a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="https://drive.google.com/file/d/${r.fileId}/view" aria-label="Buka file">
+                  <i data-lucide="eye" class="w-4 h-4"></i>
+                  <span class="sr-only">Buka</span>
+                </a>
+                <button data-del="${r.fileId}" class="inline-flex items-center justify-center text-slate-600 hover:text-red-600" type="button" aria-label="Hapus file">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                  <span class="sr-only">Hapus</span>
+                </button>
+              </div>
+            </td>
+          `;
+          tb.appendChild(tr);
+        });
+        tb.querySelectorAll('button[data-del]').forEach(btn=>{
+          btn.addEventListener('click', ()=> openConfirm(btn.getAttribute('data-del')));
+        });
+        if(window.lucide && typeof window.lucide.createIcons === 'function'){
+          window.lucide.createIcons();
+        }
       }catch(e){
-        const tbIDs = ['guru-bm-tbody-pkl','guru-bm-tbody-ukk','guru-pj-tbody-pkl','guru-pj-tbody-ukk'];
-        tbIDs.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = `<tr><td colspan=\"7\" class=\"px-3 py-3 text-red-600 text-center\">${e.message}</td></tr>`; });
+        document.getElementById('guru-tbody').innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
       }
     }
+
     function openConfirm(fileId){
       if(!fileId) return;
       if(isDeleting) return;
@@ -908,7 +674,6 @@
       if(!token) return;
       greet();
       applyRoleLayout();
-      setupGuruTabs();
       loadMyUploads();
       loadStudentsUploads();
       if(window.lucide && typeof window.lucide.createIcons === 'function'){
@@ -1010,21 +775,6 @@
 
     // end: prepareAndSubmit
   </script>
-
-  <!-- FOOTER -->
-  <footer class="border-t bg-white mt-10">
-    <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
-      <div>© <span id="year"></span> Sistem Informasi PKL & UKK Industri - TKJ SMKN 1 Telagasari</div>
-      <div class="flex gap-3">
-        <a href="index.html" class="hover:underline">Home</a>
-        <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
-        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
-        <a href="peserta.html" class="hover:underline">Peserta</a>
-        <a href="ukk.html" class="hover:underline">UKK Industri</a>
-      </div>
-    </div>
-  </footer>
-  <script>try{ var yEl=document.getElementById('year'); if(yEl){ yEl.textContent = new Date().getFullYear(); } }catch(e){}</script>
 </body>
 </html>
 

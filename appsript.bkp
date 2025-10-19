@@ -465,38 +465,18 @@ function doGet(e) {
 
     // PENGUJI (BARU)
     if(dataset === 'penguji'){
-      if(p.route === 'meta'){
-        const out = penguji_meta();
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      if(p.q){
-        const out = penguji_search(p.q);
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      if(p.penguji){
-        const out = penguji_by_nama(p.penguji);
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      const out = {ok:false,error:'Parameter kurang untuk dataset=penguji. Gunakan route=meta, q=, atau penguji='};
-      return p.callback ? _jsonp(out, p.callback) : _json(out);
+      if(p.route === 'meta') return _json(penguji_meta());
+      if(p.q)                return _json(penguji_search(p.q));
+      if(p.penguji)          return _json(penguji_by_nama(p.penguji));
+      return _json({ok:false,error:'Parameter kurang untuk dataset=penguji. Gunakan route=meta, q=, atau penguji='});
     }
 
     // PEMBIMBING
     if(dataset === 'pembimbing'){
-      if(p.route === 'meta'){
-        const out = pembimbing_meta();
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      if(p.q){
-        const out = pembimbing_search(p.q);
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      if(p.pembimbing){
-        const out = pembimbing_by_nama(p.pembimbing);
-        return p.callback ? _jsonp(out, p.callback) : _json(out);
-      }
-      const out = {ok:false,error:'Parameter kurang untuk dataset=pembimbing. Gunakan route=meta, q=, atau pembimbing='};
-      return p.callback ? _jsonp(out, p.callback) : _json(out);
+      if(p.route === 'meta')      return _json(pembimbing_meta());
+      if(p.q)                     return _json(pembimbing_search(p.q));
+      if(p.pembimbing)            return _json(pembimbing_by_nama(p.pembimbing));
+      return _json({ok:false,error:'Parameter kurang untuk dataset=pembimbing. Gunakan route=meta, q=, atau pembimbing='});
     }
 
     // PESERTA
