@@ -12,7 +12,7 @@
     body{ background: linear-gradient(180deg, rgba(240,253,250,1) 0%, rgba(239,246,255,1) 100%); }
     /* Minimal fallback so layout tidak terlalu mepet jika Tailwind gagal dimuat */
     .card{ background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.06); padding:16px; }
-    .hidden{ display:none !important; }
+    .hidden{ display:none; }
     .overflow-auto{ overflow:auto; }
     /* Table fallback styling inside cards */
     .card table{ width:100%; border-collapse: collapse; }
@@ -52,6 +52,14 @@
     .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
     .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
     .badge-ukk{ background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe; }
+  /* Toast notifications */
+  .toast-container{ position:fixed; right:1rem; bottom:1rem; display:flex; flex-direction:column; gap:0.5rem; z-index:60; }
+  .toast{ min-width:220px; max-width:360px; display:flex; gap:0.75rem; align-items:center; background:white; border-radius:12px; padding:10px 12px; box-shadow:0 10px 25px rgba(2,6,23,.12); border:1px solid #e6eef6; }
+  .toast.ok{ border-color:#d1fae5; background:linear-gradient(180deg,#ecfdf5,#ffffff); }
+  .toast.err{ border-color:#fee2e2; background:linear-gradient(180deg,#fff1f2,#ffffff); }
+  .toast .msg{ flex:1; font-size:13px; color:#0f172a; }
+  .toast .close{ background:transparent; border:0; color:#475569; cursor:pointer; padding:6px; border-radius:8px; }
+  .toast .icon{ width:20px; height:20px; flex:0 0 20px; }
     /* Hero fallback styling */
     #hero-student{ display:block; }
     .hero-card{ position:relative; overflow:hidden; border-radius:16px; background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%); color:white; }
@@ -69,7 +77,7 @@
     .tab-panel.active{ display:block; }
   </style>
 </head>
-<body class="min-h-screen text-slate-800">
+<body class="min-h-screen flex flex-col text-slate-800">
   <!-- NAV (selaras dengan index.html) -->
   <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
     <div class="mx-auto max-w-6xl px-4">
@@ -81,15 +89,17 @@
             <div class="text-[11px] text-slate-500">Dashboard</div>
           </div>
         </a>
-        <ul class="hidden md:flex items-center gap-1 text-sm">
-          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Home</a></li>
-          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Pembimbing</a></li>
-          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Penguji PKL</a></li>
-          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">Peserta</a></li>
-          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100">UKK Industri</a></li>
-          <li><a href="dashboard.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white">Dashboard</a></li>
-        </ul>
         <div class="flex items-center gap-3">
+          <ul id="navDesktopGuru" class="hidden md:flex items-center gap-1 text-sm" style="display:none">
+            <li><a href="dashboard.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a></li>
+            <li><a href="bimbingan.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Bimbingan</a></li>
+            <li><a href="pengujian.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-4 h-4"></i>Pengujian</a></li>
+          </ul>
+          <!-- Burger on small screens, left of account dropdown -->
+          <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" style="display:none" aria-label="Menu">
+            <i data-lucide="menu" id="burgerIcon" class="w-5 h-5"></i>
+            <i data-lucide="x" id="closeIcon" class="w-5 h-5 hidden"></i>
+          </button>
           <div class="relative">
             <button id="profileToggle" type="button" class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-sm font-medium text-slate-600 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200" aria-haspopup="true" aria-expanded="false">
               <span id="profileInitial" class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-semibold">U</span>
@@ -119,7 +129,20 @@
     </div>
   </nav>
 
+  <!-- Mobile menu -->
+  <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-2">
+      <ul class="flex flex-col gap-1 text-sm">
+        <li><a href="dashboard.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a></li>
+        <li><a href="bimbingan.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Bimbingan</a></li>
+        <li><a href="pengujian.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Pengujian</a></li>
+      </ul>
+    </div>
+  </div>
+
   <div id="banner" class="max-w-6xl mx-auto px-4 mt-4 hidden"></div>
+
+  <div id="content" class="flex-1">
 
   <div id="loading" class="hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm flex items-center justify-center">
     <div class="rounded-xl bg-white shadow p-4 flex items-center gap-3">
@@ -129,7 +152,7 @@
   </div>
 
   <!-- HERO siswa -->
-  <section id="hero-student" class="max-w-6xl mx-auto px-4 mt-4">
+  <section id="hero-student" class="max-w-6xl mx-auto px-4 mt-2 hidden">
     <div class="hero-card shadow-xl ring-1 ring-white/10">
       <div class="hero-overlay"></div>
       <div class="hero-content p-5 sm:p-6 md:p-7">
@@ -139,7 +162,7 @@
           </div>
           <div class="flex-1">
             <div class="hero-title tracking-tight">
-              Halo, <span id="heroName">Siswa</span> 👋
+              Halo, <span id="heroName">Siswa</span>
             </div>
             <p class="hero-sub">
               Saat ini kamu sedang magang di <span class="font-semibold" id="heroMitra">-</span>.
@@ -154,8 +177,31 @@
     </div>
   </section>
 
-  <main id="main-grid" class="max-w-6xl mx-auto px-4 py-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-    <section id="card-pkl" class="card p-5 space-y-3 order-1">
+  <!-- HERO guru -->
+  <section id="hero-guru" class="max-w-6xl mx-auto px-4 mt-2 hidden">
+    <div class="hero-card shadow-xl ring-1 ring-white/10">
+      <div class="hero-overlay"></div>
+      <div class="hero-content p-5 sm:p-6 md:p-7">
+        <div class="flex items-start gap-4">
+          <div class="hidden sm:flex items-center justify-center rounded-xl bg-white/20 ring-1 ring-white/30 p-3">
+            <i data-lucide="sparkles" class="w-6 h-6"></i>
+          </div>
+          <div class="flex-1">
+            <div class="hero-title tracking-tight">
+              Halo, <span id="heroGuruName">Guru</span>
+            </div>
+            <p class="hero-sub">Terus semangat, dedikasi Anda menginspirasi masa depan para siswa.</p>
+            <div class="hero-badges">
+              <span class="hero-badge"><i data-lucide="shield" class="w-4 h-4"></i><span>GURU</span></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <main id="main-grid" class="max-w-6xl mx-auto px-4 py-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+    <section id="card-pkl" class="card p-5 space-y-3 order-1 hidden">
       <div>
         <h2 class="font-semibold text-lg">Upload Laporan PKL</h2>
         <p class="text-sm text-slate-500 leading-relaxed">Format PDF dengan ukuran maksimum 10 MB.</p>
@@ -180,7 +226,7 @@
       <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Terima kasih.</div>
     </section>
 
-    <section id="card-ukk" class="card p-5 space-y-3 order-2">
+    <section id="card-ukk" class="card p-5 space-y-3 order-2 hidden">
       <div>
         <h2 class="font-semibold text-lg">Upload Dokumentasi UKK</h2>
         <p class="text-sm text-slate-500 leading-relaxed">Zip, foto, video, atau PDF dengan ukuran maksimum 35 MB per file.</p>
@@ -205,7 +251,7 @@
       <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Terima kasih.</div>
     </section>
 
-  <section id="card-my" class="card p-5 space-y-3 order-3 col-span-full md:col-span-2">
+  <section id="card-my" class="card p-5 space-y-3 order-3 col-span-full md:col-span-2 hidden">
       <div>
         <h2 class="font-semibold text-lg">Unggahan Saya</h2>
         <p class="text-sm text-slate-500 leading-relaxed">Daftar unggahan yang sudah dikirim ke sistem.</p>
@@ -228,7 +274,7 @@
     </section>
   </main>
 
-  <section id="guru-section" class="max-w-6xl mx-auto px-4 mt-6 hidden">
+  <section id="guru-section" class="max-w-6xl mx-auto px-4 mt-4 hidden">
     <div class="space-y-4">
       <div id="guru-stats" class="card p-5">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -263,7 +309,30 @@
         </div>
       </div>
 
-      <div id="guru-bimbingan" class="card p-5 space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a href="bimbingan.html" class="rounded-xl border border-slate-200 bg-white p-4 shadow hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Menu</div>
+              <div class="text-lg font-semibold text-slate-800">Kelola Bimbingan</div>
+              <div class="text-sm text-slate-500">Lihat unggahan siswa bimbingan Anda.</div>
+            </div>
+            <i data-lucide="users" class="w-7 h-7 text-emerald-600"></i>
+          </div>
+        </a>
+        <a href="pengujian.html" class="rounded-xl border border-slate-200 bg-white p-4 shadow hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Menu</div>
+              <div class="text-lg font-semibold text-slate-800">Kelola Pengujian</div>
+              <div class="text-sm text-slate-500">Lihat unggahan siswa yang Anda uji.</div>
+            </div>
+            <i data-lucide="clipboard-check" class="w-7 h-7 text-blue-600"></i>
+          </div>
+        </a>
+      </div>
+
+      <div id="guru-bimbingan" class="card p-5 space-y-4 hidden">
         <div>
           <h2 class="font-semibold text-lg">Bimbingan</h2>
           <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda bimbing.</p>
@@ -312,7 +381,7 @@
         </div>
       </div>
 
-      <div id="guru-pengujian" class="card p-5 space-y-4">
+      <div id="guru-pengujian" class="card p-5 space-y-4 hidden">
         <div>
           <h2 class="font-semibold text-lg">Pengujian</h2>
           <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda uji.</p>
@@ -426,6 +495,8 @@
       if(heroMitra) heroMitra.textContent = (prof.mitra||'-');
       if(heroKelas) heroKelas.textContent = (prof.kelas||'-');
       if(heroRole) heroRole.textContent = (role||'USER');
+      const heroGuruName = document.getElementById('heroGuruName');
+      if(heroGuruName) heroGuruName.textContent = shortName;
     }
 
     function fileToB64(file){
@@ -437,13 +508,32 @@
       });
     }
     function banner(type, text){
-      const el = document.getElementById('banner');
-      const color = type==='ok' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200';
-      el.className = `max-w-6xl mx-auto px-4 mt-4 border ${color} rounded-lg py-2`;
-      el.textContent = text || '';
-      el.classList.remove('hidden');
-      setTimeout(()=>{ el.classList.add('hidden'); }, 6000);
+      // legacy banner replaced by toast; keep banner element for compatibility
+      toast(type, text);
     }
+
+    // Toast system (stacked toasts, auto-dismiss)
+    (function(){
+      const root = document.createElement('div'); root.className = 'toast-container'; root.id = 'toastContainer'; document.body.appendChild(root);
+      window._toast = function(type, text, opts){
+        const id = 't_' + Math.random().toString(36).slice(2);
+        const div = document.createElement('div'); div.className = 'toast ' + (type === 'ok' ? 'ok' : (type === 'err' ? 'err' : ''));
+        div.id = id;
+        const icon = document.createElement('span'); icon.className = 'icon';
+        icon.innerHTML = type==='ok' ? '✅' : (type==='err' ? '⚠️' : 'ℹ️');
+        const msg = document.createElement('div'); msg.className = 'msg'; msg.textContent = text || '';
+        const close = document.createElement('button'); close.className = 'close'; close.setAttribute('aria-label','Tutup'); close.innerHTML = '&times;';
+        close.addEventListener('click', ()=>{ div.remove(); });
+        div.appendChild(icon); div.appendChild(msg); div.appendChild(close);
+        root.appendChild(div);
+        const ttl = (opts && opts.ttl) || 5000;
+        const timer = setTimeout(()=>{ try{ div.remove(); }catch(_){} }, ttl);
+        return { id, close: ()=>{ clearTimeout(timer); div.remove(); } };
+      };
+    })();
+
+    // wrapper to keep old banner() signature usable
+    function toast(type, text, opts){ if(window._toast) return window._toast(type, text, opts); }
 
     function setFormLock(formId, locked){
       const form = document.getElementById(formId);
@@ -517,7 +607,7 @@
                 const now = await getMyUploadsCount();
                 if(now > beforeCount){
                   if(!uploadNotified){
-                    banner('ok','Upload berhasil.');
+                    toast('ok','Upload berhasil.');
                   }
                   uploadNotified = true;
                   document.getElementById(msgId).textContent = 'Berhasil diunggah.';
@@ -650,7 +740,7 @@
       const p = new URLSearchParams(location.search);
       const status = p.get('status');
       const msg = p.get('msg');
-      if(status){ banner(status==='ok'?'ok':'err', msg || (status==='ok'?'Berhasil':'Gagal')); }
+  if(status){ toast(status==='ok'?'ok':'err', msg || (status==='ok'?'Berhasil':'Gagal')); }
       if(status){
         p.delete('status'); p.delete('msg');
         const url = location.pathname + (p.toString() ? ('?'+p.toString()) : '');
@@ -660,40 +750,73 @@
 
     function applyRoleLayout(){
       const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
-      const role = (prof.role||'').toLowerCase();
-      if(role === 'guru'){
-        ['card-pkl','card-ukk','card-my'].forEach(id => {
-          const el = document.getElementById(id);
-          if(el) el.classList.add('hidden');
-        });
-        const grid = document.getElementById('main-grid');
-        if(grid){
-          grid.classList.add('hidden');
-          grid.style.gridTemplateColumns = '';
+      const roleRaw = (prof.role||'').toString().trim().toLowerCase();
+      // treat several equivalent role names as 'guru' for layout purposes
+      const roleIsGuru = roleRaw === 'guru' || roleRaw === 'pembimbing' || roleRaw === 'penguji' || roleRaw.indexOf('guru') >= 0 || roleRaw.indexOf('pembimbing') >= 0 || roleRaw.indexOf('penguji') >= 0;
+      const navDesktop = document.getElementById('navDesktopGuru');
+      const burgerBtn = document.getElementById('burgerBtn');
+      const mobileMenu = document.getElementById('mobileMenu');
+      const burgerIcon = document.getElementById('burgerIcon');
+      const closeIcon = document.getElementById('closeIcon');
+      const heroStudent = document.getElementById('hero-student');
+      const heroGuru = document.getElementById('hero-guru');
+      const guruSection = document.getElementById('guru-section');
+      const cardPKL = document.getElementById('card-pkl');
+      const cardUKK = document.getElementById('card-ukk');
+      const cardMY  = document.getElementById('card-my');
+
+      const showGuruNav = ()=>{
+        // Pakai inline style agar mengalahkan md:flex
+        if(navDesktop) navDesktop.style.display = '';
+        if(burgerBtn) burgerBtn.style.display = '';
+      };
+
+      const hideGuruNav = ()=>{
+        // Sembunyikan dengan inline style (aman di semua breakpoint)
+        if(navDesktop) navDesktop.style.display = 'none';
+        if(burgerBtn){
+          burgerBtn.style.display = 'none';
+          if(burgerIcon) burgerIcon.classList.remove('hidden');
+          if(closeIcon) closeIcon.classList.add('hidden');
         }
-        const hero = document.getElementById('hero-student');
-        if(hero) hero.classList.add('hidden');
-        const gs = document.getElementById('guru-section');
-        if(gs) gs.classList.remove('hidden');
+        if(mobileMenu) mobileMenu.classList.add('hidden');
+      };
+
+      if(roleIsGuru){
+        // Sembunyikan UI siswa (defensive: both class and inline style)
+        if(cardPKL){ cardPKL.classList.add('hidden'); cardPKL.style.display = 'none'; }
+        if(cardUKK){ cardUKK.classList.add('hidden'); cardUKK.style.display = 'none'; }
+        if(cardMY){  cardMY.classList.add('hidden');  cardMY.style.display = 'none'; }
+        if(heroStudent){ heroStudent.classList.add('hidden'); heroStudent.style.display = 'none'; }
+        // Tampilkan UI guru
+        if(heroGuru){ heroGuru.classList.remove('hidden'); heroGuru.style.display = ''; }
+        if(guruSection){ guruSection.classList.remove('hidden'); guruSection.style.display = ''; }
+        document.querySelectorAll('[data-guru="1"]').forEach(el=> { el.classList.remove('hidden'); el.style.display = ''; });
+        showGuruNav();
       } else {
-        const grid = document.getElementById('main-grid');
-        if(grid){
-          grid.classList.remove('hidden');
-          grid.style.gridTemplateColumns = '';
-        }
-        ['card-pkl','card-ukk','card-my'].forEach(id => {
-          const el = document.getElementById(id);
-          if(el) el.classList.remove('hidden');
-        });
-        const hero = document.getElementById('hero-student');
-        if(hero) hero.classList.remove('hidden');
-        const gs = document.getElementById('guru-section');
-        if(gs) gs.classList.add('hidden');
+        // Tampilkan UI siswa
+        if(cardPKL){ cardPKL.classList.remove('hidden'); cardPKL.style.display = ''; }
+        if(cardUKK){ cardUKK.classList.remove('hidden'); cardUKK.style.display = ''; }
+        if(cardMY){  cardMY.classList.remove('hidden');  cardMY.style.display = ''; }
+        if(heroStudent){ heroStudent.classList.remove('hidden'); heroStudent.style.display = ''; }
+        // Sembunyikan UI guru
+        if(heroGuru){ heroGuru.classList.add('hidden'); heroGuru.style.display = 'none'; }
+        if(guruSection){ guruSection.classList.add('hidden'); guruSection.style.display = 'none'; }
+        document.querySelectorAll('[data-guru="1"]').forEach(el=> { el.classList.add('hidden'); el.style.display = 'none'; });
+        hideGuruNav();
       }
     }
 
     async function loadMyUploads(){
       try{
+        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const roleRaw = (prof.role||'').toString().trim().toLowerCase();
+        const roleIsGuru = roleRaw === 'guru' || roleRaw === 'pembimbing' || roleRaw === 'penguji' || roleRaw.indexOf('guru') >= 0 || roleRaw.indexOf('pembimbing') >= 0 || roleRaw.indexOf('penguji') >= 0;
+        // If teacher, skip loading personal uploads; section remains hidden
+        if(roleIsGuru){
+          const cardMY = document.getElementById('card-my'); if(cardMY){ cardMY.classList.add('hidden'); cardMY.style.display='none'; }
+          return;
+        }
         const token = localStorage.getItem('auth_token');
         const url = `${BASE}?dataset=uploads&route=my&token=${encodeURIComponent(token)}`;
         const data = await jsonp(url);
@@ -875,7 +998,7 @@
             const exists = data.data.some(r => String(r.fileId) === String(fileId));
             if(!exists){
               deleteNotified = true;
-              banner('ok', 'File dan data berhasil dihapus.');
+              toast('ok', 'File dan data berhasil dihapus.');
               loadMyUploads();
               loadStudentsUploads();
               showLoading(false);
@@ -904,6 +1027,7 @@
       }
       document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeConfirm(); });
       setupProfileMenu();
+      setupBurger();
       const token = requireAuth();
       if(!token) return;
       greet();
@@ -933,7 +1057,7 @@
         if(m1) m1.textContent = m;
         if(m2) m2.textContent = m;
         if(!uploadNotified){
-          banner(ok?'ok':'err', ev.data.message || (ok?'Upload berhasil':'Upload gagal'));
+          toast(ok?'ok':'err', ev.data.message || (ok?'Upload berhasil':'Upload gagal'));
         }
         uploadNotified = true;
         loadMyUploads();
@@ -942,8 +1066,8 @@
         isUploading = false; if(lastUploadFormId) setFormLock(lastUploadFormId, false);
       } else if(ev.data.type === 'delete'){
         const ok = !!ev.data.ok;
-        deleteNotified = true;
-        banner(ok?'ok':'err', ev.data.message || (ok?'Berhasil dihapus':'Gagal menghapus'));
+  deleteNotified = true;
+  toast(ok?'ok':'err', ev.data.message || (ok?'Berhasil dihapus':'Gagal menghapus'));
         loadMyUploads();
         loadStudentsUploads();
         showLoading(false);
@@ -955,6 +1079,19 @@
       const el = document.getElementById('loading');
       if(!el) return;
       if(v) el.classList.remove('hidden'); else el.classList.add('hidden');
+    }
+
+    function setupBurger(){
+      const burgerBtn = document.getElementById('burgerBtn');
+      const burgerIcon = document.getElementById('burgerIcon');
+      const closeIcon = document.getElementById('closeIcon');
+      const mobileMenu = document.getElementById('mobileMenu');
+      if(!burgerBtn || !mobileMenu) return;
+      burgerBtn.addEventListener('click', ()=>{
+        mobileMenu.classList.toggle('hidden');
+        if(burgerIcon) burgerIcon.classList.toggle('hidden');
+        if(closeIcon) closeIcon.classList.toggle('hidden');
+      });
     }
 
     function updateUploadAvailability(rows){
@@ -1011,8 +1148,10 @@
     // end: prepareAndSubmit
   </script>
 
+  </div>
+
   <!-- FOOTER -->
-  <footer class="border-t bg-white mt-10">
+  <footer class="border-t bg-white mt-6">
     <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
       <div>© <span id="year"></span> Sistem Informasi PKL & UKK Industri - TKJ SMKN 1 Telagasari</div>
       <div class="flex gap-3">
@@ -1027,6 +1166,7 @@
   <script>try{ var yEl=document.getElementById('year'); if(yEl){ yEl.textContent = new Date().getFullYear(); } }catch(e){}</script>
 </body>
 </html>
+
 
 
 

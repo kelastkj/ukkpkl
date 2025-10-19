@@ -1,0 +1,123 @@
+          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Unggahan PKL</div>
+              <div id="stat-uploads-pkl" class="text-2xl font-extrabold text-slate-800">0</div>
+            </div>
+            <i data-lucide="file-text" class="w-6 h-6 text-emerald-600"></i>
+          </div>
+          <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wide text-slate-500">Unggahan UKK</div>
+              <div id="stat-uploads-ukk" class="text-2xl font-extrabold text-slate-800">0</div>
+            </div>
+            <i data-lucide="folder" class="w-6 h-6 text-blue-600"></i>
+          </div>
+        </div>
+      </div>
+
+      <div id="guru-bimbingan" class="card p-5 space-y-4">
+        <div>
+          <h2 class="font-semibold text-lg">Bimbingan</h2>
+          <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda bimbing.</p>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <div class="tabs" role="tablist" aria-label="Kategori unggahan bimbingan">
+            <button id="tab-btn-bm-pkl" class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-bm-pkl">PKL <span id="tab-count-bm-pkl" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
+            <button id="tab-btn-bm-ukk" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-bm-ukk">UKK <span id="tab-count-bm-ukk" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
+          </div>
+        </div>
+        <div id="panel-bm-pkl" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-bm-pkl">
+          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+            <table class="resp-table text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="guru-bm-tbody-pkl"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="panel-bm-ukk" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-bm-ukk">
+          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+            <table class="resp-table text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="guru-bm-tbody-ukk"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="guru-pengujian" class="card p-5 space-y-4">
+        <div>
+          <h2 class="font-semibold text-lg">Pengujian</h2>
+          <p class="text-sm text-slate-500 leading-relaxed">Unggahan dari siswa yang Anda uji.</p>
+        </div>
+        <div class="flex items-center justify-between gap-3">
+          <div class="tabs" role="tablist" aria-label="Kategori unggahan pengujian">
+            <button id="tab-btn-pj-pkl" class="tab-btn" role="tab" aria-selected="true" aria-controls="panel-pj-pkl">PKL <span id="tab-count-pj-pkl" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
+            <button id="tab-btn-pj-ukk" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-pj-ukk">UKK <span id="tab-count-pj-ukk" class="ml-1 text-xs font-semibold text-slate-500">(0)</span></button>
+          </div>
+        </div>
+        <div id="panel-pj-pkl" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-pj-pkl">
+          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+            <table class="resp-table text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="guru-pj-tbody-pkl"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="panel-pj-ukk" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-pj-ukk">
+          <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+            <table class="resp-table text-sm">
+              <thead class="bg-slate-50">
+                <tr>
+                  <th class="resp-th text-left font-medium text-slate-600">Waktu</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Siswa</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kelas</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+                  <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="guru-pj-tbody-ukk"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hidden iframe untuk upload tanpa popup; Apps Script telah diizinkan di iframe -->
+  <iframe name="upload_iframe" id="upload_iframe" class="hidden" title="upload" loading="lazy"></iframe>
+
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative w-full max-w-sm mx-4 rounded-xl bg-white shadow-lg">
