@@ -507,6 +507,13 @@ function doGet(e) {
     const p = (e && e.parameter) || {};
     const dataset = (p.dataset || '').toLowerCase();
 
+    // Protect sensitive data: require explicit dataset param.
+    // If no dataset is provided, do not return sheet data by default.
+    if (!dataset) {
+      const out = { ok:false, error: 'Parameter dataset diperlukan. Akses langsung tidak diizinkan.' };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
     // AUTH (JSONP-capable)
     if(dataset === 'auth'){
       if((p.route||'').toLowerCase() === 'login'){
@@ -565,22 +572,28 @@ function doGet(e) {
       return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
-    // NILAI PRESENTASI
+    // NILAI PRESENTASI (dilindungi)
     if(dataset === 'nilaipresentasi'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
       const rows = _readNilaiPresentasi();
       const out = { ok:true, route:'data', count: rows.length, data: rows };
       return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
-    // NILAI PKL
+    // NILAI PKL (dilindungi)
     if(dataset === 'nilaipkl'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
       const rows = _readNilaiPKL();
       const out = { ok:true, route:'data', count: rows.length, data: rows };
       return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
-    // NILAI UKK
+    // NILAI UKK (dilindungi)
     if(dataset === 'nilaiukk'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
       const rows = _readNilaiUKK();
       const out = { ok:true, route:'data', count: rows.length, data: rows };
       return p.callback ? _jsonp(out, p.callback) : _json(out);
@@ -612,9 +625,11 @@ function doGet(e) {
       return _json({ok:false,error:'Parameter kurang untuk dataset=peserta.'});
     }
 
-    // Default: UKK (kompatibel dengan pola lama)
-    if(p.route === 'meta') return _json(ukk_meta());
-    return _json(ukk_data(p));
+  // Default: UKK (kompatibel dengan pola lama)
+  // Allow public access only to meta route. Full ukk data requires authentication.
+  if(p.route === 'meta') return p.callback ? _jsonp(ukk_meta(), p.callback) : _json(ukk_meta());
+  // Public ukk data is allowed when dataset=ukk is provided. (The root/no-dataset case is already blocked above.)
+  return p.callback ? _jsonp(ukk_data(p), p.callback) : _json(ukk_data(p));
 
   } catch(err) {
     return _json({ ok:false, error: err.message });

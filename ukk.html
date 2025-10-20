@@ -242,7 +242,7 @@
     async function loadMeta(){
       try{
         show(metaLoading);
-        const m=await fetchJSON(`${BASE_URL}?route=meta`);
+        const m=await fetchJSON(`${BASE_URL}?dataset=ukk&route=meta`);
         const list=(m&&m.meta&&m.meta.mitra)||[];
         mitraSelect.innerHTML='<option value="">— Pilih Mitra —</option>';
         list.forEach(x=>mitraSelect.innerHTML+=`<option value="${x}">${x}</option>`);
@@ -257,7 +257,7 @@
       try{
         hideAlert();
         startDataLoading();
-        const j=await fetchJSON(`${BASE_URL}?mitra=${encodeURIComponent(m)}`);
+  const j=await fetchJSON(`${BASE_URL}?dataset=ukk&mitra=${encodeURIComponent(m)}`);
         if(!j.ok)throw new Error(j.error||'Gagal memuat data');
         renderTable(j.data||[]);
       }catch(e){
