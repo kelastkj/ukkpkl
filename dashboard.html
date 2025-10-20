@@ -990,11 +990,12 @@
         const prof = getProfile();
         const username = (prof.username||'').trim();
         if(!username) return;
-        // fetch all three datasets
+        // fetch all three datasets (include auth token because these endpoints are protected)
+        const token = localStorage.getItem('auth_token');
         const [pResp, pklResp, ukkResp] = await Promise.all([
-          jsonp(`${BASE}?dataset=nilaipresentasi`),
-          jsonp(`${BASE}?dataset=nilaipkl`),
-          jsonp(`${BASE}?dataset=nilaiukk`)
+          jsonp(`${BASE}?dataset=nilaipresentasi&token=${encodeURIComponent(token)}`),
+          jsonp(`${BASE}?dataset=nilaipkl&token=${encodeURIComponent(token)}`),
+          jsonp(`${BASE}?dataset=nilaiukk&token=${encodeURIComponent(token)}`)
         ]);
         // nilai presentasi
         try{

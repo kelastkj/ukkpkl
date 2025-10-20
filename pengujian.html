@@ -290,7 +290,7 @@
         while(Date.now() - start < 20000){
           await sleep(1200);
           try{
-            const resp = await jsonp(`${BASE}?dataset=nilaipresentasi`);
+            const resp = await jsonp(`${BASE}?dataset=nilaipresentasi&token=${encodeURIComponent(token)}`);
             if(resp && resp.ok && Array.isArray(resp.data)){
               const found = resp.data.find(x => String(x.username) === String(username));
               if(found){
@@ -441,7 +441,7 @@
         const rows = Array.isArray(uploadsResp.data) ? uploadsResp.data : [];
         // load saved presentation scores and build map keyed by username
         try{
-          const nilaiResp = await jsonp(`${BASE}?dataset=nilaipresentasi`);
+            const nilaiResp = await jsonp(`${BASE}?dataset=nilaipresentasi&token=${encodeURIComponent(token)}`);
           nilaiMapGlobal = new Map();
           if(nilaiResp && nilaiResp.ok && Array.isArray(nilaiResp.data)){
             nilaiResp.data.forEach(n => { if(n && n.username) nilaiMapGlobal.set(String(n.username), n); });
