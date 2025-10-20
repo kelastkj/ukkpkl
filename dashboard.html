@@ -476,6 +476,23 @@
 
   <script>
   const BASE = (window.APP_CONFIG||{}).BASE_URL;
+  // In-memory authoritative profile fetched from server after validating token.
+  // Do NOT trust localStorage.auth_profile alone — fetch the server-side session
+  // to prevent local tampering (users editing localStorage to escalate role).
+  let CURRENT_PROFILE = null;
+
+  function getProfile(){
+    try{ return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); }catch(e){ return {}; }
+  }
+
+  async function fetchServerProfile(token){
+    if(!token) return null;
+    try{
+      const resp = await jsonp(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`);
+      if(resp && resp.ok && resp.profile) return resp.profile;
+      return null;
+    }catch(e){ return null; }
+  }
   let pendingDeleteId = null;
   let deleteNotified = false; // prevent double banners for delete
   let uploadNotified = false; // prevent double banners for upload
@@ -490,7 +507,7 @@
     }
 
     function greet(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const prof = getProfile();
       const nameRaw = (prof.nama || prof.username || 'Pengguna').trim();
       const name = nameRaw || 'Pengguna';
       const parts = name.split(/\s+/).filter(Boolean);
@@ -695,6 +712,7 @@
           closeMenu();
           localStorage.removeItem('auth_token');
           localStorage.removeItem('auth_profile');
+          CURRENT_PROFILE = null;
           location.href='login.html';
         });
       }
@@ -773,7 +791,7 @@
     })();
 
     function applyRoleLayout(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const prof = getProfile();
       const roleRaw = (prof.role||'').toString().trim().toLowerCase();
       // treat several equivalent role names as 'guru' for layout purposes
       const roleIsGuru = roleRaw === 'guru' || roleRaw === 'pembimbing' || roleRaw === 'penguji' || roleRaw.indexOf('guru') >= 0 || roleRaw.indexOf('pembimbing') >= 0 || roleRaw.indexOf('penguji') >= 0;
@@ -833,7 +851,7 @@
 
     async function loadMyUploads(){
       try{
-        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const prof = getProfile();
         const roleRaw = (prof.role||'').toString().trim().toLowerCase();
         const roleIsGuru = roleRaw === 'guru' || roleRaw === 'pembimbing' || roleRaw === 'penguji' || roleRaw.indexOf('guru') >= 0 || roleRaw.indexOf('pembimbing') >= 0 || roleRaw.indexOf('penguji') >= 0;
         // If teacher, skip loading personal uploads; section remains hidden
@@ -924,12 +942,12 @@
     }
 
     function getGuruName(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const prof = getProfile();
       return (prof.nama || prof.username || '').trim();
     }
 
     async function loadStudentsUploads(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const prof = getProfile();
       if((prof.role||'') !== 'guru') return;
       document.getElementById('guru-section').classList.remove('hidden');
       try{
@@ -969,7 +987,7 @@
     }
     async function loadMyScores(){
       try{
-        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const prof = getProfile();
         const username = (prof.username||'').trim();
         if(!username) return;
         // fetch all three datasets
@@ -1044,7 +1062,7 @@
 
     async function pollDeleteConfirmation(fileId){
       try{
-        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const prof = getProfile();
         const token = localStorage.getItem('auth_token');
         const route = (prof.role||'').toLowerCase() === 'guru' ? 'students' : 'my';
         const start = Date.now();
@@ -1068,7 +1086,7 @@
       }catch(_){/* ignore */}
     }
 
-    function initDashboard(){
+    async function initDashboard(){
       const formPkl = document.getElementById('form-pkl');
       if(formPkl) formPkl.addEventListener('submit', prepareAndSubmit('form-pkl','pkl-file','pkl-msg'));
       const formUkk = document.getElementById('form-ukk');
@@ -1088,12 +1106,44 @@
       setupBurger();
       const token = requireAuth();
       if(!token) return;
+      // --- Render immediately from cached profile (avoid UI delay) ---
+      try{
+        const cached = JSON.parse(localStorage.getItem('auth_profile') || 'null');
+        if(cached){ CURRENT_PROFILE = cached; }
+      }catch(e){ CURRENT_PROFILE = null; }
+      // Render provisional UI immediately so user doesn't see a blank/delay
       greet();
       applyRoleLayout();
       setupGuruTabs();
+      // Kick off data loads (they will validate token when contacting server)
       loadMyUploads();
       loadStudentsUploads();
       loadMyScores();
+
+      // --- Background: validate token with server and refresh authoritative profile ---
+      (async ()=>{
+        try{
+          const profile = await fetchServerProfile(token);
+          if(profile){
+            // Update authoritative profile and refresh UI/data if changed
+            CURRENT_PROFILE = profile;
+            try{ localStorage.setItem('auth_profile', JSON.stringify(profile)); }catch(_){}
+            greet(); applyRoleLayout();
+            // Refresh lists to reflect any role changes or updated info
+            loadMyUploads(); loadStudentsUploads(); loadMyScores();
+          } else {
+            // Token invalid → inform user and force re-login
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_profile');
+            CURRENT_PROFILE = null;
+            toast('err', 'Sesi tidak valid atau telah berakhir. Anda akan diarahkan ke halaman login.');
+            setTimeout(()=>{ location.href = 'login.html?to=' + encodeURIComponent(location.pathname.split('/').pop()); }, 1200);
+          }
+        }catch(e){
+          // Network error or server unreachable: keep provisional UI and let background polling handle it.
+          console.warn('Background session validation failed:', e && e.message);
+        }
+      })();
       if(window.lucide && typeof window.lucide.createIcons === 'function'){
         window.lucide.createIcons();
       }

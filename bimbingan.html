@@ -188,6 +188,10 @@
   const BASE = (window.APP_CONFIG||{}).BASE_URL;
   let pendingDeleteId = null, deleteNotified = false;
   let isDeleting = false;
+  // In-memory authoritative profile fetched from server; use cached localStorage for fast render
+  let CURRENT_PROFILE = null;
+  function getProfile(){ try{ return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); }catch(e){ return {}; } }
+  async function fetchServerProfile(token){ if(!token) return null; try{ const resp = await jsonp(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`); if(resp && resp.ok && resp.profile) return resp.profile; return null; }catch(e){ return null; } }
 
     // Lightweight toast helper (matches dashboard style)
     (function(){
@@ -223,10 +227,8 @@
 
     function requireGuru(){
       const token = localStorage.getItem('auth_token');
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
       if(!token){ location.href = 'login.html?to=' + encodeURIComponent('bimbingan.html'); return null; }
-      if((prof.role||'').toLowerCase() !== 'guru'){ location.href = 'dashboard.html'; return null; }
-      return token;
+      return token; // role check happens after background validation to avoid UI delay
     }
 
     function jsonp(url){
@@ -254,7 +256,7 @@
     }
 
     function greet(){
-      const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+      const prof = getProfile();
       const nameRaw = (prof.nama || prof.username || 'Pengguna').trim();
       const name = nameRaw || 'Pengguna';
       const parts = name.split(/\s+/).filter(Boolean);
@@ -353,7 +355,7 @@
       activate('pkl');
     }
 
-    function getGuruName(){ const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}'); return (prof.nama || prof.username || '').trim(); }
+  function getGuruName(){ const prof = getProfile(); return (prof.nama || prof.username || '').trim(); }
 
     async function loadBimbingan(){
       try{
@@ -419,13 +421,28 @@
 
     function init(){
       setupProfileMenu(); setupBurger();
-      const token = requireGuru(); if(!token) return; greet(); setupTabs(); loadBimbingan();
+      const token = requireGuru(); if(!token) return;
+      // render immediately from cached profile to avoid delay
+      try{ const cached = JSON.parse(localStorage.getItem('auth_profile')||'null'); if(cached) CURRENT_PROFILE = cached; }catch(e){ CURRENT_PROFILE = null; }
+      greet(); setupTabs(); loadBimbingan();
+      // background validation
+      (async ()=>{
+        try{
+          const profile = await fetchServerProfile(token);
+          if(!profile){ localStorage.removeItem('auth_token'); localStorage.removeItem('auth_profile'); CURRENT_PROFILE = null; toast('err','Sesi tidak valid. Mengarahkan ke login...'); setTimeout(()=> location.href='login.html?to='+encodeURIComponent('bimbingan.html'),1200); return; }
+          // if user is not guru, redirect to dashboard
+          if((profile.role||'').toLowerCase() !== 'guru'){ toast('err','Anda tidak memiliki akses ke halaman ini.'); setTimeout(()=> location.href='dashboard.html',800); return; }
+          // update authoritative profile and refresh
+          CURRENT_PROFILE = profile; try{ localStorage.setItem('auth_profile', JSON.stringify(profile)); }catch(_){};
+          greet(); loadBimbingan();
+        }catch(e){ console.warn('Background validation failed', e && e.message); }
+      })();
       const mc = document.getElementById('modalCancel'); const mcf = document.getElementById('modalConfirm'); const modal = document.getElementById('confirmModal');
       if(mc) mc.addEventListener('click', closeConfirm); if(mcf) mcf.addEventListener('click', performDelete);
       if(modal){ modal.addEventListener('click', (e)=>{ if(e.target === modal || e.target.classList.contains('bg-black/40')) closeConfirm(); }); }
       if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
     }
-    if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
   </script>
 
   <!-- FOOTER -->
