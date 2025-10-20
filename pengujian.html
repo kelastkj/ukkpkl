@@ -131,10 +131,11 @@
                 <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
                 <th class="resp-th text-left font-medium text-slate-600">Kategori</th>
                 <th class="resp-th text-left font-medium text-slate-600">Nama File</th>
+                <th class="resp-th text-left font-medium text-slate-600">Nilai</th>
                 <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
               </tr>
             </thead>
-            <tbody id="guru-pj-tbody-pkl"><tr><td colspan="7" class="px-3 py-3 text-slate-500">Memuat data...</td></tr></tbody>
+            <tbody id="guru-pj-tbody-pkl"><tr><td colspan="8" class="px-3 py-3 text-slate-500">Memuat data...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -184,10 +185,40 @@
     </div>
   </div>
 
+  <!-- Score modal -->
+  <div id="scoreModal" class="hidden fixed inset-0 z-50 flex items-center justify-center">
+    <div class="absolute inset-0 bg-black/40"></div>
+    <div class="relative w-full max-w-lg mx-4 rounded-xl bg-white shadow-lg">
+      <div class="border-b px-4 py-3 flex items-center gap-2">
+        <i data-lucide="award" class="w-5 h-5 text-amber-600"></i>
+        <div class="font-semibold">Lembar Penilaian Presentasi</div>
+      </div>
+      <div class="px-4 py-3 text-sm text-slate-700 space-y-3">
+        <div class="text-sm font-medium">Siswa: <span id="scoreName" class="font-semibold">-</span></div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label class="block"><div class="text-xs text-slate-500">Struktur Laporan</div><select id="score-struktur" class="w-full rounded border px-2 py-1"><option value="4">Sangat Baik</option><option value="3">Baik</option><option value="2">Cukup</option><option value="1">Kurang</option></select></label>
+          <label class="block"><div class="text-xs text-slate-500">Penyampaian Materi</div><select id="score-penyampaian" class="w-full rounded border px-2 py-1"><option value="4">Sangat Baik</option><option value="3">Baik</option><option value="2">Cukup</option><option value="1">Kurang</option></select></label>
+          <label class="block"><div class="text-xs text-slate-500">Penguasaan Materi</div><select id="score-penguasaan" class="w-full rounded border px-2 py-1"><option value="4">Sangat Baik</option><option value="3">Baik</option><option value="2">Cukup</option><option value="1">Kurang</option></select></label>
+          <label class="block"><div class="text-xs text-slate-500">Media Presentasi</div><select id="score-media" class="w-full rounded border px-2 py-1"><option value="4">Sangat Baik</option><option value="3">Baik</option><option value="2">Cukup</option><option value="1">Kurang</option></select></label>
+          <label class="block col-span-full"><div class="text-xs text-slate-500">Sikap dan Komunikasi</div><select id="score-sikap" class="w-full rounded border px-2 py-1"><option value="4">Sangat Baik</option><option value="3">Baik</option><option value="2">Cukup</option><option value="1">Kurang</option></select></label>
+        </div>
+        <div class="pt-2">
+          <div class="text-sm">Rata-rata (1-4): <span id="score-average" class="font-semibold">-</span></div>
+          <div class="text-sm">Nilai akhir (0-100): <span id="score-final" class="font-semibold">-</span></div>
+        </div>
+      </div>
+      <div class="px-4 py-3 flex items-center justify-end gap-2 border-t">
+        <button id="scoreCancel" class="px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50">Batal</button>
+        <button id="scoreSave" class="px-3 py-1.5 rounded-lg bg-amber-600 text-white hover:bg-amber-700">Simpan</button>
+      </div>
+    </div>
+  </div>
+
   <script>
   const BASE = (window.APP_CONFIG||{}).BASE_URL;
   let pendingDeleteId = null, deleteNotified = false;
   let isDeleting = false;
+  let nilaiMapGlobal = new Map();
 
     // Lightweight toast helper (matches dashboard style)
     (function(){
@@ -214,12 +245,71 @@
     // Listen for postMessage from Apps Script iframe for delete confirmation
     window.addEventListener('message', (ev)=>{
       if(!ev || !ev.data) return;
+      console.log('postMessage received:', ev.data, 'origin:', ev.origin);
       if(ev.data.type === 'delete'){
         const ok = !!ev.data.ok; deleteNotified = true;
         toast(ok?'ok':'err', ev.data.message || (ok?'Berhasil dihapus':'Gagal menghapus'));
         loadPengujian(); showLoading(false); setAllDeleteButtonsDisabled(false);
       }
+      // handle save_nilai responses from backend
+      if(ev.data.type === 'save_nilai'){
+        const ok = !!ev.data.ok;
+        // prefer explicit message, fallback generic
+        toast(ok ? 'ok' : 'err', ev.data.message || (ok ? 'Nilai tersimpan' : 'Gagal menyimpan nilai'));
+        // if backend included username/data, update local map and DOM so UI reflects saved nilai immediately
+        try{
+          const d = ev.data.data || null;
+          const username = (ev.data.username || (d && d.username) || '') + '';
+          if(username){
+            if(d) nilaiMapGlobal.set(String(username), d);
+            // find any assess button for this username and mark as saved
+            const btn = document.querySelector(`button[data-username="${username}"]`);
+            if(btn){ btn.setAttribute('data-has','1'); btn.classList.add('bg-emerald-100','text-emerald-700'); }
+            // update Nilai cell in the same row (if present)
+            try{
+              const tr = btn ? btn.closest('tr') : null;
+              if(tr){ const tdNilai = tr.querySelector('td[data-label="Nilai"]'); if(tdNilai) tdNilai.textContent = (d && d.total) ? String(d.total) : ''; }
+            }catch(e){}
+          }
+        }catch(e){ /* ignore optimistic update errors */ }
+        // refresh data to ensure consistency
+        loadPengujian(); showLoading(false);
+      }
     });
+
+    // Polling fallback: after submitting a score, poll the nilaipresentasi dataset to confirm save
+    async function pollSaveConfirmation(username, expectedTotal){
+      if(!username) return false;
+      const token = localStorage.getItem('auth_token');
+      const start = Date.now();
+      try{
+        while(Date.now() - start < 20000){
+          await sleep(1200);
+          try{
+            const resp = await jsonp(`${BASE}?dataset=nilaipresentasi`);
+            if(resp && resp.ok && Array.isArray(resp.data)){
+              const found = resp.data.find(x => String(x.username) === String(username));
+              if(found){
+                // optional: if expectedTotal provided, match it
+                if(!expectedTotal || String(found.total) === String(expectedTotal)){
+                  // update local map and UI
+                  nilaiMapGlobal.set(String(username), found);
+                  const btn = document.querySelector(`button[data-username="${username}"]`);
+                  if(btn){ btn.setAttribute('data-has','1'); btn.classList.add('bg-emerald-100','text-emerald-700'); const tr = btn.closest('tr'); if(tr){ const tdNilai = tr.querySelector('td[data-label="Nilai"]'); if(tdNilai) tdNilai.textContent = String(found.total || ''); } }
+                  toast('ok', 'Nilai tersimpan');
+                  loadPengujian(); showLoading(false);
+                  return true;
+                }
+              }
+            }
+          }catch(_){ }
+        }
+      }catch(_){ }
+      // timeout
+      toast('err', 'Tidak mendapat konfirmasi penyimpanan nilai (timeout)');
+      showLoading(false);
+      return false;
+    }
 
     function requireGuru(){
       const token = localStorage.getItem('auth_token');
@@ -288,34 +378,43 @@
       document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape') close(); });
     }
 
-    function renderGuruRows(tbodyId, rows){
+    function renderGuruRows(tbodyId, rows, nilaiMap){
       const tb = document.getElementById(tbodyId); if(!tb) return; tb.innerHTML='';
-      if(!rows || rows.length===0){ tb.innerHTML = '<tr><td colspan="7" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>'; return; }
+  if(!rows || rows.length===0){ const colspan = tbodyId==='guru-pj-tbody-pkl' ? 8 : 7; tb.innerHTML = `<tr><td colspan="${colspan}" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>`; return; }
       rows.forEach(r=>{
         const tr = document.createElement('tr'); tr.setAttribute('data-category', (r.category||'').toLowerCase());
         const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
-        tr.innerHTML = `
-          <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Waktu">${t}</td>
-          <td class="resp-td px-3 py-2" data-label="Siswa">${r.nama||''}</td>
-          <td class="resp-td px-3 py-2" data-label="Kelas">${r.kelas||''}</td>
-          <td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>
-          <td class="resp-td px-3 py-2" data-label="Kategori"><span class="badge-cat ${(r.category||'').toLowerCase()==='pkl'?'badge-pkl':((r.category||'').toLowerCase()==='ukk'?'badge-ukk':'')}">${r.category||''}</span></td>
-          <td class="resp-td px-3 py-2" data-label="Nama File">${r.fileName||''}</td>
-          <td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">
-            <div class="flex items-center gap-3">
-              <a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="https://drive.google.com/file/d/${r.fileId}/view" aria-label="Buka file">
-                <i data-lucide="eye" class="w-4 h-4"></i>
-                <span class="sr-only">Buka</span>
-              </a>
-              <button data-del="${r.fileId}" class="inline-flex items-center justify-center text-slate-600 hover:text-red-600" type="button" aria-label="Hapus file">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                <span class="sr-only">Hapus</span>
-              </button>
-            </div>
-          </td>`;
+        const isPKL = ((r.category||'').toLowerCase() === 'pkl');
+        const existingNilai = (nilaiMap && r.username) ? nilaiMap.get(r.username) : null;
+        // Build row cells dynamically so UKK rows don't get an extra Nilai cell
+        let cells = '';
+        cells += `<td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Waktu">${t}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Siswa">${r.nama||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Kelas">${r.kelas||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Kategori"><span class="badge-cat ${isPKL?'badge-pkl':'badge-ukk'}">${r.category||''}</span></td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Nama File">${r.fileName||''}</td>`;
+        if(isPKL){
+          cells += `<td class="resp-td px-3 py-2" data-label="Nilai">${ existingNilai ? (existingNilai.total || '') : '' }</td>`;
+        }
+        // action cell
+        cells += `<td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">`;
+        cells += `<div class="flex items-center gap-3">`;
+        cells += `<a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="https://drive.google.com/file/d/${r.fileId}/view" aria-label="Buka file"><i data-lucide="eye" class="w-4 h-4"></i><span class="sr-only">Buka</span></a>`;
+        cells += `<button data-del="${r.fileId}" class="inline-flex items-center justify-center text-slate-600 hover:text-red-600" type="button" aria-label="Hapus file"><i data-lucide="trash-2" class="w-4 h-4"></i><span class="sr-only">Hapus</span></button>`;
+        if(isPKL){
+          cells += `<button data-assess="${r.nama}" data-username="${r.username||''}" data-has="${existingNilai?1:0}" class="inline-flex items-center justify-center ${existingNilai?'bg-emerald-100 text-emerald-700':''} px-2 py-1 rounded-md" type="button" aria-label="Penilaian"><i data-lucide="star" class="w-4 h-4"></i><span class="sr-only">Penilaian</span></button>`;
+        }
+        cells += `</div>`;
+        cells += `</td>`;
+        tr.innerHTML = cells;
         tb.appendChild(tr);
       });
       tb.querySelectorAll('button[data-del]').forEach(btn=>{ btn.addEventListener('click', ()=> openConfirm(btn.getAttribute('data-del'))); });
+      tb.querySelectorAll('button[data-assess]').forEach(btn=>{ btn.addEventListener('click', (ev)=>{
+        const b = ev.currentTarget; const uname = b.getAttribute('data-username'); const nama = b.getAttribute('data-assess'); const has = b.getAttribute('data-has');
+        openScoreModal(uname, nama, has);
+      }); });
       if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
     }
 
@@ -338,13 +437,21 @@
         const uploadsResp = await jsonp(`${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`);
         if(!uploadsResp.ok) throw new Error(uploadsResp.error||'Gagal memuat');
         const rows = Array.isArray(uploadsResp.data) ? uploadsResp.data : [];
+        // load saved presentation scores and build map keyed by username
+        try{
+          const nilaiResp = await jsonp(`${BASE}?dataset=nilaipresentasi`);
+          nilaiMapGlobal = new Map();
+          if(nilaiResp && nilaiResp.ok && Array.isArray(nilaiResp.data)){
+            nilaiResp.data.forEach(n => { if(n && n.username) nilaiMapGlobal.set(String(n.username), n); });
+          }
+        }catch(err){ /* ignore nilai load errors, proceed with empty map */ nilaiMapGlobal = new Map(); }
         const rowsPJ = rows.filter(r => pjNames.has(r.nama));
         const pjPKL = rowsPJ.filter(r => (r.category||'').toLowerCase()==='pkl');
         const pjUKK = rowsPJ.filter(r => (r.category||'').toLowerCase()==='ukk');
-        renderGuruRows('guru-pj-tbody-pkl', pjPKL);
-        renderGuruRows('guru-pj-tbody-ukk', pjUKK);
+        renderGuruRows('guru-pj-tbody-pkl', pjPKL, nilaiMapGlobal);
+        renderGuruRows('guru-pj-tbody-ukk', pjUKK, nilaiMapGlobal);
         setTabCounts(pjPKL.length, pjUKK.length);
-      }catch(e){ ['guru-pj-tbody-pkl','guru-pj-tbody-ukk'].forEach(id => { const el=document.getElementById(id); if(el) el.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`; }); }
+  }catch(e){ ['guru-pj-tbody-pkl','guru-pj-tbody-ukk'].forEach(id => { const el=document.getElementById(id); if(el){ const colspan = id==='guru-pj-tbody-pkl' ? 8 : 7; el.innerHTML = `<tr><td colspan="${colspan}" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`; } }); }
     }
 
     function openConfirm(fileId){ if(!fileId) return; pendingDeleteId=fileId; const m=document.getElementById('confirmModal'); if(m) m.classList.remove('hidden'); if(window.lucide){ try{ lucide.createIcons(); }catch(e){} } }
@@ -386,6 +493,78 @@
     }
 
     function init(){ setupProfileMenu(); setupBurger(); const token=requireGuru(); if(!token) return; greet(); setupTabs(); loadPengujian(); const mc=document.getElementById('modalCancel'); const mcf=document.getElementById('modalConfirm'); const modal=document.getElementById('confirmModal'); if(mc) mc.addEventListener('click', closeConfirm); if(mcf) mcf.addEventListener('click', performDelete); if(modal){ modal.addEventListener('click', (e)=>{ if(e.target===modal || e.target.classList.contains('bg-black/40')) closeConfirm(); }); } if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); } }
+    // Score modal logic
+    function openScoreModal(username, nama, has){
+      const modal = document.getElementById('scoreModal'); if(!modal) return;
+      document.getElementById('scoreName').textContent = nama || '-';
+      modal.setAttribute('data-username', username || '');
+      // default values
+      ['struktur','penyampaian','penguasaan','media','sikap'].forEach(k=>{ const el=document.getElementById('score-'+k); if(el) el.value='4'; });
+      // if existing nilai, prefill
+      if(has && String(has) === '1' && username && nilaiMapGlobal.has(username)){
+        const n = nilaiMapGlobal.get(username);
+        try{
+          if(n.struktur) document.getElementById('score-struktur').value = String(n.struktur);
+          if(n.penyampaian) document.getElementById('score-penyampaian').value = String(n.penyampaian);
+          if(n.penguasaan) document.getElementById('score-penguasaan').value = String(n.penguasaan);
+          if(n.media) document.getElementById('score-media').value = String(n.media);
+          if(n.sikap) document.getElementById('score-sikap').value = String(n.sikap);
+        }catch(e){}
+        const saveBtn = document.getElementById('scoreSave'); if(saveBtn) saveBtn.textContent = 'Perbarui';
+      } else {
+        const saveBtn = document.getElementById('scoreSave'); if(saveBtn) saveBtn.textContent = 'Simpan';
+      }
+      computeScore();
+      modal.classList.remove('hidden');
+      if(window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+    }
+    function closeScoreModal(){ const m=document.getElementById('scoreModal'); if(m) m.classList.add('hidden'); }
+    function computeScore(){
+      const weights = {struktur:20, penyampaian:20, penguasaan:20, media:20, sikap:20};
+      const keys = Object.keys(weights);
+      let sumWeighted = 0; let sumMax = 0;
+      let totalRaw = 0;
+      keys.forEach(k=>{
+        const v = parseInt(document.getElementById('score-'+k).value || '0',10)||0;
+        totalRaw += v;
+        sumWeighted += v * weights[k];
+        sumMax += 4 * weights[k];
+      });
+      const avg = (totalRaw / keys.length) || 0;
+      const final = Math.round((sumWeighted / sumMax) * 100);
+      document.getElementById('score-average').textContent = avg.toFixed(2);
+      document.getElementById('score-final').textContent = final;
+      return { avg, final };
+    }
+    // attach change handlers
+    ['struktur','penyampaian','penguasaan','media','sikap'].forEach(k=>{ const el = document.getElementById('score-'+k); if(el) el.addEventListener('change', computeScore); });
+    // save handler: submit to backend via iframe like other flows
+    document.addEventListener('click', (ev)=>{
+      if(ev.target && ev.target.id === 'scoreCancel') closeScoreModal();
+      if(ev.target && ev.target.id === 'scoreSave'){
+        const nama = document.getElementById('scoreName').textContent || '';
+        const struktur = document.getElementById('score-struktur').value;
+        const penyampaian = document.getElementById('score-penyampaian').value;
+        const penguasaan = document.getElementById('score-penguasaan').value;
+        const media = document.getElementById('score-media').value;
+        const sikap = document.getElementById('score-sikap').value;
+        const { final } = computeScore();
+        // prepare form post to BASE
+  const form = document.createElement('form'); form.method='post'; form.target='upload_iframe'; form.action=BASE;
+        const add=(n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+  // include username as key and also nama for readability
+  const modal = document.getElementById('scoreModal'); const username = modal ? modal.getAttribute('data-username') : '';
+  add('action','save_nilai'); add('username', username); add('nama', nama); add('struktur', struktur); add('penyampaian', penyampaian); add('penguasaan', penguasaan); add('media', media); add('sikap', sikap); add('total', final);
+        document.body.appendChild(form);
+        showLoading(true);
+        form.submit(); form.remove();
+  // we'll optimistically mark saved and close modal; server-side will update/insert
+  closeScoreModal();
+  toast('ok', 'Mengirim nilai...');
+  // Poll the nilai dataset to confirm save (fallback in case postMessage doesn't arrive)
+  (async ()=>{ await pollSaveConfirmation(username, final); })();
+      }
+    });
     if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
   </script>
 

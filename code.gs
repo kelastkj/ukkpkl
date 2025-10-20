@@ -14,6 +14,7 @@ const SHEET_PENGUJI    = 'PENGUJI'; // BARU
 // New sheets for auth and uploads
 const SHEET_USERS      = 'USERS';
 const SHEET_UPLOADS    = 'UPLOADS';
+const SHEET_NILAI      = 'NILAI-PRESENTASI';
 
 // Drive folders (replace with your own IDs in deployment)
 const FOLDER_PKL_ID    = '1RZIHlwgAeWKlxTxt-KZ_OjC2cJBjq2dS';
@@ -282,6 +283,89 @@ function _readRowsGeneric(sheetName) {
 }
 
 /* =====================================================
+ * NILAI PRESENTASI - penyimpanan dan pembacaan
+ * Skema (header): nama | struktur | penyampaian | penguasaan | media | sikap | total | timestamp
+ * ===================================================== */
+function _readNilaiPresentasi(){
+  const sh = _sheet(SHEET_NILAI);
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({
+      username: v[idx['username']]||'', nama: v[idx['nama']]||'', struktur: v[idx['struktur']]||'', penyampaian: v[idx['penyampaian']]||'',
+      penguasaan: v[idx['penguasaan']]||'', media: v[idx['media']]||'', sikap: v[idx['sikap']]||'',
+      total: v[idx['total']]||'', timestamp: v[idx['timestamp']]||''
+    });
+  }
+  return rows;
+}
+
+function _readNilaiPKL(){
+  const sh = _sheet('NILAI-PKL');
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({ username: v[idx['username']]||'', nama: v[idx['nama']]||'', total: v[idx['total']]||'', timestamp: v[idx['timestamp']]||'' });
+  }
+  return rows;
+}
+
+function _readNilaiUKK(){
+  const sh = _sheet('NILAI-UKK');
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({ username: v[idx['username']]||'', nama: v[idx['nama']]||'', keterangan: v[idx['keterangan']]||'', timestamp: v[idx['timestamp']]||'' });
+  }
+  return rows;
+}
+
+function _save_nilai_presentasi(params){
+  const username = _norm(params.username);
+  const nama = _norm(params.nama) || '';
+  if(!username) return { ok:false, error:'Username siswa kosong' };
+  const rec = {
+    username,
+    nama,
+    struktur: _norm(params.struktur),
+    penyampaian: _norm(params.penyampaian),
+    penguasaan: _norm(params.penguasaan),
+    media: _norm(params.media),
+    sikap: _norm(params.sikap),
+    total: _norm(params.total),
+    timestamp: new Date()
+  };
+  const sh = _sheet(SHEET_NILAI) || SpreadsheetApp.getActive().insertSheet(SHEET_NILAI);
+  const header = ['username','nama','struktur','penyampaian','penguasaan','media','sikap','total','timestamp'];
+  if(sh.getLastRow() === 0) sh.appendRow(header);
+  const values = sh.getDataRange().getValues();
+  const headerLower = values[0].map(h=>_norm(h).toLowerCase());
+  const idxUser = headerLower.indexOf('username');
+  for(let r=1;r<values.length;r++){
+    if(String(values[r][idxUser]) === String(username)){
+      const rowVals = header.map(k => rec[k] || '');
+      sh.getRange(r+1, 1, 1, header.length).setValues([rowVals]);
+      return { ok:true, updated:true, message:'Nilai diperbarui', data: rec };
+    }
+  }
+  const rowVals = header.map(k => rec[k] || '');
+  sh.appendRow(rowVals);
+  return { ok:true, updated:false, message:'Nilai tersimpan', data: rec };
+}
+
+/* =====================================================
  *  ===========  DATASET: UKK  ==========================
  *  Skema: mitra | kompetensi (baris ke bawah)
  * ===================================================== */
@@ -481,6 +565,27 @@ function doGet(e) {
       return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
+    // NILAI PRESENTASI
+    if(dataset === 'nilaipresentasi'){
+      const rows = _readNilaiPresentasi();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // NILAI PKL
+    if(dataset === 'nilaipkl'){
+      const rows = _readNilaiPKL();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // NILAI UKK
+    if(dataset === 'nilaiukk'){
+      const rows = _readNilaiUKK();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
     // PEMBIMBING
     if(dataset === 'pembimbing'){
       if(p.route === 'meta'){
@@ -524,6 +629,18 @@ function doPost(e){
       return _handle_upload_(p);
     } else if(action === 'delete'){
       return _handle_delete_(p);
+    } else if(action === 'save_nilai'){
+      const out = _save_nilai_presentasi(p);
+      // reply with small HTML that posts message to parent (like upload/delete)
+      // include username and data when available so client can update optimistically
+      const payload = { type: 'save_nilai', ok: !!out.ok, message: out.message || '' };
+      try{ if(out.data && out.data.username) payload.username = out.data.username; payload.data = out.data; }catch(e){}
+      const html = `<!doctype html><meta charset="utf-8"><title>Save Nilai</title><body>`+
+        `${out.ok? '✅':'❌'} ${out.message}`+
+        `<script>(function(){try{parent&&parent.postMessage&&parent.postMessage(${JSON.stringify(payload)}, '*');}catch(e){}; try{setTimeout(function(){ window.close && window.close(); }, 400);}catch(e){} })();</script></body>`;
+      const resp = HtmlService.createHtmlOutput(html);
+      resp.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      return resp;
     } else if(action === 'login'){
       const out = _auth_login(p.u, p.p);
       return _json(out);

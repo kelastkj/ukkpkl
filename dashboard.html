@@ -168,8 +168,32 @@
               Saat ini kamu sedang magang di <span class="font-semibold" id="heroMitra">-</span>.
             </p>
             <div class="hero-badges">
-              <span class="hero-badge"><i data-lucide="smile" class="w-4 h-4"></i><span id="heroRole">SISWA</span></span>
-              <span class="hero-badge"><i data-lucide="map-pin" class="w-4 h-4"></i><span id="heroKelas">-</span></span>
+              <span class="hero-badge" title="Peran Anda"><i data-lucide="smile" class="w-4 h-4"></i><span id="heroRole">SISWA</span></span>
+              <span class="hero-badge" title="Kelas"><i data-lucide="map-pin" class="w-4 h-4"></i><span id="heroKelas">-</span></span>
+              <!-- Nilai Presentasi: numeric 0-100 -->
+              <span id="score-presentasi" class="hero-badge hidden" title="Nilai Presentasi (0–100): rata-rata dari aspek presentasi">
+                <i data-lucide="award" class="w-4 h-4" aria-hidden="true"></i>
+                <div class="flex flex-col leading-tight">
+                  <span id="score-presentasi-val" class="font-semibold text-sm">-</span>
+                  <span class="text-[10px] leading-tight opacity-90">Nilai Presentasi</span>
+                </div>
+              </span>
+              <!-- Nilai PKL: numeric 0-100 (jika tersedia) -->
+              <span id="score-pkl" class="hero-badge hidden" title="Nilai PKL (0–100): nilai akhir laporan/penilaian PKL">
+                <i data-lucide="file-text" class="w-4 h-4" aria-hidden="true"></i>
+                <div class="flex flex-col leading-tight">
+                  <span id="score-pkl-val" class="font-semibold text-sm">-</span>
+                  <span class="text-[10px] leading-tight opacity-90">Nilai PKL</span>
+                </div>
+              </span>
+              <!-- Hasil UKK: Kompeten / Belum Kompeten -->
+              <span id="score-ukk" class="hero-badge hidden" title="Hasil UKK: Kompeten atau Belum Kompeten">
+                <i data-lucide="check-square" class="w-4 h-4" aria-hidden="true"></i>
+                <div class="flex flex-col leading-tight">
+                  <span id="score-ukk-val" class="font-semibold text-sm">-</span>
+                  <span class="text-[10px] leading-tight opacity-90">Hasil UKK</span>
+                </div>
+              </span>
             </div>
           </div>
         </div>
@@ -204,7 +228,7 @@
     <section id="card-pkl" class="card p-5 space-y-3 order-1 hidden">
       <div>
         <h2 class="font-semibold text-lg">Upload Laporan PKL</h2>
-        <p class="text-sm text-slate-500 leading-relaxed">Format PDF dengan ukuran maksimum 10 MB.</p>
+        <p class="text-sm text-slate-500 leading-relaxed">File laporan harus berformat PDF. Ukuran maksimum file: 10 MB.</p>
       </div>
       <form id="form-pkl" class="space-y-3" method="post" target="upload_iframe">
         <label class="block">
@@ -229,12 +253,12 @@
     <section id="card-ukk" class="card p-5 space-y-3 order-2 hidden">
       <div>
         <h2 class="font-semibold text-lg">Upload Dokumentasi UKK</h2>
-        <p class="text-sm text-slate-500 leading-relaxed">Zip, foto, video, atau PDF dengan ukuran maksimum 35 MB per file.</p>
+  <p class="text-sm text-slate-500 leading-relaxed">File dokumentasi harus berformat PDF. File PDF harus berisi minimal 5 foto dokumentasi. Ukuran maksimum file: 5 MB.</p>
       </div>
       <form id="form-ukk" class="space-y-3" method="post" target="upload_iframe">
         <label class="block">
           <span class="sr-only">File dokumentasi UKK</span>
-          <input type="file" id="ukk-file" accept=".zip,.rar,image/*,video/*,application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
+          <input type="file" id="ukk-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
         </label>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
           <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Upload</button>
@@ -574,9 +598,9 @@
         const form = document.getElementById(formId);
         const file = document.getElementById(inputId).files[0];
         if(!file){ document.getElementById(msgId).textContent = 'Pilih file terlebih dahulu.'; return; }
-        // Optional size limits (10MB PKL, 35MB UKK)
-        const cat = form.querySelector('input[name="category"]').value;
-        const max = cat==='pkl' ? 10*1024*1024 : 35*1024*1024; // batasi ~35MB untuk menghindari overhead base64 > 50MB
+  // Optional size limits (10MB PKL, 5MB UKK)
+  const cat = form.querySelector('input[name="category"]').value;
+  const max = cat==='pkl' ? 10*1024*1024 : 5*1024*1024; // batasi UKK ke 5MB
         if(file.size > max){ document.getElementById(msgId).textContent = 'Ukuran file melebihi batas.'; return; }
         // Lock UI immediately to avoid double click
         isUploading = true; lastUploadFormId = formId;
@@ -943,6 +967,40 @@
         tbIDs.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = `<tr><td colspan=\"7\" class=\"px-3 py-3 text-red-600 text-center\">${e.message}</td></tr>`; });
       }
     }
+    async function loadMyScores(){
+      try{
+        const prof = JSON.parse(localStorage.getItem('auth_profile')||'{}');
+        const username = (prof.username||'').trim();
+        if(!username) return;
+        // fetch all three datasets
+        const [pResp, pklResp, ukkResp] = await Promise.all([
+          jsonp(`${BASE}?dataset=nilaipresentasi`),
+          jsonp(`${BASE}?dataset=nilaipkl`),
+          jsonp(`${BASE}?dataset=nilaiukk`)
+        ]);
+        // nilai presentasi
+        try{
+          if(pResp && pResp.ok && Array.isArray(pResp.data)){
+            const me = pResp.data.find(r => String(r.username) === String(username));
+            if(me){ document.getElementById('score-presentasi-val').textContent = (me.total||''); document.getElementById('score-presentasi').classList.remove('hidden'); }
+          }
+        }catch(e){}
+        // nilai PKL
+        try{
+          if(pklResp && pklResp.ok && Array.isArray(pklResp.data)){
+            const me = pklResp.data.find(r => String(r.username) === String(username));
+            if(me){ document.getElementById('score-pkl-val').textContent = (me.total||''); document.getElementById('score-pkl').classList.remove('hidden'); }
+          }
+        }catch(e){}
+        // nilai UKK
+        try{
+          if(ukkResp && ukkResp.ok && Array.isArray(ukkResp.data)){
+            const me = ukkResp.data.find(r => String(r.username) === String(username));
+            if(me){ document.getElementById('score-ukk-val').textContent = (me.keterangan||''); document.getElementById('score-ukk').classList.remove('hidden'); }
+          }
+        }catch(e){}
+      }catch(_){ /* ignore */ }
+    }
     function openConfirm(fileId){
       if(!fileId) return;
       if(isDeleting) return;
@@ -1035,6 +1093,7 @@
       setupGuruTabs();
       loadMyUploads();
       loadStudentsUploads();
+      loadMyScores();
       if(window.lucide && typeof window.lucide.createIcons === 'function'){
         window.lucide.createIcons();
       }
