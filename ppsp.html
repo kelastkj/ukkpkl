@@ -17,6 +17,9 @@
       body { background: #fff !important; }
       .sheet { box-shadow: none !important; margin: 0 !important; }
       .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+        /* Untuk cetak: perlu lebar label lebih besar agar teks panjang (mis. TUK) tidak tumpang tindih */
+        .grid-detail { grid-template-columns: 95mm auto !important; }
+        .grid-detail .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       /* Paksa ukuran huruf 12pt saat cetak */
       body, body * { font-size: 12pt !important; }
     }
@@ -37,11 +40,16 @@
     .row-h { height: 28px; }
     .muted { color: #4b5563; }
     .page-break { page-break-before: always; }
-    .grid-detail { grid-template-columns: 60mm auto; column-gap: 4mm; }
-    .nowrap { white-space: nowrap; }
+  .grid-detail { grid-template-columns: 80mm auto; column-gap: 4mm; }
+  .nowrap { white-space: nowrap; }
+  .label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .grid-detail .value { padding-left: 4px; }
+  /* Hindari pemisahan bagian penting saat cetak */
+  .avoid-break { page-break-inside: avoid; break-inside: avoid; -webkit-region-break-inside: avoid; }
   /* Hilangkan layout samping, gunakan tumpuk vertikal */
   .mt-1em { margin-top: 1em; }
   .title-upk { font-weight: 800; font-size: 16pt; }
+  /* toolbar styling removed - use Tailwind utility classes for navbar */
   </style>
 </head>
 <body class="text-slate-800">
@@ -49,10 +57,23 @@
   <!-- Tidak ada toolbar/nav untuk versi cetak otomatis -->
 
   <!-- Sheet: Halaman Gabungan (penilaian + keterangan) -->
-  <div class="sheet">
+  <!-- Navbar tipis di bagian atas (menggunakan Tailwind). Tersembunyi saat cetak -->
+  <div id="toolbar" class="fixed top-0 left-0 right-0 z-50 bg-white border-b print:hidden">
+    <div class="max-w-4xl mx-auto px-4 py-2 flex items-center">
+      <div class="text-sm text-slate-700 font-medium">PPSP</div>
+      <div class="ml-auto">
+        <button id="printBtn" title="Cetak dokumen" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-3 py-1 rounded shadow-sm">Cetak</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spacer agar konten tidak tertutup navbar fixed (disembunyikan saat cetak) -->
+  <div class="h-12 print:hidden"></div>
+
+    <div class="sheet">
     <div class="p-6 md:p-8">
       <!-- Bagian atas: Identitas + Tabel Penilaian -->
-      <div class="mt-2">
+  <div class="mt-2 avoid-break">
           <!-- Judul Dokumen -->
           <div class="text-center leading-tight">
             <div class="title-upk">UJI KOMPETENSI KEAHLIAN</div>
@@ -63,11 +84,11 @@
 
           <!-- Detail Satuan/Mitra -->
           <div class="mt-3 text-sm grid grid-detail gap-y-1">
-            <div class="nowrap">Satuan Pendidikan</div><div>: <span id="satuan">SMKN 1 Telagasari</span></div>
-            <div class="nowrap">Mitra Industri</div><div>: <span id="mitra">-</span></div>
-            <div class="nowrap">Kompetensi/Konsentrasi Keahlian</div><div>: <span id="konsentrasi">Teknik Komputer Jaringan</span></div>
-            <div class="nowrap">Bentuk Soal</div><div>: <span id="bentuk">Penguasaan Perorangan</span></div>
-            <div class="nowrap">Nama Peserta</div><div>: <span id="nama">...................................................</span></div>
+            <div class="nowrap">Satuan Pendidikan</div><div class="value">: <span id="satuan">SMKN 1 Telagasari</span></div>
+            <div class="nowrap">Kompetensi/Konsentrasi Keahlian</div><div class="value">: <span id="konsentrasi">Teknik Komputer Jaringan</span></div>
+            <div class="label">Tempat Uji Konsentrasi Keahlian (TUK)</div><div class="value">: <span id="mitra">-</span></div>
+            <div class="nowrap">Bentuk Soal</div><div class="value">: <span id="bentuk">Penguasaan Perorangan</span></div>
+            <div class="nowrap">Nama Peserta</div><div class="value">: <span id="nama">...................................................</span></div>
           </div>
 
           <!-- Tabel Elemen Kompetensi -->
@@ -77,51 +98,87 @@
                 <tr class="text-center">
                   <th class="px-2 py-1 align-middle" style="width:10mm" rowspan="2">No</th>
                   <th class="px-2 py-1 align-middle" rowspan="2">ELEMEN KOMPETENSI</th>
-                  <th class="px-2 py-1" colspan="2">Capaian</th>
+                  <th class="px-2 py-1 text-center" colspan="2">Capaian</th>
                   <th class="px-2 py-1 align-middle" style="width:50mm" rowspan="2">Catatan</th>
                 </tr>
                 <tr class="text-center">
                   <th class="px-2 py-1" style="width:35mm">Kompeten</th>
                   <th class="px-2 py-1" style="width:35mm">Belum Kompeten</th>
                 </tr>
+                <tr class="text-center text-[11px]">
+                  <th class="px-2 py-1">1</th>
+                  <th class="px-2 py-1">2</th>
+                  <th class="px-2 py-1">3</th>
+                  <th class="px-2 py-1">4</th>
+                  <th class="px-2 py-1">5</th>
+                </tr>
               </thead>
               <tbody id="rows"></tbody>
             </table>
-          </div>
 
-          <!-- Kesimpulan akhir -->
-          <div class="mt-2 text-[12px]">
-            <div><span class="min-w-[42mm] inline-block">Kesimpulan Akhir</span>: Kompeten pada seluruh kompetensi / Kompeten pada sebagian kompetensi (Cukup Kompeten) / Belum kompeten (seluruh elemen belum kompeten)</div>
-          </div>
-      </div>
-
-      <!-- Bagian bawah: Keterangan & TTD (ditumpuk) -->
-      <div class="mt-1em text-[12px]">
-        <div class="font-semibold mb-1">Keterangan:</div>
-        <ul class="list-disc ml-5 space-y-1">
-          <li>Beri tanda pada kolom “Kompeten” atau “Belum Kompeten” untuk setiap elemen kompetensi.</li>
-          <li>Definisi kesimpulan: 
-            <ul class="list-disc ml-5">
-              <li><strong>Belum kompeten</strong>: seluruh elemen kompetensi bernilai “Belum Kompeten”.</li>
-              <li><strong>Cukup Kompeten</strong>: kompeten pada sebagian kompetensi (campuran kompeten dan belum kompeten).</li>
-              <li><strong>Kompeten</strong>: kompeten pada seluruh kompetensi.</li>
-            </ul>
-          </li>
-          <li>Kesimpulan akhir: coret yang tidak perlu — “Kompeten pada seluruh kompetensi / Kompeten pada sebagian kompetensi / Belum kompeten”.</li>
-          <li>Untuk peserta “Cukup Kompeten”, sertifikat dicetak “Kompeten” dan kompetensi yang tercantum hanya yang dinyatakan kompeten.</li>
-        </ul>
-      </div>
-
-      <!-- Keterangan (lanjutan) + Tanda Tangan dalam satu blok agar turun bersama -->
-      <div class="mt-6 text-[12px] avoid-break">
-        <ul class="list-disc ml-5">
-          <li>Peserta “Belum kompeten” dapat diberi kesempatan mengulang sesuai ketentuan.</li>
-        </ul>
-        <div class="text-right mt-8 mb-12">
-          <div>..............................., ............................ <span id="ttdYear">2025</span></div>
-          <div>Penilai</div>
+            <!-- Kriteria penentuan kesimpulan akhir (ditempatkan langsung di bawah tabel agar menyatu saat cetak) -->
+            <div class="mt-3">
+              <div class="font-semibold">Kriteria penentuan kesimpulan akhir :</div>
+              <table class="min-w-full table text-[12px] mt-2" style="border-collapse: collapse;">
+                <thead>
+                  <tr>
+                    <th class="px-2 py-1 text-left" style="width:40mm;">Kesimpulan</th>
+                    <th class="px-2 py-1 text-left">Kriteria</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="px-2 py-1">Kompeten</td>
+                    <td class="px-2 py-1">Apabila <strong>sudah memenuhi sebagian besar</strong> kriteria pada elemen kompetensi.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-2 py-1">Belum Kompeten</td>
+                    <td class="px-2 py-1">Apabila <strong>belum memenuhi sebagian besar</strong> kriteria pada elemen kompetensi.</td>
+                  </tr>
+                </tbody>
+              </table>
+    <!-- Penjelasan tambahan, tanda tangan, dan catatan kaki (tetap di bawah Kriteria yang diposisikan sebelumnya) -->
+    <div class="mt-6 text-[12px]">
+        <!-- Penjelasan tambahan -->
+        <div class="mb-4">
+          <div class="font-semibold mb-1">Keterangan :</div>
+          <ul class="ml-5 list-disc space-y-1">
+            <li>Capaian kompetensi peserta uji dituliskan dalam bentuk ceklis (√).</li>
+            <li>Kesimpulan capaian kompetensi peserta uji, dihasilkan dalam bentuk <strong>pernyataan*</strong> (pilih salah satu).</li>
+            <li>Jika peserta uji direkomendasikan belum kompeten, maka peserta uji diberi kesempatan untuk mengulang.</li>
+            <li>Catatan diberikan sebagai keterangan tambahan yang diperlukan untuk memperkuat kesimpulan.</li>
+          </ul>
         </div>
-        <div class="text-right" style="margin-right: 10mm;">..............................................</div>
+
+        <!-- Tanda tangan dan tanggal -->
+          <div class="mt-4 avoid-break" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12mm;">
+          <div style="flex:1; display: grid; grid-template-rows: auto auto auto auto auto auto; align-items: start;">
+            <div style="height:36px;"></div>
+            <div></div>
+            <div></div>
+            <div class="text-center"><br>Penguji UKK</div>
+            <div style="height:30px;"></div>
+            <div class="text-center"><br>......................................................</div>
+          </div>
+          <div style="flex:1; display: grid; grid-template-rows: auto auto auto auto auto auto; align-items: start;">
+            <div style="height:36px;"></div>
+            <div style="text-align: right;">........................................., .......................... <span id="ttdYear">2025</span></div>
+            <div></div>
+            <div class="text-center">Pejabat Yang Bertanda Tangan<br/>Di Sertifikat</div>
+            <div style="height:30px;"></div>
+            <div class="text-center">......................................................</div>
+          </div>
+        </div>
+
+        <!-- Catatan kaki -->
+        <div class="mt-4 text-[11px]">
+          <div><em>Catatan :</em></div>
+          <div class="mt-1 text-[11px]">
+            <div>* Jika Pejabat yang bertanda tangan sama dengan <strong>Penguji UKK</strong>, maka cukup isi nama, tanda tangan, dan stempel pada Pejabat yang bertanda tangan di sertifikat.</div>
+            <div>* Sertakan bukti dokumentasi pelaksanaan UKK di DUDI persiswa.</div>
+            <div>* Bukti Dokumentasi dikirimkan Via WA/Email ke masing-masing guru pembimbing PKL dari SMKN 1 Telagasari.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -152,7 +209,18 @@
     function renderRows(kompetensi){
       const tbody = $('#rows');
       tbody.innerHTML = '';
-      const rows = kompetensi.slice();
+      // Jika tidak ada data kompetensi, gunakan daftar default sesuai gambar contoh (8 item)
+      const defaultList = [
+        'Mempersiapkan komputer serta menghidupkan/mematikan perangkat sesuai prosedur',
+        'Mengoperasikan sistem operasi komputer',
+        'Mengoperasikan perangkat lunak aplikasi perkantoran',
+        'Melakukan instalasi sistem operasi dan software aplikasi',
+        'Melakukan pemeliharaan dasar komputer, backup, restore, dll.',
+        'Menerima dan menindaklanjuti permintaan pengguna terkait masalah IT',
+        'Memberikan panduan penggunaan perangkat IT kepada pengguna',
+        'Pengaplikasian dan tata cara penggunaan aplikasi ipalms mobile'
+      ];
+      const rows = (kompetensi && kompetensi.length) ? kompetensi.slice() : defaultList.slice();
       rows.forEach((text, i) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -164,6 +232,19 @@
         `;
         tbody.appendChild(tr);
       });
+      // Tambahkan baris footer (tfoot) untuk Kesimpulan Akhir seperti pada gambar
+      const table = tbody.closest('table');
+      // Hapus tfoot lama jika ada
+      const oldTfoot = table.querySelector('tfoot'); if(oldTfoot) oldTfoot.remove();
+      const tfoot = document.createElement('tfoot');
+      tfoot.innerHTML = `
+        <tr>
+          <td class="px-2 py-1"></td>
+          <td class="px-2 py-1 font-semibold">Kesimpulan Akhir</td>
+          <td class="px-2 py-1 text-center" colspan="3">Belum Kompeten/Kompeten*</td>
+        </tr>
+      `;
+      table.appendChild(tfoot);
     }
 
     function initMeta(){
@@ -208,6 +289,10 @@
       initMeta();
       // Auto print setelah render agar langsung cetak saat dibuka
       setTimeout(()=>{ try{ window.print(); }catch(e){} }, 300);
+
+      // Hubungkan tombol cetak pada toolbar (jika ada)
+      const printBtn = document.getElementById('printBtn');
+      if (printBtn) printBtn.addEventListener('click', ()=>{ try{ window.print(); }catch(e){} });
     })();
   </script>
 </body>
