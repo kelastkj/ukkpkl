@@ -84,8 +84,9 @@
               </div>
             </div>
 
-            <button class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300">
-              <i data-lucide="log-in" class="w-4 h-4"></i> Masuk
+            <button id="btnSubmit" class="w-full inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-2.5 text-sm font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-300">
+              <span id="btnIcon"><i data-lucide="log-in" class="w-4 h-4"></i></span>
+              <span id="btnText">Masuk</span>
             </button>
             <p id="err" class="text-red-600 text-sm hidden"></p>
             <p class="text-[12px] text-slate-500">Lupa password? Hubungi admin untuk reset akun.</p>
@@ -152,8 +153,29 @@
 
     document.getElementById('form').addEventListener('submit', async (e)=>{
       e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      const btnText = document.getElementById('btnText');
+      const btnIcon = document.getElementById('btnIcon');
+
+      function setLoading(on){
+        if(on){
+          btn.setAttribute('disabled','');
+          btn.classList.add('opacity-70','cursor-not-allowed');
+          // show spinner
+          btnIcon.innerHTML = `\n            <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">\n              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>\n              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>\n            </svg>`;
+          btnText.textContent = 'Memuat...';
+        } else {
+          btn.removeAttribute('disabled');
+          btn.classList.remove('opacity-70','cursor-not-allowed');
+          btnIcon.innerHTML = '<i data-lucide="log-in" class="w-4 h-4"></i>';
+          btnText.textContent = 'Masuk';
+          if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
+        }
+      }
+
       const u = document.getElementById('u').value.trim();
       const p = document.getElementById('p').value.trim();
+      setLoading(true);
       const cb = 'cb'+Math.random().toString(36).slice(2);
       const url = `${BASE}?dataset=auth&route=login&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}&callback=${cb}`;
       window[cb] = (resp)=>{
@@ -163,12 +185,14 @@
         } else {
           document.getElementById('err').textContent = resp && resp.error ? resp.error : 'Login gagal';
           document.getElementById('err').classList.remove('hidden');
+          setLoading(false);
         }
         delete window[cb];
       };
       const s = document.createElement('script'); s.src = url; s.onerror = ()=>{
         document.getElementById('err').textContent = 'Tidak dapat menghubungi server';
         document.getElementById('err').classList.remove('hidden');
+        setLoading(false);
       }; document.body.appendChild(s);
     });
   </script>
