@@ -46,10 +46,17 @@
   .grid-detail .value { padding-left: 4px; }
   /* Hindari pemisahan bagian penting saat cetak */
   .avoid-break { page-break-inside: avoid; break-inside: avoid; -webkit-region-break-inside: avoid; }
+  /* Gunakan border-box untuk menghindari overflow tidak terduga */
+  html, body, .sheet { box-sizing: border-box; }
   /* Hilangkan layout samping, gunakan tumpuk vertikal */
   .mt-1em { margin-top: 1em; }
   .title-upk { font-weight: 800; font-size: 16pt; }
   /* toolbar styling removed - use Tailwind utility classes for navbar */
+  /* Print tweaks: pastikan wrapper horizontal tidak memotong konten kanan saat cetak */
+  @media print {
+    .overflow-x-auto { overflow: visible !important; }
+    .sheet { width: 210mm !important; max-width: 210mm !important; box-sizing: border-box !important; }
+  }
   </style>
 </head>
 <body class="text-slate-800">
@@ -61,8 +68,13 @@
   <div id="toolbar" class="fixed top-0 left-0 right-0 z-50 bg-white border-b print:hidden">
     <div class="max-w-4xl mx-auto px-4 py-2 flex items-center">
       <div class="text-sm text-slate-700 font-medium">PPSP</div>
-      <div class="ml-auto">
-        <button id="printBtn" title="Cetak dokumen" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold px-3 py-1 rounded shadow-sm">Cetak</button>
+      <div class="ml-auto flex items-center gap-2">
+  <button id="printBtn" title="Cetak dokumen" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-3 py-1 rounded shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V3h12v6M6 18h12v-6H6v6zM6 14h12" />
+          </svg>
+          <span>Cetak</span>
+        </button>
       </div>
     </div>
   </div>
@@ -70,8 +82,10 @@
   <!-- Spacer agar konten tidak tertutup navbar fixed (disembunyikan saat cetak) -->
   <div class="h-12 print:hidden"></div>
 
-    <div class="sheet">
-    <div class="p-6 md:p-8">
+  <!-- Wrapper scroll horizontal untuk layar kecil -->
+  <div class="overflow-x-auto">
+    <div class="sheet mx-auto">
+      <div class="p-6 md:p-8">
       <!-- Bagian atas: Identitas + Tabel Penilaian -->
   <div class="mt-2 avoid-break">
           <!-- Judul Dokumen -->
@@ -185,6 +199,76 @@
 
   <script>
     // Helpers
+    // Scale-to-fit for small viewports (like PDF viewer behavior)
+    (function(){
+      const sheet = document.querySelector('.sheet');
+      if(!sheet) return;
+      let scaleEnabled = true;
+      // Helper to apply scale while preserving center
+      function applyScale(){
+        try{
+          if(!scaleEnabled) return;
+          // Do not apply while printing
+          if(window.matchMedia && window.matchMedia('print').matches) return;
+          const vw = document.documentElement.clientWidth || window.innerWidth;
+          const targetWidth = 820; // approx pixel width equivalent for 210mm at typical 96dpi
+          if(vw < targetWidth){
+            const scale = Math.max(0.45, Math.min(1, vw / targetWidth));
+            sheet.style.transformOrigin = 'top left';
+            sheet.style.transform = `scale(${scale})`;
+            sheet.style.marginLeft = `${(vw - (targetWidth * scale)) / 2}px`;
+          } else {
+            sheet.style.transform = '';
+            sheet.style.marginLeft = '';
+          }
+        }catch(e){}
+      }
+
+      function disableScalingForPrint(){
+        scaleEnabled = false;
+        // store previous styles to restore later
+        sheet.dataset.prevTransform = sheet.style.transform || '';
+        sheet.dataset.prevMargin = sheet.style.marginLeft || '';
+        sheet.style.transform = '';
+        sheet.style.marginLeft = '';
+      }
+
+      function restoreScalingAfterPrint(){
+        scaleEnabled = true;
+        if(sheet.dataset.prevTransform !== undefined){
+          sheet.style.transform = sheet.dataset.prevTransform || '';
+          sheet.style.marginLeft = sheet.dataset.prevMargin || '';
+          delete sheet.dataset.prevTransform;
+          delete sheet.dataset.prevMargin;
+        }
+        // re-evaluate scale for current viewport
+        applyScale();
+      }
+
+      window.addEventListener('resize', applyScale);
+      window.addEventListener('orientationchange', applyScale);
+
+      // Handle print lifecycle: beforeprint/afterprint and matchMedia
+      if (window.matchMedia){
+        const m = window.matchMedia('print');
+        if (m.addEventListener) {
+          m.addEventListener('change', (e)=>{ if(e.matches) disableScalingForPrint(); else restoreScalingAfterPrint(); });
+        } else if (m.addListener) {
+          m.addListener((e)=>{ if(e.matches) disableScalingForPrint(); else restoreScalingAfterPrint(); });
+        }
+      }
+      window.addEventListener('beforeprint', disableScalingForPrint);
+      window.addEventListener('afterprint', restoreScalingAfterPrint);
+
+      // Ensure print button disables scaling first, then opens print dialog
+      const safePrintBtn = document.getElementById('printBtn');
+      if(safePrintBtn) safePrintBtn.addEventListener('click', ()=>{ try{ disableScalingForPrint(); setTimeout(()=>{ window.print(); }, 60); }catch(e){} });
+
+      // Preview feature removed: 'Pratinjau' button and preview window code have been deleted per request.
+
+      // run after short delay to allow fonts/layout
+      setTimeout(applyScale, 120);
+    })();
     const $ = (s, r=document) => r.querySelector(s);
     const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
     function getAllParams(){ return new URLSearchParams(location.search); }
@@ -290,9 +374,7 @@
       // Auto print setelah render agar langsung cetak saat dibuka
       setTimeout(()=>{ try{ window.print(); }catch(e){} }, 300);
 
-      // Hubungkan tombol cetak pada toolbar (jika ada)
-      const printBtn = document.getElementById('printBtn');
-      if (printBtn) printBtn.addEventListener('click', ()=>{ try{ window.print(); }catch(e){} });
+  // print handled by safePrintBtn listener inside scale-to-fit IIFE
     })();
   </script>
 </body>
