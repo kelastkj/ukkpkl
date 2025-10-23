@@ -48,6 +48,12 @@
       /* Remove outer border to avoid double-border look */
       .table-wrap{ border-color: transparent !important; }
     }
+    /* Make mobile menu fixed under the sticky header so it remains visible
+       when the page is scrolled. Revert to static on larger screens. */
+    #mobileMenu{ position:fixed; left:0; right:0; top:56px; z-index:40; max-height:calc(100vh - 56px); overflow:auto; box-shadow:0 8px 30px rgba(2,6,23,.08); }
+    @media (min-width: 768px){
+      #mobileMenu{ position:static; max-height:none; overflow:visible; box-shadow:none; }
+    }
     /* Colored badges for categories */
     .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
     .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
@@ -1298,9 +1304,19 @@
       const mobileMenu = document.getElementById('mobileMenu');
       if(!burgerBtn || !mobileMenu) return;
       burgerBtn.addEventListener('click', ()=>{
+        const wasHidden = mobileMenu.classList.contains('hidden');
         mobileMenu.classList.toggle('hidden');
         if(burgerIcon) burgerIcon.classList.toggle('hidden');
         if(closeIcon) closeIcon.classList.toggle('hidden');
+        // If we're opening the menu, ensure it's visible in the viewport
+        if(wasHidden){
+          try{
+            // scroll menu into view smoothly; fallback to instant
+            mobileMenu.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // focus for accessibility
+            mobileMenu.setAttribute('tabindex','-1'); mobileMenu.focus({preventScroll:true});
+          }catch(_){ try{ mobileMenu.scrollIntoView(); }catch(_){} }
+        }
       });
     }
 

@@ -24,6 +24,9 @@
       .resp-table td.resp-td:last-child{ border-bottom:none; }
       .resp-table td.resp-td::before{ content: attr(data-label); font-weight:600; color:#475569; }
     }
+  /* Make mobile menu fixed under the sticky header on small screens */
+  #mobileMenu{ position:fixed; left:0; right:0; top:56px; z-index:40; max-height:calc(100vh - 56px); overflow:auto; box-shadow:0 8px 30px rgba(2,6,23,.08); }
+  @media (min-width: 768px){ #mobileMenu{ position:static; max-height:none; overflow:visible; box-shadow:none; } }
     .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
     .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
     .badge-ukk{ background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe; }
@@ -296,7 +299,11 @@
       };
       burgerBtn.addEventListener('click', (e)=>{
         e.stopPropagation();
-        if(mobile.classList.contains('hidden')) open(); else close();
+        const wasHidden = mobile.classList.contains('hidden');
+        if(wasHidden) open(); else close();
+        if(wasHidden){
+          try{ mobile.scrollIntoView({ behavior: 'smooth', block: 'start' }); mobile.setAttribute('tabindex','-1'); mobile.focus({preventScroll:true}); }catch(_){ try{ mobile.scrollIntoView(); }catch(_){} }
+        }
       });
       // Close when clicking outside
       document.addEventListener('click', (ev)=>{
