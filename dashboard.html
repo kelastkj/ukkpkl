@@ -75,6 +75,9 @@
     .tab-btn[aria-selected="true"], .tab-btn.active{ background:#ffffff; color:#0f172a; border-color:#cbd5e1; box-shadow:0 2px 6px rgba(15,23,42,.06); }
     .tab-panel{ display:none; }
     .tab-panel.active{ display:block; }
+    /* Skeleton shimmer (fallback) */
+    .skeleton{ background: linear-gradient(90deg,#f3f4f6 25%, #e6eef6 37%, #f3f4f6 63%); background-size: 400% 100%; animation: shimmer 1.2s linear infinite; border-radius:8px; }
+    @keyframes shimmer{ 0%{ background-position:200% 0 } 100%{ background-position:-200% 0 } }
   </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800">
@@ -230,7 +233,12 @@
         <h2 class="font-semibold text-lg">Upload Laporan PKL</h2>
         <p class="text-sm text-slate-500 leading-relaxed">File laporan harus berformat PDF. Ukuran maksimum file: 10 MB.</p>
       </div>
-      <form id="form-pkl" class="space-y-3" method="post" target="upload_iframe">
+      <div id="pkl-upload-area">
+        <div id="pkl-loader" class="flex items-center gap-2 text-sm text-slate-500" role="status">
+          <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+          Memuat status unggahan...
+        </div>
+        <form id="form-pkl" class="space-y-3 hidden" method="post" target="upload_iframe">
         <label class="block">
           <span class="sr-only">File laporan PKL</span>
           <input type="file" id="pkl-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
@@ -246,8 +254,9 @@
         <input type="hidden" name="mime_type" />
         <input type="hidden" name="file_b64" />
         <input type="hidden" name="redirect" value="" />
-      </form>
-      <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Terima kasih.</div>
+        </form>
+        <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Terima kasih.</div>
+      </div>
     </section>
 
     <section id="card-ukk" class="card p-5 space-y-3 order-2 hidden">
@@ -255,7 +264,12 @@
         <h2 class="font-semibold text-lg">Upload Dokumentasi UKK</h2>
   <p class="text-sm text-slate-500 leading-relaxed">File dokumentasi harus berformat PDF. File PDF harus berisi minimal 5 foto dokumentasi. Ukuran maksimum file: 5 MB.</p>
       </div>
-      <form id="form-ukk" class="space-y-3" method="post" target="upload_iframe">
+      <div id="ukk-upload-area">
+        <div id="ukk-loader" class="flex items-center gap-2 text-sm text-slate-500" role="status">
+          <svg class="animate-spin h-4 w-4 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+          Memuat status unggahan...
+        </div>
+        <form id="form-ukk" class="space-y-3 hidden" method="post" target="upload_iframe">
         <label class="block">
           <span class="sr-only">File dokumentasi UKK</span>
           <input type="file" id="ukk-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
@@ -271,8 +285,9 @@
         <input type="hidden" name="mime_type" />
         <input type="hidden" name="file_b64" />
         <input type="hidden" name="redirect" value="" />
-      </form>
-      <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Terima kasih.</div>
+        </form>
+        <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Terima kasih.</div>
+      </div>
     </section>
 
   <section id="card-my" class="card p-5 space-y-3 order-3 col-span-full md:col-span-2 hidden">
@@ -301,7 +316,16 @@
   <section id="guru-section" class="max-w-6xl mx-auto px-4 mt-4 hidden">
     <div class="space-y-4">
       <div id="guru-stats" class="card p-5">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Skeleton (hidden when data ready) -->
+        <div id="guru-skel" class="col-span-full space-y-3 hidden">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="h-20 skeleton"></div>
+            <div class="h-20 skeleton"></div>
+            <div class="h-20 skeleton"></div>
+            <div class="h-20 skeleton"></div>
+          </div>
+        </div>
+        <div id="guru-stats-inner" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-center justify-between">
             <div>
               <div class="text-xs uppercase tracking-wide text-slate-500">Siswa Dibimbing</div>
@@ -466,7 +490,7 @@
         <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
         <div class="font-semibold">Konfirmasi</div>
       </div>
-      <div class="px-4 py-3 text-sm text-slate-700">Apakah Anda yakin ingin menghapus file ini? Tindakan ini akan menghapus data pada sheet dan memindahkan file ke Trash di Google Drive.</div>
+      <div class="px-4 py-3 text-sm text-slate-700">Apakah Anda yakin ingin menghapus file ini?.</div>
       <div class="px-4 py-3 flex items-center justify-end gap-2 border-t">
         <button id="modalCancel" class="px-3 py-1.5 rounded-lg border text-slate-700 hover:bg-slate-50">Batal</button>
         <button id="modalConfirm" class="px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700">Hapus</button>
@@ -499,6 +523,10 @@
   let isUploading = false;    // prevent double upload clicks
   let isDeleting = false;     // prevent double delete clicks
   let lastUploadFormId = null; // remember which form is uploading
+  // Upload readiness flags: prevent showing upload form until server check completes
+  let uploadsReady = { pkl: false, ukk: false };
+  // In-flight promise dedupe for loadMyUploads to avoid duplicate JSONP script tags
+  let _myUploadsPromise = null;
 
     function requireAuth(){
       const token = localStorage.getItem('auth_token');
@@ -599,6 +627,33 @@
         const data = await jsonp(`${BASE}?dataset=uploads&route=my&token=${encodeURIComponent(token)}`);
         return (data && data.ok && Array.isArray(data.data)) ? data.data.length : 0;
       }catch{ return 0; }
+    }
+
+    function setUploadsReady(category, ready, rows){
+      // category: 'pkl' or 'ukk' or null to set both
+      const apply = (cat)=>{
+        const loader = document.getElementById(cat + '-loader');
+        const area = document.getElementById(cat + '-upload-area');
+        const form = document.getElementById('form-' + cat);
+        const done = document.getElementById(cat + '-done');
+        // When not ready: show loader, hide form and hide done message
+        if(!ready){ if(loader) loader.style.display = ''; if(form) form.classList.add('hidden'); if(done) done.classList.add('hidden'); return; }
+        // When ready: hide loader and show form by default
+        if(loader) loader.style.display = 'none';
+        if(form) form.classList.toggle('hidden', false);
+        // If server returned rows, use them to decide whether to show 'done' message
+        if(Array.isArray(rows)){
+          const has = rows.some(r => (r.category||'').toLowerCase() === cat);
+          if(has){ if(form) form.classList.add('hidden'); if(done) done.classList.remove('hidden'); }
+          else { if(done) done.classList.add('hidden'); }
+        } else {
+          // no rows provided: ensure done hidden by default
+          if(done) done.classList.add('hidden');
+        }
+      };
+      if(!category){ ['pkl','ukk'].forEach(c=>apply(c)); return; }
+      apply(category);
+      uploadsReady[category] = !!ready;
     }
 
     function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
@@ -850,6 +905,9 @@
     }
 
     async function loadMyUploads(){
+      // Deduplicate concurrent calls: if a load is already in progress, return that promise
+      if(_myUploadsPromise) return _myUploadsPromise;
+      _myUploadsPromise = (async ()=>{
       try{
         const prof = getProfile();
         const roleRaw = (prof.role||'').toString().trim().toLowerCase();
@@ -861,13 +919,25 @@
         }
         const token = localStorage.getItem('auth_token');
         const url = `${BASE}?dataset=uploads&route=my&token=${encodeURIComponent(token)}`;
+        // Show loaders while waiting (UI); dedupe prevents duplicate requests
+        setUploadsReady('pkl', false);
+        setUploadsReady('ukk', false);
         const data = await jsonp(url);
         if(!data.ok) throw new Error(data.error||'Gagal memuat');
         renderRows('my-tbody', data.data, ['waktu','category','fileName','aksi']);
+        // Mark uploads ready and update availability (also hide loaders)
+        setUploadsReady(null, true, Array.isArray(data.data) ? data.data : []);
         updateUploadAvailability(Array.isArray(data.data) ? data.data : []);
       }catch(e){
         document.getElementById('my-tbody').innerHTML = `<tr><td colspan="4" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
+        // If error, still hide loaders and show forms to allow manual upload (fail-open)
+        setUploadsReady(null, true);
+      } finally {
+        // clear in-flight promise so subsequent calls can re-fetch
+        _myUploadsPromise = null;
       }
+      })();
+      return _myUploadsPromise;
     }
 
     function renderGuruRows(tbodyId, rows){
@@ -946,10 +1016,26 @@
       return (prof.nama || prof.username || '').trim();
     }
 
+    function showGuruSkeleton(show){
+      const sk = document.getElementById('guru-skel');
+      const inner = document.getElementById('guru-stats-inner');
+      if(!sk || !inner) return;
+      if(show){ sk.classList.remove('hidden'); inner.style.display = 'none'; }
+      else { sk.classList.add('hidden'); inner.style.display = ''; }
+    }
+
+    // Dedupe in-flight load for students uploads
+    let _studentsUploadsPromise = null;
+
     async function loadStudentsUploads(){
       const prof = getProfile();
       if((prof.role||'') !== 'guru') return;
+      // Deduplicate concurrent calls
+      if(_studentsUploadsPromise) return _studentsUploadsPromise;
+      _studentsUploadsPromise = (async ()=>{
       document.getElementById('guru-section').classList.remove('hidden');
+      // show skeleton while loading
+      showGuruSkeleton(true);
       try{
         const token = localStorage.getItem('auth_token');
         const guruName = getGuruName();
@@ -980,10 +1066,16 @@
         renderGuruRows('guru-pj-tbody-pkl', pjPKL);
         renderGuruRows('guru-pj-tbody-ukk', pjUKK);
         setTabCounts('pj', pjPKL.length, pjUKK.length);
+        showGuruSkeleton(false);
       }catch(e){
         const tbIDs = ['guru-bm-tbody-pkl','guru-bm-tbody-ukk','guru-pj-tbody-pkl','guru-pj-tbody-ukk'];
         tbIDs.forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = `<tr><td colspan=\"7\" class=\"px-3 py-3 text-red-600 text-center\">${e.message}</td></tr>`; });
+        showGuruSkeleton(false);
+      } finally {
+        _studentsUploadsPromise = null;
       }
+      })();
+      return _studentsUploadsPromise;
     }
     async function loadMyScores(){
       try{
@@ -1124,14 +1216,22 @@
       // --- Background: validate token with server and refresh authoritative profile ---
       (async ()=>{
         try{
+          // Capture previous profile snapshot to avoid unnecessary reloads
+          const prevProfileJson = JSON.stringify(CURRENT_PROFILE || {});
           const profile = await fetchServerProfile(token);
           if(profile){
-            // Update authoritative profile and refresh UI/data if changed
-            CURRENT_PROFILE = profile;
-            try{ localStorage.setItem('auth_profile', JSON.stringify(profile)); }catch(_){}
-            greet(); applyRoleLayout();
-            // Refresh lists to reflect any role changes or updated info
-            loadMyUploads(); loadStudentsUploads(); loadMyScores();
+            const newProfileJson = JSON.stringify(profile || {});
+            // Only update UI/data if profile changed
+            if(newProfileJson !== prevProfileJson){
+              CURRENT_PROFILE = profile;
+              try{ localStorage.setItem('auth_profile', newProfileJson); }catch(_){ }
+              greet(); applyRoleLayout();
+              // Refresh lists to reflect any role changes or updated info
+              loadMyUploads(); loadStudentsUploads(); loadMyScores();
+            } else {
+              // profile unchanged — no need to re-fetch lists
+              CURRENT_PROFILE = profile; // still ensure authoritative copy
+            }
           } else {
             // Token invalid → inform user and force re-login
             localStorage.removeItem('auth_token');
