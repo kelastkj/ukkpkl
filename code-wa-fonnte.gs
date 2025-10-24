@@ -14,10 +14,25 @@ const SHEET_PENGUJI    = 'PENGUJI'; // BARU
 // New sheets for auth and uploads
 const SHEET_USERS      = 'USERS';
 const SHEET_UPLOADS    = 'UPLOADS';
+const SHEET_NILAI      = 'NILAI-PRESENTASI';
 
 // Drive folders (replace with your own IDs in deployment)
 const FOLDER_PKL_ID    = '1RZIHlwgAeWKlxTxt-KZ_OjC2cJBjq2dS';
 const FOLDER_UKK_ID    = '1ap51yBOZ7qIbHJ6AzCbDhWqmORd-viXY';
+
+// --- Fonte (WhatsApp provider) default config ---
+// You can replace these values here, or set Script Properties
+// FONTE_API_URL and FONTE_API_TOKEN to override at runtime.
+const FONTE_API_URL_DEFAULT   = 'REPLACE_WITH_FONTE_API_URL';
+const FONTE_API_TOKEN_DEFAULT = 'REPLACE_WITH_FONTE_API_TOKEN';
+// Header name and prefix (some providers expect e.g. 'Authorization: Bearer <token>' while others want 'x-api-key: <token>')
+const FONTE_API_HEADER_NAME_DEFAULT   = 'Authorization';
+// Default prefix empty because Fonte example uses 'Authorization: TOKEN' (no Bearer)
+const FONTE_API_TOKEN_PREFIX_DEFAULT  = '';
+// Payload field names (adjust if Fonte expects different keys)
+// Fonte PHP example uses keys: target (phone) and message
+const FONTE_PAYLOAD_PHONE_FIELD_DEFAULT   = 'target';
+const FONTE_PAYLOAD_MESSAGE_FIELD_DEFAULT = 'message';
 
 /* ---------- Utilities ---------- */
 const _norm  = v => (v == null ? '' : String(v)).trim();
@@ -87,6 +102,184 @@ function _log_upload(row) {
   if (sh.getLastRow() === 0) sh.appendRow(header);
   const rec = header.map(k => row[k] || '');
   sh.appendRow(rec);
+}
+
+/* ---------- WhatsApp (Fonte) notification helpers ---------- */
+function _normalizePhone(p) {
+  if (!p) return '';
+  // keep leading + if present, remove other non-digits
+  const s = String(p || '').trim();
+  const plus = s.charAt(0) === '+' ? '+' : '';
+  const digits = s.replace(/[^0-9]/g, '');
+  return (plus + digits).replace(/^\+0+/, '+');
+}
+
+// Lookup phone(s) for a given penguji name via USERS or PENGUJI sheet (supports column 'phone' or 'wa')
+function _lookupPhonesForNames(names) {
+  if (!names || !names.length) return [];
+  const phones = new Set();
+  try {
+    // Check USERS first (preferred place to store contact)
+    const users = _users_readAll();
+    users.forEach(u => {
+      const nama = (u.nama || '').toString();
+      const username = (u.username || '').toString();
+      const ph = (u.phone || u.wa || u.whatsapp || '') || '';
+      if (!ph) return;
+      if (names.includes(nama) || names.includes(username)) phones.add(_normalizePhone(ph));
+    });
+  } catch (e) { /* ignore */ }
+
+  try {
+    // Also check PENGUJI sheet for an explicit phone column if present
+    const pj = _readRowsGeneric(SHEET_PENGUJI).rows;
+    pj.forEach(r => {
+      const pg = (r.penguji || '').toString();
+      const ph = (r.phone || r.wa || r.whatsapp || '') || '';
+      if (ph && names.includes(pg)) phones.add(_normalizePhone(ph));
+    });
+  } catch (e) { /* ignore */ }
+
+  // return cleaned list
+  return Array.from(phones).filter(x => x);
+}
+
+// Return array of { name, phone } for given penguji names (preserve which phone belongs to which name)
+function _lookupPhoneMapForNames(names){
+  if(!names || !names.length) return [];
+  const results = [];
+  try{
+    const users = _users_readAll();
+    names.forEach(n => {
+      const found = users.find(u => (u.nama||'') === n || (u.username||'') === n);
+      const ph = found ? (found.phone || found.wa || found.whatsapp || '') : '';
+      if(ph) results.push({ name: n, phone: _normalizePhone(ph) });
+    });
+  }catch(e){}
+  try{
+    const pj = _readRowsGeneric(SHEET_PENGUJI).rows;
+    names.forEach(n => {
+      const row = pj.find(r => (r.penguji||'') === n && (r.phone || r.wa || r.whatsapp));
+      if(row){
+        const ph = row.phone || row.wa || row.whatsapp || '';
+        if(ph) results.push({ name: n, phone: _normalizePhone(ph) });
+      }
+    });
+  }catch(e){}
+  // De-duplicate by phone
+  const seen = new Set();
+  return results.filter(r => { if(seen.has(r.phone)) return false; seen.add(r.phone); return true; });
+}
+
+// Find penguji names for a given student by scanning PENGUJI sheet
+function _getPengujiNamesForStudent(studentName) {
+  if (!studentName) return [];
+  try {
+    const rows = _readRowsGeneric(SHEET_PENGUJI).rows;
+    const names = rows.filter(r => (r.siswa || '') === studentName).map(r => r.penguji).filter(Boolean);
+    return Array.from(new Set(names));
+  } catch (e) { return []; }
+}
+
+// Send WhatsApp message via Fonte -- expects Script Properties: FONTE_API_URL and FONTE_API_TOKEN
+function _sendWhatsAppViaFonte(to, message) {
+  if (!to || !message) return false;
+  const props = _prop();
+  // Prefer Script Properties (safe for deployment). Fall back to defaults in file.
+  const url = props.getProperty('FONTE_API_URL') || props.getProperty('fonte_url') || FONTE_API_URL_DEFAULT;
+  const token = props.getProperty('FONTE_API_TOKEN') || props.getProperty('fonte_token') || props.getProperty('FONTE_TOKEN') || FONTE_API_TOKEN_DEFAULT;
+  const headerName = props.getProperty('FONTE_API_HEADER_NAME') || props.getProperty('fonte_header_name') || FONTE_API_HEADER_NAME_DEFAULT;
+  const tokenPrefix = props.getProperty('FONTE_API_TOKEN_PREFIX') || props.getProperty('fonte_token_prefix') || FONTE_API_TOKEN_PREFIX_DEFAULT;
+  const phoneField = props.getProperty('FONTE_PAYLOAD_PHONE_FIELD') || FONTE_PAYLOAD_PHONE_FIELD_DEFAULT;
+  const messageField = props.getProperty('FONTE_PAYLOAD_MESSAGE_FIELD') || FONTE_PAYLOAD_MESSAGE_FIELD_DEFAULT;
+  if (!url || !token) {
+    Logger.log('Fonte config missing (FONTE_API_URL / FONTE_API_TOKEN)');
+    // log to sheet for persistent debugging
+    try{ _log_notification({ timestamp: new Date(), to: to, message: message, status: 'config_missing', httpCode: '', responseBody: '', note: 'Fonte config missing' }); }catch(e){}
+    return false;
+  }
+  try {
+    // Build payload according to configurable field names
+    // Build form payload (match PHP cURL example: multipart/form-data or form fields)
+    const payload = {};
+    payload[phoneField] = to;
+    payload[messageField] = message;
+    // Additional optional fields could be added via Script Properties if needed (e.g. countryCode)
+    const headers = {};
+    headers[headerName] = (tokenPrefix || '') + token;
+    const opts = {
+      method: 'post',
+      // Do NOT set contentType so UrlFetchApp will send form-encoded or multipart when blobs present
+      headers: headers,
+      payload: payload,
+      muteHttpExceptions: true
+    };
+    // Log what we will send (without token) for debugging
+    try{ _log_notification({ timestamp: new Date(), to: to, message: message, status: 'trying', httpCode: '', responseBody: '', note: 'sending via ' + url + ' header=' + headerName + ' prefix=' + (tokenPrefix?tokenPrefix.trim():'') + ' payloadFields=' + phoneField + ',' + messageField }); }catch(e){}
+    const resp = UrlFetchApp.fetch(url, opts);
+    const code = resp.getResponseCode();
+    const body = resp.getContentText();
+    Logger.log('Fonte response: ' + code + ' - ' + body);
+    try{ _log_notification({ timestamp: new Date(), to: to, message: message, status: code >=200 && code <300 ? 'sent' : 'failed', httpCode: code, responseBody: body, note: '' }); }catch(e){}
+    return code >= 200 && code < 300;
+  } catch (e) {
+    Logger.log('Error sending WA: ' + e.message);
+    try{ _log_notification({ timestamp: new Date(), to: to, message: message, status: 'error', httpCode: '', responseBody: e.message, note: '' }); }catch(err){}
+    return false;
+  }
+}
+
+function _notify_penguji_on_upload(row) {
+  try {
+    const student = row.nama || row.username || '';
+    if (!student) return false;
+    // find penguji names for this student
+    const pengujiNames = _getPengujiNamesForStudent(student);
+    if (!pengujiNames.length) {
+      try{ _log_notification({ timestamp: new Date(), to: '', message: '', status: 'no_penguji', httpCode: '', responseBody: '', student: student, penguji: '', phones: '', note: 'no penguji found for student' }); }catch(e){}
+      return false;
+    }
+    const phoneMap = _lookupPhoneMapForNames(pengujiNames);
+    if (!phoneMap.length) {
+      try{ _log_notification({ timestamp: new Date(), to: '', message: '', status: 'no_phones', httpCode: '', responseBody: '', student: student, penguji: JSON.stringify(pengujiNames), phones: '', note: 'no phones found for penguji names' }); }catch(e){}
+      return false;
+    }
+    const kind = (row.category || '').toLowerCase() === 'pkl' ? 'Laporan PKL' : ((row.category || '').toLowerCase() === 'ukk' ? 'dokumentasi UKK' : 'dokumen');
+    const filePart = row.fileName ? (" dengan file: " + row.fileName) : '';
+    phoneMap.forEach(entry => {
+      const pengujiName = entry.name || '';
+      const ph = entry.phone;
+      const driveLink = row.fileId ? ('https://drive.google.com/file/d/' + row.fileId + '/view') : 'https://pkl.kelastkj.online/';
+      const portalLink = 'https://pkl.kelastkj.online/';
+      const personalised = `Yth. Bapak/Ibu ${pengujiName},\n\nInformasi: siswa *${student}* telah mengunggah ${kind}${filePart}.\n\n1) Untuk melihat berkas langsung: ${driveLink}\n2) Untuk memberi penilaian: buka ${portalLink} -> login -> pilih menu "Pengujian" -> cari nama siswa dan masukkan nilai.\n\nJika Bapak/Ibu menemukan kendala akses pada file, mohon konfirmasi balas pesan ini agar kami bantu.\n\nTerima kasih atas waktu dan perhatiannya.`;
+      try { _sendWhatsAppViaFonte(ph, personalised); } catch (e) { Logger.log('Notify error for ' + ph + ': ' + e.message); try{ _log_notification({ timestamp: new Date(), to: ph, message: personalised, status: 'error', httpCode: '', responseBody: e.message, student: student, penguji: pengujiName, phones: JSON.stringify(phoneMap), note: 'exception in foreach' }); }catch(ex){} }
+    });
+    return true;
+  } catch (e) { Logger.log('notify_penguji_on_upload error: ' + e.message); return false; }
+}
+
+// Log notification attempts/results to sheet NOTIFICATIONS for persistent debugging
+function _log_notification(obj){
+  const shName = 'NOTIFICATIONS';
+  const sh = _sheet(shName) || SpreadsheetApp.getActive().insertSheet(shName);
+  const header = ['timestamp','to','message','status','httpCode','responseBody','student','penguji','phones','note'];
+  if(sh.getLastRow() === 0) sh.appendRow(header);
+  const values = header.map(h => obj[h] || '');
+  sh.appendRow(values);
+}
+
+// Debug helper: write current Fonte config (except full token) to NOTIFICATIONS
+function _showFonteConfig(){
+  const props = _prop();
+  const url = props.getProperty('FONTE_API_URL') || props.getProperty('fonte_url') || FONTE_API_URL_DEFAULT;
+  const token = props.getProperty('FONTE_API_TOKEN') || props.getProperty('fonte_token') || props.getProperty('FONTE_TOKEN') || FONTE_API_TOKEN_DEFAULT;
+  const headerName = props.getProperty('FONTE_API_HEADER_NAME') || props.getProperty('fonte_header_name') || FONTE_API_HEADER_NAME_DEFAULT;
+  const tokenPrefix = props.getProperty('FONTE_API_TOKEN_PREFIX') || props.getProperty('fonte_token_prefix') || FONTE_API_TOKEN_PREFIX_DEFAULT;
+  const phoneField = props.getProperty('FONTE_PAYLOAD_PHONE_FIELD') || FONTE_PAYLOAD_PHONE_FIELD_DEFAULT;
+  const messageField = props.getProperty('FONTE_PAYLOAD_MESSAGE_FIELD') || FONTE_PAYLOAD_MESSAGE_FIELD_DEFAULT;
+  const masked = token ? ('' + token).slice(0,4) + '...' : '';
+  _log_notification({ timestamp: new Date(), to: '', message: '', status: 'config_dump', httpCode: '', responseBody: '', note: JSON.stringify({ url:url, headerName: headerName, tokenPrefix: tokenPrefix, tokenMasked: masked, phoneField: phoneField, messageField: messageField }) });
+  Logger.log('Fonte config: url=%s header=%s prefix=%s tokenMasked=%s phoneField=%s messageField=%s', url, headerName, tokenPrefix, masked, phoneField, messageField);
 }
 
 function _readUploads(){
@@ -207,7 +400,7 @@ function _handle_upload_(params) {
   try {
   const folder = DriveApp.getFolderById(folderId);
   const file = folder.createFile(blob);
-    _log_upload({
+    const uploadRec = {
       timestamp: new Date(),
       username: sess.profile.username,
       role: sess.profile.role,
@@ -219,7 +412,9 @@ function _handle_upload_(params) {
       mitra: sess.profile.mitra,
       nama: sess.profile.nama,
       kelas: sess.profile.kelas
-    });
+    };
+    _log_upload(uploadRec);
+    try { _notify_penguji_on_upload(uploadRec); } catch(e){ Logger.log('Notify error: ' + (e && e.message)); }
     return _redirectPage('Upload berhasil.', true);
   } catch(err) {
     return _redirectPage('Gagal menyimpan ke Drive: '+err.message, false);
@@ -279,6 +474,89 @@ function _readRowsGeneric(sheetName) {
     rows.push(obj);
   }
   return { header, rows };
+}
+
+/* =====================================================
+ * NILAI PRESENTASI - penyimpanan dan pembacaan
+ * Skema (header): nama | struktur | penyampaian | penguasaan | media | sikap | total | timestamp
+ * ===================================================== */
+function _readNilaiPresentasi(){
+  const sh = _sheet(SHEET_NILAI);
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({
+      username: v[idx['username']]||'', nama: v[idx['nama']]||'', struktur: v[idx['struktur']]||'', penyampaian: v[idx['penyampaian']]||'',
+      penguasaan: v[idx['penguasaan']]||'', media: v[idx['media']]||'', sikap: v[idx['sikap']]||'',
+      total: v[idx['total']]||'', timestamp: v[idx['timestamp']]||''
+    });
+  }
+  return rows;
+}
+
+function _readNilaiPKL(){
+  const sh = _sheet('NILAI-PKL');
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({ username: v[idx['username']]||'', nama: v[idx['nama']]||'', total: v[idx['total']]||'', timestamp: v[idx['timestamp']]||'' });
+  }
+  return rows;
+}
+
+function _readNilaiUKK(){
+  const sh = _sheet('NILAI-UKK');
+  if(!sh || sh.getLastRow() === 0) return [];
+  const values = sh.getDataRange().getValues();
+  const header = values[0].map(h => _norm(h).toLowerCase());
+  const idx = {}; header.forEach((h,i)=> idx[h]=i);
+  const rows = [];
+  for(let r=1;r<values.length;r++){
+    const v = values[r];
+    rows.push({ username: v[idx['username']]||'', nama: v[idx['nama']]||'', keterangan: v[idx['keterangan']]||'', timestamp: v[idx['timestamp']]||'' });
+  }
+  return rows;
+}
+
+function _save_nilai_presentasi(params){
+  const username = _norm(params.username);
+  const nama = _norm(params.nama) || '';
+  if(!username) return { ok:false, error:'Username siswa kosong' };
+  const rec = {
+    username,
+    nama,
+    struktur: _norm(params.struktur),
+    penyampaian: _norm(params.penyampaian),
+    penguasaan: _norm(params.penguasaan),
+    media: _norm(params.media),
+    sikap: _norm(params.sikap),
+    total: _norm(params.total),
+    timestamp: new Date()
+  };
+  const sh = _sheet(SHEET_NILAI) || SpreadsheetApp.getActive().insertSheet(SHEET_NILAI);
+  const header = ['username','nama','struktur','penyampaian','penguasaan','media','sikap','total','timestamp'];
+  if(sh.getLastRow() === 0) sh.appendRow(header);
+  const values = sh.getDataRange().getValues();
+  const headerLower = values[0].map(h=>_norm(h).toLowerCase());
+  const idxUser = headerLower.indexOf('username');
+  for(let r=1;r<values.length;r++){
+    if(String(values[r][idxUser]) === String(username)){
+      const rowVals = header.map(k => rec[k] || '');
+      sh.getRange(r+1, 1, 1, header.length).setValues([rowVals]);
+      return { ok:true, updated:true, message:'Nilai diperbarui', data: rec };
+    }
+  }
+  const rowVals = header.map(k => rec[k] || '');
+  sh.appendRow(rowVals);
+  return { ok:true, updated:false, message:'Nilai tersimpan', data: rec };
 }
 
 /* =====================================================
@@ -423,6 +701,13 @@ function doGet(e) {
     const p = (e && e.parameter) || {};
     const dataset = (p.dataset || '').toLowerCase();
 
+    // Protect sensitive data: require explicit dataset param.
+    // If no dataset is provided, do not return sheet data by default.
+    if (!dataset) {
+      const out = { ok:false, error: 'Parameter dataset diperlukan. Akses langsung tidak diizinkan.' };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
     // AUTH (JSONP-capable)
     if(dataset === 'auth'){
       if((p.route||'').toLowerCase() === 'login'){
@@ -465,18 +750,65 @@ function doGet(e) {
 
     // PENGUJI (BARU)
     if(dataset === 'penguji'){
-      if(p.route === 'meta') return _json(penguji_meta());
-      if(p.q)                return _json(penguji_search(p.q));
-      if(p.penguji)          return _json(penguji_by_nama(p.penguji));
-      return _json({ok:false,error:'Parameter kurang untuk dataset=penguji. Gunakan route=meta, q=, atau penguji='});
+      if(p.route === 'meta'){
+        const out = penguji_meta();
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.q){
+        const out = penguji_search(p.q);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.penguji){
+        const out = penguji_by_nama(p.penguji);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      const out = {ok:false,error:'Parameter kurang untuk dataset=penguji. Gunakan route=meta, q=, atau penguji='};
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // NILAI PRESENTASI (dilindungi)
+    if(dataset === 'nilaipresentasi'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
+      const rows = _readNilaiPresentasi();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // NILAI PKL (dilindungi)
+    if(dataset === 'nilaipkl'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
+      const rows = _readNilaiPKL();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // NILAI UKK (dilindungi)
+    if(dataset === 'nilaiukk'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
+      const rows = _readNilaiUKK();
+      const out = { ok:true, route:'data', count: rows.length, data: rows };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
     // PEMBIMBING
     if(dataset === 'pembimbing'){
-      if(p.route === 'meta')      return _json(pembimbing_meta());
-      if(p.q)                     return _json(pembimbing_search(p.q));
-      if(p.pembimbing)            return _json(pembimbing_by_nama(p.pembimbing));
-      return _json({ok:false,error:'Parameter kurang untuk dataset=pembimbing. Gunakan route=meta, q=, atau pembimbing='});
+      if(p.route === 'meta'){
+        const out = pembimbing_meta();
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.q){
+        const out = pembimbing_search(p.q);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.pembimbing){
+        const out = pembimbing_by_nama(p.pembimbing);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      const out = {ok:false,error:'Parameter kurang untuk dataset=pembimbing. Gunakan route=meta, q=, atau pembimbing='};
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
     // PESERTA
@@ -487,9 +819,11 @@ function doGet(e) {
       return _json({ok:false,error:'Parameter kurang untuk dataset=peserta.'});
     }
 
-    // Default: UKK (kompatibel dengan pola lama)
-    if(p.route === 'meta') return _json(ukk_meta());
-    return _json(ukk_data(p));
+  // Default: UKK (kompatibel dengan pola lama)
+  // Allow public access only to meta route. Full ukk data requires authentication.
+  if(p.route === 'meta') return p.callback ? _jsonp(ukk_meta(), p.callback) : _json(ukk_meta());
+  // Public ukk data is allowed when dataset=ukk is provided. (The root/no-dataset case is already blocked above.)
+  return p.callback ? _jsonp(ukk_data(p), p.callback) : _json(ukk_data(p));
 
   } catch(err) {
     return _json({ ok:false, error: err.message });
@@ -504,6 +838,18 @@ function doPost(e){
       return _handle_upload_(p);
     } else if(action === 'delete'){
       return _handle_delete_(p);
+    } else if(action === 'save_nilai'){
+      const out = _save_nilai_presentasi(p);
+      // reply with small HTML that posts message to parent (like upload/delete)
+      // include username and data when available so client can update optimistically
+      const payload = { type: 'save_nilai', ok: !!out.ok, message: out.message || '' };
+      try{ if(out.data && out.data.username) payload.username = out.data.username; payload.data = out.data; }catch(e){}
+      const html = `<!doctype html><meta charset="utf-8"><title>Save Nilai</title><body>`+
+        `${out.ok? '✅':'❌'} ${out.message}`+
+        `<script>(function(){try{parent&&parent.postMessage&&parent.postMessage(${JSON.stringify(payload)}, '*');}catch(e){}; try{setTimeout(function(){ window.close && window.close(); }, 400);}catch(e){} })();</script></body>`;
+      const resp = HtmlService.createHtmlOutput(html);
+      resp.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+      return resp;
     } else if(action === 'login'){
       const out = _auth_login(p.u, p.p);
       return _json(out);
