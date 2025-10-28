@@ -39,7 +39,7 @@
           <li><a href="ukk.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>UKK Industri</a></li>
           <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i><span id="navAuthText">Login</span></a></li>
         </ul>
-        <button id="burgerBtn" class="md:hidden h-9 w-9 flex items-center justify-center border rounded-lg hover:bg-slate-100">
+        <button id="burgerBtn" class="md:hidden h-11 w-11 flex items-center justify-center border rounded-lg hover:bg-slate-100">
           <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
           </svg>
@@ -49,7 +49,7 @@
         </button>
       </div>
     </div>
-    <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white transition-all duration-300">
       <div class="mx-auto max-w-6xl px-4 py-2">
         <ul class="flex flex-col gap-1 text-sm">
           <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
@@ -72,7 +72,7 @@
   </header>
 
   <!-- MAIN -->
-  <main class="mx-auto max-w-6xl px-4 py-6">
+  <main class="mx-auto max-w-6xl px-6 md:px-4 py-6">
     <section class="mb-4">
       <div class="rounded-2xl border bg-white p-4 shadow-sm flex flex-col sm:flex-row gap-4 sm:items-end justify-between">
         <label class="flex-1">
@@ -202,6 +202,16 @@
     const burgerBtn=document.getElementById('burgerBtn'),burgerIcon=document.getElementById('burgerIcon'),
           closeIcon=document.getElementById('closeIcon'),mobileMenu=document.getElementById('mobileMenu');
     burgerBtn?.addEventListener('click',()=>{mobileMenu.classList.toggle('hidden');burgerIcon.classList.toggle('hidden');closeIcon.classList.toggle('hidden');});
+
+    // Close menu when clicking on a link
+    const links = mobileMenu.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        burgerIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+      });
+    });
 
     function show(e){e.classList.remove('hidden')}
     function hide(e){e.classList.add('hidden')}

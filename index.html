@@ -65,7 +65,101 @@
     /* Slight color emphasis for close line */
     .burger-close .close-line { stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-    .animate-fade-up { animation: fadeUp .5s ease-out both; }  </style>
+    .animate-fade-up { animation: fadeUp .5s ease-out both; }  
+
+    /* Slideshow Styles */
+    .slideshow-container {
+      position: relative;
+      max-width: 100%;
+      margin: auto;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      display: flex;
+      gap: 8px;
+    }
+    .slide {
+      flex: 1;
+      display: none;
+      animation: fadeIn 1s ease-in-out;
+    }
+    .slide.active {
+      display: flex;
+      gap: 8px;
+    }
+    .slide img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+    @media (max-width: 767px) {
+      .slide {
+        flex-direction: column;
+      }
+      .slide img {
+        height: 150px;
+      }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .slideshow-dots {
+      text-align: center;
+      padding: 10px;
+    }
+    .dot {
+      height: 12px;
+      width: 12px;
+      margin: 0 4px;
+      background-color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      display: inline-block;
+      transition: background-color 0.6s ease;
+      cursor: pointer;
+    }
+    .dot.active {
+      background-color: #0ea5e9;
+    }
+
+    /* Mobile Slideshow */
+    .slideshow-container-mobile {
+      position: relative;
+      max-width: 100%;
+      margin: auto;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .slideshow-container-mobile img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: none;
+    }
+    .slideshow-container-mobile img.active {
+      display: block;
+    }
+    .slideshow-dots-mobile {
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* Skeleton Loader */
+    .skeleton {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+  </style>
 
 </head>
 
@@ -113,7 +207,7 @@
 
         </ul>
 
-        <button id="burgerBtn" aria-label="Buka menu navigasi" aria-controls="mobileMenu" aria-expanded="false" class="md:hidden relative inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100">
+        <button id="burgerBtn" aria-label="Buka menu navigasi" aria-controls="mobileMenu" aria-expanded="false" class="md:hidden relative inline-flex items-center justify-center h-11 w-11 rounded-lg border hover:bg-slate-100">
           <!-- Hamburger icon group -->
           <svg viewBox="0 0 24 24" class="burger-svg burger-hamburger" aria-hidden="true" focusable="false">
             <rect class="burger-line" x="3" y="6" width="18" height="2" rx="1" fill="currentColor" />
@@ -131,7 +225,7 @@
 
     </div>
 
-    <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white transition-all duration-300">
 
       <div class="mx-auto max-w-6xl px-4 py-2">
 
@@ -161,23 +255,119 @@
 
   <!-- HEADER -->
 
-  <header class="relative overflow-hidden hero-decor bg-grid bg-gradient-to-r from-emerald-100 via-sky-100 to-teal-100 border-b">
+  <header class="relative overflow-hidden hero-decor bg-grid bg-sky-50 border-b">
 
     <div class="mx-auto max-w-6xl px-4 py-14 md:py-20 text-center">
 
-      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-emerald-700 flex justify-center items-center gap-2 animate-fade-up">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-sky-800 flex justify-center items-center gap-2 animate-fade-up mt-6">
 
-        <i data-lucide="network" class="w-8 h-8 text-emerald-600"></i>
+        <i data-lucide="network" class="w-8 h-8 text-sky-700"></i>
 
         Sistem Informasi PKL & UKK Industri
 
       </h1>
 
-      <p class="text-slate-600 mt-4 text-lg md:text-xl max-w-3xl mx-auto animate-fade-up">
+      <p class="text-slate-600 mt-6 text-lg md:text-xl max-w-3xl mx-auto animate-fade-up leading-relaxed">
 
         Platform terpadu untuk mendukung pelaksanaan <strong>Praktik Kerja Lapangan (PKL)</strong> dan <strong>UKK Industri</strong> di jurusan TKJ SMKN 1 Telagasari.
 
-      </p>      
+      </p>
+
+      <!-- Slideshow Mobile -->
+      <div class="md:hidden mt-8 slideshow-container-mobile">
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Slide 1" class="active" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG20240304133855-scaled.jpg" alt="Slide 2" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG20240304134248-scaled.jpg" alt="Slide 3" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG20240304141648-scaled.jpg" alt="Slide 4" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Slide 5" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Slide 6" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Slide 7" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+        <div class="relative">
+          <div class="skeleton"></div>
+          <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Slide 8" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+        </div>
+      </div>
+      <div class="md:hidden slideshow-dots-mobile">
+        <span class="dot active" onclick="currentSlideMobile(1)"></span>
+        <span class="dot" onclick="currentSlideMobile(2)"></span>
+        <span class="dot" onclick="currentSlideMobile(3)"></span>
+        <span class="dot" onclick="currentSlideMobile(4)"></span>
+        <span class="dot" onclick="currentSlideMobile(5)"></span>
+        <span class="dot" onclick="currentSlideMobile(6)"></span>
+        <span class="dot" onclick="currentSlideMobile(7)"></span>
+        <span class="dot" onclick="currentSlideMobile(8)"></span>
+      </div>
+
+      <!-- Slideshow Desktop -->
+      <div class="hidden md:block mt-8 slideshow-container">
+        <div class="slide active">
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Slide 1" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG20240304133855-scaled.jpg" alt="Slide 2" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+        </div>
+        <div class="slide">
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG20240304134248-scaled.jpg" alt="Slide 3" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG20240304141648-scaled.jpg" alt="Slide 4" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+        </div>
+        <div class="slide">
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Slide 5" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Slide 6" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+        </div>
+        <div class="slide">
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Slide 7" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Slide 8" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+        </div>
+      </div>
+      <div class="hidden md:block slideshow-dots">
+        <span class="dot active" onclick="currentSlide(1)"></span>
+        <span class="dot" onclick="currentSlide(2)"></span>
+        <span class="dot" onclick="currentSlide(3)"></span>
+        <span class="dot" onclick="currentSlide(4)"></span>
+      </div>
 
     </div>
 
@@ -187,16 +377,16 @@
 
   <!-- MAIN CONTENT -->
 
-  <main id="main" class="mx-auto max-w-6xl px-4 py-10 space-y-10">
+  <main id="main" class="mx-auto max-w-6xl px-6 md:px-4 py-10 space-y-10">
 <!-- Pembimbing & Penguji -->
 
     <section class="grid md:grid-cols-2 gap-6">
 
-      <div class="rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 border p-6 shadow-sm hover:shadow-md transition">
+      <div class="rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="book-open"></i></div>
+        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="book-open"></i></div>
 
-        <h3 class="text-lg font-semibold text-emerald-800">Peran Pembimbing (Laporan)</h3>
+        <h3 class="text-lg font-semibold text-emerald-900">Peran Pembimbing (Laporan)</h3>
 
         <p class="mt-2 text-slate-700 leading-relaxed">
 
@@ -210,11 +400,11 @@
 
 
 
-      <div class="rounded-2xl bg-gradient-to-br from-sky-50 to-sky-100 border p-6 shadow-sm hover:shadow-md transition">
+      <div class="rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="user-check"></i></div>
+        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-500 text-white mb-2"><i data-lucide="user-check"></i></div>
 
-        <h3 class="text-lg font-semibold text-sky-800">Peran Penguji (Laporan)</h3>
+        <h3 class="text-lg font-semibold text-sky-900">Peran Penguji (Laporan)</h3>
 
         <p class="mt-2 text-slate-700 leading-relaxed">
 
@@ -258,7 +448,7 @@
 
     <!-- UKK Industri -->
 
-    <section class="rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100 border p-6 shadow-sm hover:shadow-md transition">
+    <section class="rounded-2xl bg-gradient-to-br from-teal-100 to-teal-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
 
       <div class="flex items-center gap-2 mb-3">
 
@@ -327,9 +517,9 @@
 
       <div class="mt-5 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-        <div class="rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="type"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="type"></i></div>
 
           <h4 class="font-semibold">Slide 1 &mdash; Judul</h4>
 
@@ -343,9 +533,9 @@
 
 
 
-        <div class="rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="user"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="user"></i></div>
 
           <h4 class="font-semibold">Slide 2 &mdash; Data Diri</h4>
 
@@ -359,9 +549,9 @@
 
 
 
-        <div class="rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="wrench"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="wrench"></i></div>
 
           <h4 class="font-semibold">Slide 3-5 &mdash; Ringkasan Pekerjaan</h4>
 
@@ -375,9 +565,9 @@
 
 
 
-        <div class="rounded-2xl bg-white border p-4 shadow-sm hover:shadow-md transition">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-100 text-emerald-600 mb-2"><i data-lucide="camera"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="camera"></i></div>
 
           <h4 class="font-semibold">Slide Tambahan &mdash; Dokumentasi</h4>
 
@@ -397,7 +587,7 @@
 
     <!-- Tips Presentasi -->
 
-    <section class="rounded-2xl border bg-gradient-to-r from-emerald-50 via-sky-50 to-teal-50 p-5 shadow-sm">
+    <section class="rounded-2xl border bg-gradient-to-r from-emerald-100 via-sky-100 to-teal-100 p-5 shadow-sm hover:shadow-md transition hover:scale-105">
 
       <div class="flex items-center gap-2 mb-2">
 
@@ -419,6 +609,35 @@
 
       </ul>
 
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="rounded-2xl bg-white border p-6 shadow-sm">
+      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-emerald-800">
+        <i data-lucide="help-circle"></i> Pertanyaan Umum (FAQ)
+      </h2>
+      <div class="space-y-4">
+        <details class="border-b pb-4">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Apa itu PKL?</summary>
+          <p class="mt-2 text-slate-700">Praktik Kerja Lapangan (PKL) adalah kegiatan wajib bagi siswa SMK untuk mengaplikasikan teori yang dipelajari di sekolah ke dunia kerja nyata. Durasi PKL biasanya 3-6 bulan di perusahaan mitra.</p>
+        </details>
+        <details class="border-b pb-4">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Bagaimana cara mengunggah laporan PKL?</summary>
+          <p class="mt-2 text-slate-700">Setelah laporan disetujui pembimbing, konversi ke PDF dengan nama file NISN_Nama_LaporanPKL.pdf, pastikan ukuran ≤10 MB, lalu unggah melalui Dashboard > Upload Laporan PKL.</p>
+        </details>
+        <details class="border-b pb-4">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Apa perbedaan PKL dan UKK Industri?</summary>
+          <p class="mt-2 text-slate-700">PKL fokus pada pengalaman kerja praktis, sedangkan UKK Industri adalah uji kompetensi akhir yang dilakukan di dunia industri untuk mendapatkan sertifikat kompetensi.</p>
+        </details>
+        <details class="border-b pb-4">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Siapa yang bisa mengakses sistem ini?</summary>
+          <p class="mt-2 text-slate-700">Sistem ini dapat diakses oleh siswa, pembimbing, penguji, dan admin sekolah untuk mengelola dokumen PKL dan UKK.</p>
+        </details>
+        <details>
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Bagaimana jika lupa password?</summary>
+          <p class="mt-2 text-slate-700">Hubungi admin sekolah atau pembimbing untuk reset password melalui email atau kontak resmi.</p>
+        </details>
+      </div>
     </section>
 
   </main>
@@ -500,6 +719,12 @@
 
       // Close on Escape
       document.addEventListener('keydown', (ev) => { if(ev.key === 'Escape') close(); });
+
+      // Close menu when clicking on a link
+      const links = mobileMenu.querySelectorAll('a');
+      links.forEach(link => {
+        link.addEventListener('click', close);
+      });
     })();
 
     document.getElementById('year').textContent=new Date().getFullYear();
@@ -560,6 +785,99 @@
       }
 
     })();
+
+    // Slideshow functionality
+    let slideIndex = 1;
+    showSlides(slideIndex);
+
+    function plusSlides(n) {
+      showSlides(slideIndex += n);
+    }
+
+    function currentSlide(n) {
+      showSlides(slideIndex = n);
+    }
+
+    function showSlides(n) {
+      let i;
+      let slides = document.getElementsByClassName("slide");
+      if (n > slides.length) {slideIndex = 1}
+      if (n < 1) {slideIndex = slides.length}
+      for (i = 0; i < slides.length; i++) {
+        slides[i].classList.remove("active");
+      }
+      let desktopDots = document.querySelectorAll('.slideshow-dots .dot');
+      for (i = 0; i < desktopDots.length; i++) {
+        desktopDots[i].className = desktopDots[i].className.replace(" active", "");
+      }
+      slides[slideIndex-1].classList.add("active");
+      desktopDots[slideIndex-1].className += " active";
+    }
+
+    // Auto slideshow desktop
+    setInterval(function() {
+      plusSlides(1);
+    }, 4000); // Change slide every 4 seconds
+
+    // Mobile Slideshow functionality
+    let slideIndexMobile = 1;
+    showSlidesMobile(slideIndexMobile);
+
+    function plusSlidesMobile(n) {
+      showSlidesMobile(slideIndexMobile += n);
+    }
+
+    function currentSlideMobile(n) {
+      showSlidesMobile(slideIndexMobile = n);
+    }
+
+    function showSlidesMobile(n) {
+      let i;
+      let slides = document.getElementsByClassName("slideshow-container-mobile")[0].getElementsByTagName("img");
+      let dots = document.getElementsByClassName("dot"); // Assuming same class, but since hidden, ok
+      if (n > slides.length) {slideIndexMobile = 1}
+      if (n < 1) {slideIndexMobile = slides.length}
+      for (i = 0; i < slides.length; i++) {
+        slides[i].classList.remove("active");
+      }
+      for (i = 0; i < dots.length; i++) {
+        dots[i].className = dots[i].className.replace(" active", "");
+      }
+      slides[slideIndexMobile-1].classList.add("active");
+      // For mobile dots, need to select only mobile ones
+      let mobileDots = document.querySelectorAll('.slideshow-dots-mobile .dot');
+      for (i = 0; i < mobileDots.length; i++) {
+        mobileDots[i].className = mobileDots[i].className.replace(" active", "");
+      }
+      mobileDots[slideIndexMobile-1].className += " active";
+    }
+
+    // Auto slideshow mobile
+    setInterval(function() {
+      plusSlidesMobile(1);
+    }, 4000);
+
+    // Swipe support for mobile slideshow
+    let startX;
+    const mobileContainer = document.querySelector('.slideshow-container-mobile');
+    if (mobileContainer) {
+      mobileContainer.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+      });
+      mobileContainer.addEventListener('touchend', (e) => {
+        if (!startX) return;
+        const endX = e.changedTouches[0].clientX;
+        const diffX = startX - endX;
+        if (Math.abs(diffX) > 50) { // swipe threshold
+          if (diffX > 0) {
+            plusSlidesMobile(1); // swipe left, next slide
+          } else {
+            plusSlidesMobile(-1); // swipe right, prev slide
+          }
+        }
+        startX = null;
+      });
+    }
 
   </script>
 

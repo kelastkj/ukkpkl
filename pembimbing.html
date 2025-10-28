@@ -38,14 +38,14 @@
           <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>UKK Industri</a></li>
           <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i><span id="navAuthText">Login</span></a></li>
         </ul>
-        <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" aria-controls="mobileMenu" aria-expanded="false" aria-label="Buka menu">
+        <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-11 w-11 rounded-lg border hover:bg-slate-100" aria-controls="mobileMenu" aria-expanded="false" aria-label="Buka menu">
           <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/></svg>
           <svg id="closeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
     </div>
     <!-- Mobile menu -->
-    <div id="mobileMenu" class="md:hidden hidden border-t bg-white" role="dialog" aria-label="Menu seluler">
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white transition-all duration-300" role="dialog" aria-label="Menu seluler">
       <div class="mx-auto max-w-6xl px-4 py-2">
         <ul class="flex flex-col gap-1 text-sm">
           <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
@@ -68,7 +68,7 @@
   </header>
 
   <!-- ===================== MAIN ===================== -->
-  <main class="mx-auto max-w-6xl px-4 py-6">
+  <main class="mx-auto max-w-6xl px-6 md:px-4 py-6">
     <!-- Filter -->
     <section class="mb-4">
       <div class="rounded-2xl border bg-white p-4 md:p-5 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -179,6 +179,17 @@
       mobileMenu.classList.toggle('hidden');
       burgerIcon.classList.toggle('hidden');
       closeIcon.classList.toggle('hidden');
+    });
+
+    // Close menu when clicking on a link
+    const links = mobileMenu.querySelectorAll('a');
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        mobileMenu.classList.add('hidden');
+        burgerIcon.classList.remove('hidden');
+        closeIcon.classList.add('hidden');
+        burgerBtn.setAttribute('aria-expanded', 'false');
+      });
     });
 
     // Toggle Login/Logout
