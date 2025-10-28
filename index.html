@@ -731,7 +731,7 @@
 
 
 
-    // Toggle Login/Logout menu based on auth status (update icon + label)
+    // Toggle Login/Dashboard menu based on auth status (update icon + label)
 
     (function(){
 
@@ -744,33 +744,15 @@
       const navAuthMobileText = document.getElementById('navAuthMobileText');
 
       const token = localStorage.getItem('auth_token');
-      function makeLogout(el, textEl){
+      function makeDashboard(el, textEl){
 
         if(!el) return;
 
-        el.href = '#';
+        const iconClass = el.id.includes('Mobile') ? 'w-5 h-5' : 'w-4 h-4';
 
-        if(textEl) textEl.textContent = 'Logout';
+        el.innerHTML = '<i data-lucide="layout-dashboard" class="' + iconClass + '"></i><span id="' + textEl.id + '">Dashboard</span>';
 
-        el.addEventListener('click', function(ev){
-
-          ev.preventDefault();
-
-          localStorage.removeItem('auth_token');
-
-          localStorage.removeItem('auth_profile');
-
-          // Return to login page
-
-          location.href = 'login.html';
-
-        });
-
-        // swap icon to log-out if lucide available
-
-        const ic = el.querySelector('i[data-lucide]');
-
-        if(ic) ic.setAttribute('data-lucide', 'log-out');
+        el.href = 'dashboard.html';
 
         if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
 
@@ -778,9 +760,9 @@
 
       if(token){
 
-        makeLogout(navAuth, navAuthText);
+        makeDashboard(navAuth, navAuthText);
 
-        makeLogout(navAuthMobile, navAuthMobileText);
+        makeDashboard(navAuthMobile, navAuthMobileText);
 
       }
 

@@ -192,18 +192,20 @@
       });
     });
 
-    // Toggle Login/Logout
+    // Toggle Login/Dashboard
     (function(){
       const token = localStorage.getItem('auth_token');
-      function makeLogout(el){
+      function makeDashboard(el){
         if(!el) return;
-        el.textContent = 'Logout';
-        el.href = '#';
-        el.addEventListener('click', function(e){ e.preventDefault(); localStorage.removeItem('auth_token'); localStorage.removeItem('auth_profile'); location.href='login.html'; });
+        const iconClass = el.id.includes('Mobile') ? 'w-5 h-5' : 'w-4 h-4';
+        el.innerHTML = '<i data-lucide="layout-dashboard" class="' + iconClass + '"></i>Dashboard';
+        el.href = 'dashboard.html';
+        // swap icon to dashboard if lucide available
+        if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
       }
       if(token){
-        makeLogout(document.getElementById('navAuth'));
-        makeLogout(document.getElementById('navAuthMobile'));
+        makeDashboard(document.getElementById('navAuth'));
+        makeDashboard(document.getElementById('navAuthMobile'));
       }
     })();
   </script>

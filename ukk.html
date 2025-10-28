@@ -170,31 +170,23 @@
           alertEl=document.getElementById('app-alert');
     document.getElementById('year').textContent=new Date().getFullYear();
 
-    // Toggle Login/Logout menu based on auth status
-    // Toggle Login/Logout menu based on auth status
+    // Toggle Login/Dashboard menu based on auth status
     (function(){
       const navAuth=document.getElementById('navAuth');
       const navAuthMobile=document.getElementById('navAuthMobile');
       const navAuthText=document.getElementById('navAuthText');
       const navAuthMobileText=document.getElementById('navAuthMobileText');
       const token=localStorage.getItem('auth_token');
-      function makeLogout(el,textEl){
+      function makeDashboard(el,textEl){
         if(!el) return;
-        el.href='#';
-        if(textEl) textEl.textContent='Logout';
-        el.addEventListener('click',function(ev){
-          ev.preventDefault();
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('auth_profile');
-          location.href='login.html';
-        });
-        const ic = el.querySelector('i[data-lucide]');
-        if(ic) ic.setAttribute('data-lucide','log-out');
+        const iconClass = el.id.includes('Mobile') ? 'w-5 h-5' : 'w-4 h-4';
+        el.innerHTML = '<i data-lucide="layout-dashboard" class="' + iconClass + '"></i><span id="' + textEl.id + '">Dashboard</span>';
+        el.href='dashboard.html';
         if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
       }
       if(token){
-        makeLogout(navAuth, navAuthText);
-        makeLogout(navAuthMobile, navAuthMobileText);
+        makeDashboard(navAuth, navAuthText);
+        makeDashboard(navAuthMobile, navAuthMobileText);
       }
     })();
 
