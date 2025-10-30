@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sertifikat - Dashboard Guru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="config.js"></script>
+  <style>
+    :root{ color-scheme: light; }
+    body{ background: linear-gradient(180deg, rgba(240,253,250,1) 0%, rgba(239,246,255,1) 100%); }
+    .card{ background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.06); padding:16px; }
+    .hidden{ display:none; }
+    .resp-table{ width:100%; border-collapse:collapse; }
+    .resp-th, .resp-td{ border-bottom:1px solid #e5e7eb; padding:8px 12px; vertical-align:top; }
+    @media (max-width: 640px){
+      .resp-table thead{ display:none; }
+      .resp-table tr{ display:block; border:none; border-radius:12px; margin:12px 0; overflow:hidden; background:#fff; box-shadow:0 10px 26px rgba(2,6,23,.06); position:relative; }
+      .resp-table tr::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--accent, #cbd5e1); }
+      .resp-table tr[data-status="generated"]{ --accent:#10b981; }
+      .resp-table tr[data-status="pending"]{ --accent:#f59e0b; }
+      .resp-table td.resp-td{ display:grid; grid-template-columns: 40% 60%; gap:8px; border-bottom:1px solid #f1f5f9; }
+      .resp-table td.resp-td:last-child{ border-bottom:none; }
+      .resp-table td.resp-td::before{ content: attr(data-label); font-weight:600; color:#475569; }
+    }
+  /* Make mobile menu fixed under the sticky header on small screens */
+  #mobileMenu{ position:fixed; left:0; right:0; top:56px; z-index:40; max-height:calc(100vh - 56px); overflow:auto; box-shadow:0 8px 30px rgba(2,6,23,.08); }
+  @media (min-width: 768px){ #mobileMenu{ position:static; max-height:none; overflow:visible; box-shadow:none; } }
+    .badge-status{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
+    .badge-generated{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+    .badge-pending{ background:#fffbeb; color:#92400e; border-color:#fed7aa; }
+    /* Toasts */
+    .toast-container{ position:fixed; right:1rem; bottom:1rem; display:flex; flex-direction:column; gap:0.5rem; z-index:60; }
+    .toast{ min-width:220px; max-width:360px; display:flex; gap:0.75rem; align-items:center; background:white; border-radius:12px; padding:10px 12px; box-shadow:0 10px 25px rgba(2,6,23,.12); border:1px solid #e6eef6; }
+    .toast.ok{ border-color:#d1fae5; background:linear-gradient(180deg,#ecfdf5,#ffffff); }
+    .toast.err{ border-color:#fee2e2; background:linear-gradient(180deg,#fff1f2,#ffffff); }
+    .toast .msg{ flex:1; font-size:13px; color:#0f172a; }
+    .toast .close{ background:transparent; border:0; color:#475569; cursor:pointer; padding:6px; border-radius:8px; }
+    .toast .icon{ width:20px; height:20px; flex:0 0 20px; }
+    /* Loading overlay (match dashboard) */
+    #loading{ position:fixed; inset:0; z-index:40; background:rgba(0,0,0,0.12); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center; }
+    #loading.hidden{ display:none; }
+    #loading > .rounded-xl{ padding:12px 14px; display:flex; gap:10px; align-items:center; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+  <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="flex h-14 items-center justify-between gap-3">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <img src="logo.png" alt="Logo TKJ SMKN 1 Telagasari" class="h-8 w-8 rounded-lg" />
+          <div class="leading-tight">
+            <div class="font-bold tracking-tight">SI PKL & UKK Industri</div>
+            <div class="text-[11px] text-slate-500">Sertifikat</div>
+          </div>
+        </a>
+        <div class="flex items-center gap-3">
+          <ul class="hidden md:flex items-center gap-1 text-sm">
+            <li><a href="dashboard.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a></li>
+            <li><a href="bimbingan.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Bimbingan</a></li>
+            <li><a href="pengujian.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-4 h-4"></i>Pengujian</a></li>
+            <li><a href="sertifikat.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="award" class="w-4 h-4"></i>Sertifikat</a></li>
+          </ul>
+          <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" aria-label="Menu">
+            <i data-lucide="menu" id="burgerIcon" class="w-5 h-5"></i>
+            <i data-lucide="x" id="closeIcon" class="w-5 h-5 hidden"></i>
+          </button>
+          <div class="relative">
+            <button id="profileToggle" type="button" class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-sm font-medium text-slate-600 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200" aria-haspopup="true" aria-expanded="false">
+              <span id="profileInitial" class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-semibold">U</span>
+              <span class="hidden sm:flex flex-col items-start leading-tight">
+                <span id="profileName" class="text-sm font-medium text-slate-700">Pengguna</span>
+                <span id="profileRole" class="text-xs text-slate-500 uppercase tracking-wide">ROLE</span>
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.584l3.71-3.353a.75.75 0 111.04 1.08l-4.24 3.83a.75.75 0 01-1.04 0l-4.24-3.83a.75.75 0 01.02-1.1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div id="profileMenu" class="absolute right-0 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 hidden">
+              <div class="border-b border-slate-100 px-4 py-3">
+                <div id="profileFullName" class="text-sm font-semibold text-slate-800">Pengguna</div>
+                <div id="profileFullRole" class="text-xs font-medium uppercase tracking-wide text-slate-500">ROLE</div>
+              </div>
+              <button id="logout" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div class="mx-auto max-w-6xl px-4 py-2">
+      <ul class="flex flex-col gap-1 text-sm">
+        <li><a href="dashboard.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a></li>
+        <li><a href="bimbingan.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Bimbingan</a></li>
+        <li><a href="pengujian.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Pengujian</a></li>
+        <li><a href="sertifikat.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="award" class="w-5 h-5"></i>Sertifikat</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div id="content" class="flex-1">
+  <main class="max-w-6xl mx-auto px-4 py-4 space-y-4">
+    <header>
+      <h1 class="text-xl font-bold tracking-tight">Sertifikat UKK</h1>
+      <p class="text-sm text-slate-600">Generate sertifikat untuk siswa yang telah lulus UKK.</p>
+    </header>
+
+    <section class="card p-5 space-y-4">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 flex-wrap">
+          <button id="generateAllBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+            <i data-lucide="file-plus" class="w-4 h-4"></i>
+            <span id="generateAllLabel">Generate Semua Sertifikat</span>
+            <span id="generateAllCount" class="text-xs font-semibold text-white/90">(0)</span>
+          </button>
+          <label class="inline-flex items-center gap-2 text-[13px] text-slate-600 select-none">
+            <input id="regenExisting" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+            <span>Termasuk yang sudah ada (re-generate)</span>
+          </label>
+        </div>
+      </div>
+      <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
+        <table class="resp-table text-sm">
+          <thead class="bg-slate-50">
+            <tr>
+              <th class="resp-th text-left font-medium text-slate-600">Nama Siswa</th>
+              <th class="resp-th text-left font-medium text-slate-600">NISN</th>
+              <th class="resp-th text-left font-medium text-slate-600">Jurusan</th>
+              <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
+              <th class="resp-th text-left font-medium text-slate-600">Penanggung Jawab</th>
+              <th class="resp-th text-left font-medium text-slate-600">Jabatan</th>
+              <th class="resp-th text-left font-medium text-slate-600">Nomor Surat</th>
+              <th class="resp-th text-left font-medium text-slate-600">Status</th>
+              <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="sertifikat-tbody"><tr><td colspan="9" class="px-3 py-3 text-slate-500">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  </div>
+
+  <iframe name="upload_iframe" id="upload_iframe" class="hidden" title="upload" loading="lazy"></iframe>
+  <div id="loading" class="hidden fixed inset-0 z-40 bg-black/20 backdrop-blur-sm flex items-center justify-center">
+    <div class="rounded-xl bg-white shadow p-4 flex flex-col gap-3 w-80">
+      <div class="flex items-center gap-3">
+        <svg class="animate-spin h-5 w-5 text-emerald-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>
+        <div class="flex-1">
+          <div id="loadingMsg" class="text-sm text-slate-700">Memproses...</div>
+          <div class="text-xs text-slate-400 mt-1"><span id="loadingPercent">0%</span></div>
+        </div>
+      </div>
+      <div class="w-full bg-slate-100 h-2 rounded overflow-hidden">
+        <div id="loadingBarFill" style="width:0%" class="h-2 bg-emerald-500"></div>
+      </div>
+    </div>
+  </div>
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="hidden fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="w-full max-w-sm rounded-xl bg-white shadow-lg border border-slate-200">
+      <div class="px-4 py-3 border-b border-slate-100">
+        <div id="confirmTitle" class="text-sm font-semibold text-slate-800">Konfirmasi</div>
+      </div>
+      <div class="px-4 py-3 text-sm text-slate-700" id="confirmMessage">Apakah Anda yakin?</div>
+      <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button id="confirmCancel" class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:bg-slate-50">Batal</button>
+        <button id="confirmOk" class="px-3 py-1.5 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const BASE = (window.APP_CONFIG||{}).BASE_URL;
+  let sertifikatData = [];
+  // In-memory authoritative profile fetched from server; use cached localStorage for fast render
+  let CURRENT_PROFILE = null;
+  function getProfile(){ try{ return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); }catch(e){ return {}; } }
+  async function fetchServerProfile(token){ if(!token) return null; try{ const resp = await jsonp(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`); if(resp && resp.ok && resp.profile) return resp.profile; return null; }catch(e){ return null; } }
+
+    // Lightweight toast helper (matches dashboard style)
+    (function(){
+      window._toast = function(type, text, opts){
+        const root = document.getElementById('toastContainer'); if(!root) return;
+        const id = 't_' + Math.random().toString(36).slice(2);
+        const div = document.createElement('div'); div.className = 'toast ' + (type==='ok'?'ok':(type==='err'?'err':'')); div.id = id;
+        const icon = document.createElement('span'); icon.className = 'icon'; icon.textContent = type==='ok' ? '✅' : (type==='err' ? '⚠️' : 'ℹ️');
+        const msg = document.createElement('div'); msg.className = 'msg'; msg.textContent = text || '';
+        const close = document.createElement('button'); close.className='close'; close.setAttribute('aria-label','Tutup'); close.innerHTML='&times;';
+        close.addEventListener('click', ()=>{ try{ div.remove(); }catch(_){} });
+        div.appendChild(icon); div.appendChild(msg); div.appendChild(close);
+        root.appendChild(div);
+        const ttl = (opts && opts.ttl) || 5000;
+        try{ setTimeout(()=>{ try{ div.remove(); }catch(_){} }, ttl); }catch(_){ }
+        return id;
+      };
+    })();
+    // Provide backward-compatible alias `toast(...)` used throughout the file
+    try{
+      if(!window.toast && window._toast) window.toast = function(type, text, opts){ return window._toast(type, text, opts); };
+    }catch(e){ /* ignore */ }
+    function showLoading(v, opts){
+      const el = document.getElementById('loading'); if(!el) return;
+      if(v) el.classList.remove('hidden'); else el.classList.add('hidden');
+      try{
+        const msgEl = document.getElementById('loadingMsg'); const pctEl = document.getElementById('loadingPercent'); const barEl = document.getElementById('loadingBarFill');
+        if(opts && typeof opts === 'object'){
+          if(typeof opts.msg === 'string' && msgEl) msgEl.textContent = opts.msg;
+          if(typeof opts.percent === 'number' && isFinite(opts.percent)){
+            const p = Math.max(0, Math.min(100, Math.round(opts.percent)));
+            try{ if(pctEl) pctEl.textContent = p + '%'; }catch(_){}
+            try{ if(barEl) barEl.style.width = p + '%'; }catch(_){}
+          } else {
+            try{ if(pctEl) pctEl.textContent = ''; }catch(_){}
+            try{ if(barEl) barEl.style.width = '0%'; }catch(_){}
+          }
+        }
+      }catch(e){ /* ignore */ }
+    }
+
+    // Update loading message and optional percentage
+    function updateLoadingProgress(percent, msg){
+      const payload = { msg: (msg||'Memproses...') };
+      if(typeof percent === 'number' && isFinite(percent)) payload.percent = percent;
+      showLoading(true, payload);
+    }
+
+    function jsonp(url, opts){
+      opts = opts || {};
+      const timeout = typeof opts.timeout === 'number' ? opts.timeout : 8000;
+      return new Promise((resolve, reject)=>{
+        if(!url) return reject(new Error('URL JSONP kosong'));
+        const cb = 'cb_' + Math.random().toString(36).slice(2);
+        const sep = url.includes('?') ? '&' : '?';
+        let finished = false;
+        // create the callback that the remote JSONP will call
+        window[cb] = (data)=>{
+          if(finished) return;
+          finished = true;
+          try{ clearTimeout(timer); }catch(_){}
+          try{ resolve(data); }catch(e){}
+          // cleanup but keep a no-op in place for a short grace period to avoid
+          // ReferenceError if the remote script calls the callback after we removed it
+          safeCleanup();
+        };
+
+        const s = document.createElement('script');
+        s.src = url + sep + 'callback=' + cb;
+        s.async = true;
+        s.onerror = ()=>{
+          if(finished) return;
+          finished = true;
+          try{ clearTimeout(timer); }catch(_){}
+          // replace callback with noop to swallow any late calls
+          window[cb] = function(){ /* ignored due to error */ };
+          safeCleanup();
+          reject(new Error('Gagal memuat JSONP'));
+        };
+        document.body.appendChild(s);
+
+        const timer = setTimeout(()=>{
+          if(finished) return;
+          finished = true;
+          // replace callback with noop so late JSONP invocation doesn't throw
+          window[cb] = function(){ /* ignored due to timeout */ };
+          safeCleanup();
+          reject(new Error('Waktu tunggu JSONP habis'));
+        }, timeout);
+
+        function safeCleanup(){
+          try{ s.remove(); }catch(_){}
+          // keep noop on window[cb] for a short grace period then delete it
+          try{ setTimeout(() => { try{ delete window[cb]; }catch(_){} }, 30000); }catch(_){}
+        }
+      });
+    }
+
+    function setupProfileMenu(){
+      const toggle = document.getElementById('profileToggle');
+      const menu = document.getElementById('profileMenu');
+      const logoutBtn = document.getElementById('logout');
+      if(logoutBtn){ logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('auth_token'); localStorage.removeItem('auth_profile'); location.href='login.html'; }); }
+      if(!toggle || !menu) return;
+      const closeMenu = ()=>{ menu.classList.add('hidden'); toggle.setAttribute('aria-expanded','false'); };
+      const openMenu = ()=>{ menu.classList.remove('hidden'); toggle.setAttribute('aria-expanded','true'); };
+      toggle.addEventListener('click',(e)=>{ e.stopPropagation(); if(menu.classList.contains('hidden')) openMenu(); else closeMenu(); });
+      document.addEventListener('click',(e)=>{ if(menu.classList.contains('hidden')) return; if(toggle.contains(e.target) || menu.contains(e.target)) return; closeMenu(); });
+      document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeMenu(); });
+    }
+
+    function greet(){
+      const prof = getProfile();
+      const nameRaw = (prof.nama || prof.username || 'Pengguna').trim();
+      const name = nameRaw || 'Pengguna';
+      const parts = name.split(/\s+/).filter(Boolean);
+      const shortName = parts.slice(0,2).join(' ') || name;
+      const role = ((prof.role||'')||'').toString().trim().toUpperCase() || 'USER';
+      const nameEl = document.getElementById('profileName'); const roleEl = document.getElementById('profileRole');
+      const fullNameEl = document.getElementById('profileFullName'); const fullRoleEl = document.getElementById('profileFullRole');
+      const initialEl = document.getElementById('profileInitial');
+      if(nameEl) nameEl.textContent = shortName; if(roleEl) roleEl.textContent = role;
+      if(fullNameEl) fullNameEl.textContent = name; if(fullRoleEl) fullRoleEl.textContent = role;
+      if(initialEl) initialEl.textContent = (shortName[0]||'U').toUpperCase();
+    }
+
+    function setupBurger(){
+      const burgerBtn = document.getElementById('burgerBtn');
+      const burgerIcon = document.getElementById('burgerIcon');
+      const closeIcon = document.getElementById('closeIcon');
+      const mobile = document.getElementById('mobileMenu');
+      if(!burgerBtn || !mobile) return;
+      burgerBtn.setAttribute('aria-controls', 'mobileMenu');
+      burgerBtn.setAttribute('aria-expanded', 'false');
+      const open = ()=>{
+        mobile.classList.remove('hidden'); burgerBtn.setAttribute('aria-expanded','true'); if(burgerIcon) burgerIcon.classList.add('hidden'); if(closeIcon) closeIcon.classList.remove('hidden'); document.body.classList.add('overflow-hidden');
+      };
+      const close = ()=>{
+        mobile.classList.add('hidden'); burgerBtn.setAttribute('aria-expanded','false'); if(burgerIcon) burgerIcon.classList.remove('hidden'); if(closeIcon) closeIcon.classList.add('hidden'); document.body.classList.remove('overflow-hidden');
+      };
+      burgerBtn.addEventListener('click', (e)=>{ 
+        e.stopPropagation(); 
+        const wasHidden = mobile.classList.contains('hidden');
+        if(wasHidden) open(); else close();
+        if(wasHidden){ try{ mobile.scrollIntoView({ behavior: 'smooth', block: 'start' }); mobile.setAttribute('tabindex','-1'); mobile.focus({preventScroll:true}); }catch(_){ try{ mobile.scrollIntoView(); }catch(_){} } }
+      });
+      document.addEventListener('click', (ev)=>{ if(mobile.classList.contains('hidden')) return; if(burgerBtn.contains(ev.target) || mobile.contains(ev.target)) return; close(); });
+      document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape') close(); });
+    }
+
+    function renderSertifikatRows(){
+      const tb = document.getElementById('sertifikat-tbody'); if(!tb) return; tb.innerHTML='';
+      if(!sertifikatData || sertifikatData.length===0){ tb.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-slate-500 text-center">Belum ada data sertifikat</td></tr>`; return; }
+      sertifikatData.forEach(r=>{
+        const status = r.link ? 'generated' : 'pending';
+        const tr = document.createElement('tr'); tr.setAttribute('data-status', status);
+        let cells = '';
+        cells += `<td class="resp-td px-3 py-2" data-label="Nama Siswa">${r.nama_siswa||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="NISN">${r.nisn||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Jurusan">${r.jurusan||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Penanggung Jawab">${r.penanggung_jawab||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Jabatan">${r.jabatan||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Nomor Surat">${r.nomor_surat||''}</td>`;
+        cells += `<td class="resp-td px-3 py-2" data-label="Status"><span class="badge-status ${status === 'generated' ? 'badge-generated' : 'badge-pending'}">${status === 'generated' ? 'Generated' : 'Pending'}</span></td>`;
+        cells += `<td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">`;
+        cells += `<div class="flex items-center gap-3">`;
+        if(r.link){
+          cells += `<a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="${r.link}" aria-label="Buka sertifikat"><i data-lucide="eye" class="w-4 h-4"></i><span class="sr-only">Buka</span></a>`;
+        }
+        cells += `<button data-generate="${r.nama_siswa}" class="inline-flex items-center justify-center text-slate-600 hover:text-emerald-600" type="button" aria-label="Generate sertifikat"><i data-lucide="file-plus" class="w-4 h-4"></i><span class="sr-only">Generate</span></button>`;
+        cells += `</div>`;
+        cells += `</td>`;
+        tr.innerHTML = cells;
+        tb.appendChild(tr);
+      });
+      tb.querySelectorAll('button[data-generate]').forEach(btn=>{ btn.addEventListener('click', (ev)=>{
+        const nama = ev.currentTarget.getAttribute('data-generate');
+        generateSertifikat(nama);
+      }); });
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
+      try{ updateGenerateAllButtonState(); }catch(_){ }
+    }
+
+    async function loadSertifikat(){
+      try{
+        const token = localStorage.getItem('auth_token');
+        console.log('BASE:', BASE);
+        console.log('Token:', token);
+        if(!BASE){ throw new Error('BASE_URL belum dikonfigurasi (APP_CONFIG.BASE_URL)'); }
+        if(!token){ throw new Error('Token tidak ditemukan. Silakan login ulang.'); }
+        const url = `${BASE}?dataset=sertifikat&token=${encodeURIComponent(token)}`;
+        console.log('Request URL:', url);
+        // use a timeout for JSONP so the UI doesn't hang indefinitely
+        const resp = await jsonp(url, { timeout: 10000 });
+        console.log('Response:', resp);
+        if(!resp.ok) throw new Error(resp.error||'Gagal memuat');
+        sertifikatData = Array.isArray(resp.data) ? resp.data : [];
+        renderSertifikatRows();
+        try{ updateGenerateAllButtonState(); }catch(_){ }
+      }catch(e){ 
+        console.error('Error in loadSertifikat:', e);
+        const tb = document.getElementById('sertifikat-tbody');
+        if(tb) tb.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
+      }
+    }
+
+    async function generateSertifikat(nama = null){
+      showLoading(true);
+      try{
+        const token = localStorage.getItem('auth_token');
+        if(!BASE) throw new Error('BASE_URL belum dikonfigurasi. Tidak dapat mengirim form.');
+        if(!token) throw new Error('Token tidak ditemukan. Silakan login ulang.');
+
+        // Prepare a one-time message handler BEFORE submitting the form to avoid race conditions.
+        let finished = false;
+  // Shorten initial wait and use fast JSONP polling so UI doesn't hang
+  const initialTimeoutMs = 5000; // 5s - start polling fallback sooner
+  const pollIntervalMs = 1000; // 1s between quick polling attempts
+  const pollAttempts = 60; // up to ~1 minute of quick polling after initial timeout
+
+        const handler = function(ev){
+          try{ console.log('generateSertifikat postMessage received', ev.data, 'origin', ev.origin); }catch(e){}
+          if(!ev || !ev.data) return;
+          if(ev.data.type === 'generate_sertifikat'){
+            if(finished) return; finished = true; try{ if(timer) clearTimeout(timer); }catch(_){ }
+            try{ window.removeEventListener('message', handler); }catch(_){ }
+            const ok = !!ev.data.ok;
+            // user-facing message: keep it simple and clear
+            toast(ok?'ok':'err', ev.data.message || (ok?'Sertifikat berhasil digenerate':'Gagal generate sertifikat'));
+            if(ok) {
+              try{ loadSertifikat(); }catch(e){ console.warn('loadSertifikat failed after generate:', e && e.message); }
+            }
+            showLoading(false);
+          }
+        };
+        window.addEventListener('message', handler);
+
+  // Normalize names to avoid mismatch from whitespace/case differences
+  const normName = (s) => String(s||'').trim().toLowerCase();
+  // Capture previous link state (store link string) so we can detect updates or replacements
+  const prevMap = new Map((sertifikatData || []).map(r => [normName(r.nama_siswa), String(r.link || '').trim()]));
+        const totalMissing = (function(){ if(nama) return 1; let cnt=0; for(const v of prevMap.values()) if(!v) cnt++; return cnt; })();
+        if(totalMissing === 0){
+          // Nothing to generate
+          updateLoadingProgress(100, 'Semua sertifikat sudah tersedia');
+          toast('ok', 'Semua sertifikat sudah tersedia.');
+          showLoading(false);
+          return;
+        }
+        updateLoadingProgress(0, 'Memulai pembuatan sertifikat...');
+
+        const form = document.createElement('form'); form.method='post'; form.target='upload_iframe'; form.action=BASE;
+        const add=(n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+        add('action','generate_sertifikat'); add('token', token);
+        if(nama) add('siswa', nama);
+        document.body.appendChild(form);
+        // submit after listener is active
+        form.submit(); form.remove();
+
+        // If we don't get a postMessage within initialTimeoutMs, start quick polling the dataset
+        let timer;
+        const timerCallback = async ()=>{
+          if(finished) return; // already handled via postMessage
+          console.warn('generateSertifikat: no postMessage within initial timeout, starting quick polling...');
+          const pollUrl = `${BASE}?dataset=sertifikat&token=${encodeURIComponent(token)}`;
+          const pollStartedAt = Date.now();
+          for(let attempt=1; attempt<=pollAttempts; attempt++){
+            try{
+              // quick JSONP check with short timeout so each attempt is fast
+              const resp = await jsonp(pollUrl, { timeout: 3000 });
+              if(resp && resp.ok){
+                sertifikatData = Array.isArray(resp.data) ? resp.data : [];
+                try{ renderSertifikatRows(); }catch(e){}
+                // compute progress
+                const processedNow = (sertifikatData || []).reduce((acc,r)=>{
+                  const name = normName(r.nama_siswa);
+                  const prevLink = prevMap.get(name) || '';
+                  const nowLink = String(r.link || '').trim();
+                  // count if newly created (prev empty -> now non-empty) or replaced (prev non-empty and different)
+                  return acc + ((nowLink && (!prevLink || prevLink !== nowLink)) ? 1 : 0);
+                }, 0);
+                if(nama){
+                  const target = normName(nama);
+                  const row = (sertifikatData || []).find(r => normName(r.nama_siswa) === target);
+                  const prevLink = prevMap.get(target) || '';
+                  const nowLink = row ? String(row.link || '').trim() : '';
+                  const changed = !!nowLink && (!prevLink || prevLink !== nowLink);
+                  const elapsed = Date.now() - pollStartedAt;
+                  const unchangedButPresent = !!nowLink && !!prevLink && nowLink === prevLink && elapsed >= 5000 && attempt >= 3;
+                  const percent = changed ? 100 : (attempt % 2 === 0 ? 60 : 40);
+                  updateLoadingProgress(percent, `Memproses ${changed?1:0}/1 sertifikat...`);
+                  if(changed || unchangedButPresent){
+                    finished = true;
+                    try{ window.removeEventListener('message', handler); }catch(_){ }
+                    updateLoadingProgress(100, 'Sertifikat berhasil digenerate');
+                    toast('ok', 'Sertifikat berhasil digenerate');
+                    showLoading(false);
+                    try{ await loadSertifikat(); }catch(_){ }
+                    return;
+                  }
+                } else {
+                  const pct = totalMissing > 0 ? Math.min(100, Math.round((processedNow/totalMissing)*100)) : 0;
+                  updateLoadingProgress(pct, `Memproses ${processedNow}/${totalMissing} sertifikat...`);
+                  if(processedNow >= totalMissing && totalMissing > 0){
+                    finished = true;
+                    try{ window.removeEventListener('message', handler); }catch(_){ }
+                    updateLoadingProgress(100, 'Sertifikat berhasil digenerate');
+                    toast('ok', 'Sertifikat berhasil digenerate');
+                    showLoading(false);
+                    try{ await loadSertifikat(); }catch(_){ }
+                    return;
+                  }
+                }
+              }
+            }catch(e){ /* ignore fast timeouts/errors */ }
+            await new Promise(r => setTimeout(r, pollIntervalMs));
+          }
+          showLoading(false);
+          toast('err', 'Tidak mendapat respon dari server ketika menggenerate sertifikat. Proses mungkin telah selesai di server — silakan periksa daftar sertifikat atau muat ulang halaman.');
+        };
+        timer = setTimeout(timerCallback, initialTimeoutMs);
+      }catch(e){
+        toast('err', 'Error: ' + e.message);
+        showLoading(false);
+      }
+    }
+
+    function requireGuru(){
+      const token = localStorage.getItem('auth_token');
+      if(!token){ location.href = 'login.html?to=' + encodeURIComponent('sertifikat.html'); return null; }
+      return token;
+    }
+
+    function init(){
+      console.log('INIT sertifikat.html');
+      console.log('APP_CONFIG:', window.APP_CONFIG);
+      console.log('BASE:', BASE);
+      setupProfileMenu(); setupBurger();
+      const token = requireGuru(); if(!token) return;
+      try{ const cached = JSON.parse(localStorage.getItem('auth_profile')||'null'); if(cached) CURRENT_PROFILE = cached; }catch(e){ CURRENT_PROFILE = null; }
+      greet();
+      (async ()=>{
+        try{
+          const profile = await fetchServerProfile(token);
+          if(!profile){
+            localStorage.removeItem('auth_token'); localStorage.removeItem('auth_profile'); CURRENT_PROFILE = null;
+            toast('err','Sesi tidak valid. Mengarahkan ke login...');
+            setTimeout(()=> location.href='login.html?to='+encodeURIComponent('sertifikat.html'),1200);
+            return;
+          }
+          if((profile.role||'').toLowerCase() !== 'guru'){
+            toast('err','Anda tidak memiliki akses ke halaman ini. Mengalihkan ke dashboard...');
+            setTimeout(()=> location.href='dashboard.html',800);
+            return;
+          }
+          CURRENT_PROFILE = profile; try{ localStorage.setItem('auth_profile', JSON.stringify(profile)); }catch(_){}
+          greet();
+          loadSertifikat();
+        }catch(e){
+          console.warn('Background validation failed', e && e.message);
+          toast('err','Gagal memverifikasi sesi (jaringan). Silakan coba ulang.');
+        }
+      })();
+
+      document.getElementById('generateAllBtn').addEventListener('click', () => generateSemuaSertifikat());
+      try{ const cb = document.getElementById('regenExisting'); if(cb){ cb.addEventListener('change', ()=>{ try{ updateGenerateAllButtonState(); }catch(_){ } }); } }catch(_){ }
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
+    }
+
+    // Simple modal confirm (Promise-based)
+    function openConfirmModal(opts){
+      return new Promise((resolve)=>{
+        const modal = document.getElementById('confirmModal');
+        const t = document.getElementById('confirmTitle');
+        const m = document.getElementById('confirmMessage');
+        const okBtn = document.getElementById('confirmOk');
+        const cancelBtn = document.getElementById('confirmCancel');
+        if(!modal || !okBtn || !cancelBtn){ const r = window.confirm((opts&&opts.message)||'Yakin?'); resolve(!!r); return; }
+        // apply texts
+        if(t) t.textContent = (opts && opts.title) || 'Konfirmasi';
+        if(m) m.textContent = (opts && opts.message) || 'Apakah Anda yakin?';
+        if(okBtn) okBtn.textContent = (opts && opts.okText) || 'Lanjutkan';
+        if(cancelBtn) cancelBtn.textContent = (opts && opts.cancelText) || 'Batal';
+        // show
+        modal.classList.remove('hidden');
+        const cleanup = ()=>{ modal.classList.add('hidden'); okBtn.removeEventListener('click', onOk); cancelBtn.removeEventListener('click', onCancel); document.removeEventListener('keydown', onKey); modal.removeEventListener('click', onBg); };
+        const onOk = ()=>{ cleanup(); resolve(true); };
+        const onCancel = ()=>{ cleanup(); resolve(false); };
+        const onKey = (e)=>{ if(e.key==='Escape'){ onCancel(); } };
+        const onBg = (e)=>{ try{ const card = modal.querySelector('.rounded-xl.bg-white'); if(card && !card.contains(e.target)) onCancel(); }catch(_){ }
+        };
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        document.addEventListener('keydown', onKey);
+        modal.addEventListener('click', onBg);
+      });
+    }
+
+    // Generate semua sertifikat secara berurutan agar progres X/Y bisa diperbarui
+    async function generateSemuaSertifikat(){
+      try{
+        const token = localStorage.getItem('auth_token');
+        if(!BASE) throw new Error('BASE_URL belum dikonfigurasi. Tidak dapat mengirim form.');
+        if(!token) throw new Error('Token tidak ditemukan. Silakan login ulang.');
+
+        const includeExisting = !!(document.getElementById('regenExisting') && document.getElementById('regenExisting').checked);
+        if(includeExisting){
+          const ok = await openConfirmModal({ title: 'Regenerate Semua Sertifikat', message: 'File yang sudah ada akan diganti dengan yang baru. Lanjutkan?', okText: 'Ya, Lanjutkan', cancelText: 'Batal' });
+          if(!ok) return;
+        }
+
+        // Ambil daftar siswa (hanya yang belum punya link, atau semua jika includeExisting)
+        const targets = includeExisting
+          ? (sertifikatData||[]).map(r => r.nama_siswa).filter(Boolean)
+          : (sertifikatData||[]).filter(r => !r.link).map(r => r.nama_siswa).filter(Boolean);
+        if(!targets.length){ toast('ok','Semua sertifikat sudah tersedia.'); return; }
+
+        const total = targets.length; let done = 0;
+        const normName = (s) => String(s||'').trim().toLowerCase();
+        const btnAll = document.getElementById('generateAllBtn');
+        const cbRegen = document.getElementById('regenExisting');
+        try{ if(btnAll) btnAll.disabled = true; if(cbRegen) cbRegen.disabled = true; }catch(_){ }
+
+        // Helper: kirim POST untuk satu siswa (iframe unik) dan tunggu postMessage (fallback polling bila perlu)
+        const generateOne = (namaSiswa)=> new Promise((resolve)=>{
+          let finished = false; let timeoutTimer = null; const startTs = Date.now();
+          const norm = (s)=>String(s||'').trim().toLowerCase();
+          const prevLink = (sertifikatData||[]).find(r => norm(r.nama_siswa)===norm(namaSiswa))?.link || '';
+
+          // dynamic iframe to allow limited concurrency
+          const iframeName = 'upl_iframe_' + Math.random().toString(36).slice(2);
+          const ifr = document.createElement('iframe');
+          ifr.name = iframeName; ifr.title = 'upload'; ifr.loading = 'lazy'; ifr.className = 'hidden';
+          document.body.appendChild(ifr);
+
+          const handler = (ev)=>{
+            if(!ev || !ev.data || ev.data.type !== 'generate_sertifikat') return;
+            // try to match by payload data.nama when available
+            let belongs = false; let newLink = '';
+            try{
+              const arr = Array.isArray(ev.data.data) ? ev.data.data : [];
+              for(const it of arr){ if(norm(it.nama)===norm(namaSiswa)){ belongs = true; newLink = String(it.link||''); break; } }
+            }catch(_){ }
+            if(!belongs) return;
+            if(finished) return; finished = true;
+            try{ window.removeEventListener('message', handler); }catch(_){ }
+            try{ if(timeoutTimer) clearTimeout(timeoutTimer); }catch(_){ }
+            try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
+            if(newLink){
+              // update local cache + UI without refetching
+              const idx = (sertifikatData||[]).findIndex(r => norm(r.nama_siswa)===norm(namaSiswa));
+              if(idx >= 0){ sertifikatData[idx].link = newLink; }
+              try{ renderSertifikatRows(); }catch(_){ }
+            }
+            resolve(!!ev.data.ok);
+          };
+          window.addEventListener('message', handler);
+
+          // Submit form POST ke Apps Script (iframe khusus)
+          try{
+            const form = document.createElement('form'); form.method='post'; form.target=iframeName; form.action=BASE;
+            const add=(n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
+            add('action','generate_sertifikat'); add('token', token); add('siswa', namaSiswa);
+            document.body.appendChild(form); form.submit(); form.remove();
+          }catch(_){ /* ignore */ }
+
+          // Fallback polling if no postMessage quickly
+          timeoutTimer = setTimeout(async ()=>{
+            if(finished) return;
+            const pollUrl = `${BASE}?dataset=sertifikat&token=${encodeURIComponent(token)}`;
+            let attempt = 0;
+            const poll = async ()=>{
+              if(finished) return;
+              attempt++;
+              try{
+                const resp = await jsonp(pollUrl, { timeout: 3500 });
+                if(resp && resp.ok){
+                  const list = Array.isArray(resp.data)?resp.data:[];
+                  const row = list.find(r => norm(r.nama_siswa)===norm(namaSiswa));
+                  const nowLink = String(row && row.link || '').trim();
+                  const changed = !!nowLink && (!prevLink || prevLink !== nowLink);
+                  const unchangedButPresent = !!nowLink && !!prevLink && nowLink === prevLink && (Date.now()-startTs) >= 5000 && attempt >= 3;
+                  if(changed || unchangedButPresent){
+                    finished = true;
+                    try{ window.removeEventListener('message', handler); }catch(_){ }
+                    try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
+                    // update local cache + UI
+                    try{
+                      const idx = (sertifikatData||[]).findIndex(r => norm(r.nama_siswa)===norm(namaSiswa));
+                      if(idx >= 0 && nowLink) { sertifikatData[idx].link = nowLink; renderSertifikatRows(); }
+                    }catch(_){ }
+                    resolve(true); return;
+                  }
+                }
+              }catch(_){ /* ignore */ }
+              if(attempt < 60) setTimeout(poll, 1000); else {
+                finished = true;
+                try{ window.removeEventListener('message', handler); }catch(_){ }
+                try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
+                resolve(false);
+              }
+            };
+            poll();
+          }, 5000);
+        });
+
+        // Jalankan dengan concurrency terbatas untuk mempercepat proses sambil tetap stabil
+        const CONCURRENCY = Math.min(4, Math.max(1, includeExisting ? 2 : 3));
+        showLoading(true); updateLoadingProgress(0, `Memproses 0/${total} sertifikat...`);
+        let index = 0; let active = 0; let success = 0;
+        await new Promise((resolveAll)=>{
+          const next = ()=>{
+            while(active < CONCURRENCY && index < targets.length){
+              const nama = targets[index++]; active++;
+              generateOne(nama).then((ok)=>{
+                active--; if(ok) success++;
+                done++;
+                const pct = Math.min(100, Math.round((done/total)*100));
+                updateLoadingProgress(pct, `Memproses ${done}/${total} sertifikat... (${nama})`);
+                if(done >= total && active === 0) return resolveAll();
+                next();
+              }).catch(()=>{
+                active--; done++;
+                const pct = Math.min(100, Math.round((done/total)*100));
+                updateLoadingProgress(pct, `Memproses ${done}/${total} sertifikat... (${nama})`);
+                if(done >= total && active === 0) return resolveAll();
+                next();
+              });
+            }
+            if(done >= total && active === 0) resolveAll();
+          };
+          next();
+        });
+        updateLoadingProgress(100, `Selesai ${done}/${total} sertifikat.`);
+        showLoading(false);
+        toast('ok', `Selesai generate ${done}/${total} sertifikat.`);
+      }catch(e){
+        showLoading(false);
+        toast('err', 'Gagal generate semua: ' + (e && e.message || e));
+      } finally {
+        const btnAll = document.getElementById('generateAllBtn');
+        const cbRegen = document.getElementById('regenExisting');
+        try{ if(cbRegen) cbRegen.disabled = false; }catch(_){ }
+        try{ updateGenerateAllButtonState(); }catch(_){ try{ if(btnAll) btnAll.disabled = false; }catch(__){} }
+      }
+    }
+
+    // Disable tombol Generate Semua bila tidak ada target
+    function updateGenerateAllButtonState(){
+      const btn = document.getElementById('generateAllBtn'); if(!btn) return;
+      const cb = document.getElementById('regenExisting');
+      const includeExisting = !!(cb && cb.checked);
+      const total = Array.isArray(sertifikatData) ? sertifikatData.length : 0;
+      const pending = Array.isArray(sertifikatData) ? sertifikatData.reduce((a,r)=> a + (r && r.link ? 0 : 1), 0) : 0;
+      const targets = includeExisting ? total : pending;
+      const shouldDisable = targets <= 0;
+      btn.disabled = shouldDisable;
+      try{ const cnt = document.getElementById('generateAllCount'); if(cnt) cnt.textContent = `(${targets})`; }catch(_){ }
+      if(shouldDisable){
+        btn.classList.add('opacity-50','cursor-not-allowed');
+        btn.setAttribute('title','Tidak ada data untuk digenerate');
+      } else {
+        btn.classList.remove('opacity-50','cursor-not-allowed');
+        btn.removeAttribute('title');
+      }
+    }
+    if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  </script>
+
+  <!-- FOOTER -->
+  <footer class="border-t bg-white mt-6">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
+      <div>&copy; <span id="year"></span> Sistem Informasi PKL & UKK Industri - TKJ SMKN 1 Telagasari</div>
+      <nav class="flex gap-3" aria-label="Tautan footer">
+        <a href="index.html" class="hover:underline">Home</a>
+        <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
+        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
+        <a href="peserta.html" class="hover:underline">Peserta</a>
+        <a href="ukk.html" class="hover:underline">UKK Industri</a>
+      </nav>
+    </div>
+  </footer>
+  <script>try{ var yEl=document.getElementById('year'); if(yEl){ yEl.textContent = new Date().getFullYear(); } }catch(e){}</script>
+</body>
+</html>

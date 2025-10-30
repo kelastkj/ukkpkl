@@ -15,10 +15,13 @@ const SHEET_PENGUJI    = 'PENGUJI'; // BARU
 const SHEET_USERS      = 'USERS';
 const SHEET_UPLOADS    = 'UPLOADS';
 const SHEET_NILAI      = 'NILAI-PRESENTASI';
+const SHEET_SERTIFIKAT = 'SERTIFIKAT';
 
 // Drive folders (replace with your own IDs in deployment)
 const FOLDER_PKL_ID    = '1RZIHlwgAeWKlxTxt-KZ_OjC2cJBjq2dS';
 const FOLDER_UKK_ID    = '1ap51yBOZ7qIbHJ6AzCbDhWqmORd-viXY';
+const TEMPLATE_SERTIFIKAT_ID = "1qD1cBxZmPrMkO0242Jma1r0IJSU3O9CMw1S5AndMg_c";
+const FOLDER_SERTIFIKAT_ID = "1FiFWKbe0jkxfWMWKyJHa_uMQX4SWG3rJ";
 
 // --- Fonte (WhatsApp provider) default config ---
 // You can replace these values here, or set Script Properties
@@ -461,8 +464,11 @@ function _handle_delete_(params){
 }
 
 function _readRowsGeneric(sheetName) {
-  const sh = _sheet(sheetName);
-  if (!sh) throw new Error('Sheet tidak ditemukan: ' + sheetName);
+  let sh = _sheet(sheetName);
+  if (!sh) {
+    // Jika sheet tidak ada, buat sheet baru
+    sh = SpreadsheetApp.getActive().insertSheet(sheetName);
+  }
   const values = sh.getDataRange().getValues();
   if (!values.length) return { header: [], rows: [] };
 
@@ -819,6 +825,32 @@ function doGet(e) {
       return _json({ok:false,error:'Parameter kurang untuk dataset=peserta.'});
     }
 
+  // SERTIFIKAT (untuk guru)
+  if(dataset === 'sertifikat'){
+    const sess = _auth_check(p.token);
+    if(!sess || (sess.profile.role||'').toLowerCase() !== 'guru') {
+      const outErr = { ok:false, error:'Akses ditolak' };
+      return p.callback ? _jsonp(outErr, p.callback) : _json(outErr);
+    }
+    const { header, rows } = _readRowsGeneric(SHEET_SERTIFIKAT);
+    const data = rows.map(r => ({
+      nama_siswa: r.nama_siswa,
+      nisn: r.nisn,
+      jurusan: r.jurusan,
+      mitra: r.mitra,
+      keterangan: r.keterangan,
+      penanggung_jawab: r.penanggung_jawab || r.penguji,
+      jabatan: r.jabatan,
+      nomor_surat: r.nomor_surat,
+      // legacy fields kept for backward compatibility
+      kelas: r.kelas,
+      penguji: r.penguji,
+      link: r.link
+    }));
+    const out = { ok:true, route:'data', count: data.length, data };
+    return p.callback ? _jsonp(out, p.callback) : _json(out);
+  }
+
   // Default: UKK (kompatibel dengan pola lama)
   // Allow public access only to meta route. Full ukk data requires authentication.
   if(p.route === 'meta') return p.callback ? _jsonp(ukk_meta(), p.callback) : _json(ukk_meta());
@@ -853,6 +885,27 @@ function doPost(e){
     } else if(action === 'login'){
       const out = _auth_login(p.u, p.p);
       return _json(out);
+    } else if(action === 'generate_sertifikat'){
+      const sess = _auth_check(p.token);
+      if(!sess || (sess.profile.role||'').toLowerCase() !== 'guru') return _json({ ok:false, error:'Akses ditolak' });
+      const siswa = _norm(p.siswa); // optional, if provided generate for that siswa only
+      try{
+        const links = generateSertifikat(siswa || null);
+        // reply with small HTML that posts message to parent
+        const payload = { type: 'generate_sertifikat', ok: true, message: `Sertifikat berhasil digenerate untuk ${links.length} siswa`, data: links };
+        const html = `<!doctype html><meta charset="utf-8"><title>Generate Sertifikat</title><body>`+
+          `<script>(function(){try{parent&&parent.postMessage&&parent.postMessage(${JSON.stringify(payload)}, '*');}catch(e){}; try{setTimeout(function(){ window.close && window.close(); }, 400);}catch(e){} })();</script></body>`;
+        const resp = HtmlService.createHtmlOutput(html);
+        resp.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+        return resp;
+      }catch(e){
+        const payload = { type: 'generate_sertifikat', ok: false, message: e.message };
+        const html = `<!doctype html><meta charset="utf-8"><title>Generate Sertifikat</title><body>`+
+          `<script>(function(){try{parent&&parent.postMessage&&parent.postMessage(${JSON.stringify(payload)}, '*');}catch(e){}; try{setTimeout(function(){ window.close && window.close(); }, 400);}catch(e){} })();</script></body>`;
+        const resp = HtmlService.createHtmlOutput(html);
+        resp.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+        return resp;
+      }
     }
     return HtmlService.createHtmlOutput('<b>Unknown POST action</b>');
   } catch(err){
@@ -862,3 +915,174 @@ function doPost(e){
 
 // Helper to compute hash in Sheets (optional): =HASH_SHA256("plaintext")
 function HASH_SHA256(s){ return _hashSHA256(String(s||'')); }
+
+function generateSertifikat(siswaNama = null) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetSertifikat = ss.getSheetByName(SHEET_SERTIFIKAT);
+  const sheetKompetensi = ss.getSheetByName(SHEET_UKK);
+
+  const templateFile = DriveApp.getFileById(TEMPLATE_SERTIFIKAT_ID);
+  const folderOutput = DriveApp.getFolderById(FOLDER_SERTIFIKAT_ID);
+
+  const dataSertifikat = sheetSertifikat.getDataRange().getValues();
+  const dataKompetensi = sheetKompetensi.getDataRange().getValues();
+  const headerSertifikat = dataSertifikat.shift();
+  const headerKompetensi = dataKompetensi.shift();
+
+  let filteredData = dataSertifikat;
+  if (siswaNama) {
+    filteredData = dataSertifikat.filter(row => row[headerSertifikat.indexOf('nama_siswa')] === siswaNama);
+  }
+
+  const generatedLinks = [];
+
+  filteredData.forEach((row) => {
+    const siswa = Object.fromEntries(headerSertifikat.map((h, i) => [h, row[i]]));
+
+    // Ambil semua kompetensi berdasarkan mitra
+    const kompetensiMitra = dataKompetensi.filter((k) => k[headerKompetensi.indexOf('mitra')] === siswa.mitra);
+
+    // Ambil logo dari baris pertama mitra (asumsikan kolom logo di index 2)
+    const logoURL = kompetensiMitra.length > 0 ? kompetensiMitra[0][2] : "";
+
+    // Jika sebelumnya sudah ada file hasil generate di sheet, hapus dulu agar tidak menumpuk
+    try {
+      const existingLink = siswa.link || '';
+      const m = String(existingLink).match(/\/d\/([a-zA-Z0-9_-]+)\//);
+      if (m && m[1]) {
+        try {
+          const existingFile = DriveApp.getFileById(m[1]);
+          // Pindahkan ke trash (lebih aman daripada langsung menghapus permanen)
+          existingFile.setTrashed(true);
+          Logger.log('Hapus file lama sertifikat untuk %s: %s', siswa.nama_siswa, m[1]);
+        } catch (e) {
+          Logger.log('Gagal menghapus file lama untuk %s: %s', siswa.nama_siswa, e && e.message);
+        }
+      }
+    } catch (e) { /* ignore */ }
+
+    // Buat salinan template
+    const copy = templateFile.makeCopy(`${siswa.nama_siswa} - ${siswa.mitra}`, folderOutput);
+    const doc = DocumentApp.openById(copy.getId());
+    const body = doc.getBody();
+
+    // ===== GANTI PLACEHOLDER TEKS DASAR =====
+    body.replaceText("{{nama_siswa}}", siswa.nama_siswa || "");
+    body.replaceText("{{nisn}}", siswa.nisn || "");
+    // Support both old and new placeholders: kelas -> jurusan
+    body.replaceText("{{kelas}}", siswa.jurusan || siswa.kelas || "");
+    body.replaceText("{{jurusan}}", siswa.jurusan || "");
+    body.replaceText("{{mitra}}", siswa.mitra || "");
+    body.replaceText("{{keterangan}}", siswa.keterangan || "");
+    // Support both old and new placeholders: penguji -> penanggung_jawab
+    body.replaceText("{{penguji}}", siswa.penanggung_jawab || siswa.penguji || "");
+    body.replaceText("{{penanggung_jawab}}", siswa.penanggung_jawab || siswa.penguji || "");
+    body.replaceText("{{jabatan}}", siswa.jabatan || "");
+    body.replaceText("{{nomor_surat}}", siswa.nomor_surat || "");
+
+    // ===== SISIPKAN LOGO =====
+    const logoTag = body.findText("{{logo_mitra}}");
+    if (logoTag && logoURL) {
+      const el = logoTag.getElement();
+      el.asText().setText("");
+      try {
+        const imgBlob = UrlFetchApp.fetch(logoURL).getBlob();
+        const img = el.getParent().asParagraph().insertInlineImage(
+          el.getParent().getChildIndex(el) + 1,
+          imgBlob
+        );
+        const desiredHeight = 80;
+        const ratio = img.getWidth() / img.getHeight();
+        img.setHeight(desiredHeight);
+        img.setWidth(desiredHeight * ratio);
+      } catch (e) {
+        Logger.log("Gagal memuat logo untuk " + siswa.mitra + ": " + e);
+        body.replaceText("{{logo_mitra}}", "");
+      }
+    } else {
+      body.replaceText("{{logo_mitra}}", "");
+    }
+
+    // ===== FORMAT JUDUL UTAMA =====
+    const searchTitle = body.findText("SERTIFIKAT UJI KOMPETENSI KEAHLIAN");
+    if (searchTitle) {
+      const titleElement = searchTitle.getElement().getParent().asParagraph();
+      titleElement.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      titleElement.editAsText().setBold(true);
+      titleElement.setBackgroundColor(null);
+      titleElement.setSpacingBefore(10);
+      titleElement.setSpacingAfter(10);
+    }
+
+    // ===== BUAT TABEL KOMPETENSI =====
+    const kompetensiTag = body.findText("{{tabel_kompetensi}}");
+    if (kompetensiTag) {
+      const el = kompetensiTag.getElement();
+      const index = body.getChildIndex(el.getParent());
+      el.asText().setText("");
+
+      // Buat tabel: No | Kompetensi
+      const tableData = [["No", "Kompetensi"]];
+      kompetensiMitra.forEach((k, idx) => {
+        const nomor = String(idx + 1);
+        tableData.push([nomor, k[headerKompetensi.indexOf('kompetensi')]]);
+      });
+
+      const table = body.insertTable(index + 1, tableData);
+      table.setBorderWidth(1);
+
+      // ===== FORMAT HEADER =====
+      const headerRow = table.getRow(0);
+      headerRow.editAsText().setBold(true);
+      headerRow.setBackgroundColor(null); // tanpa blok warna
+
+      // Header rata tengah
+      for (let c = 0; c < headerRow.getNumCells(); c++) {
+        const cell = headerRow.getCell(c);
+        const paragraph = cell.getChild(0).asParagraph();
+        paragraph.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+      }
+
+      // ===== FORMAT ISI DATA =====
+      for (let r = 1; r < table.getNumRows(); r++) {
+        const noCell = table.getRow(r).getCell(0);
+        const paraNo = noCell.getChild(0).asParagraph();
+        paraNo.setAlignment(DocumentApp.HorizontalAlignment.CENTER); // center kolom No
+      }
+
+      // Lebar kolom
+      table.getRow(0).getCell(0).setWidth(40);
+      table.getRow(0).getCell(1).setWidth(400);
+    }
+
+    doc.saveAndClose();
+
+    // Konversi ke PDF dan simpan link PDF ke sheet.
+    // Jika konversi gagal, fallback ke link Google Docs.
+    let finalLink = '';
+    try {
+      const pdfName = `${siswa.nama_siswa} - ${siswa.mitra}.pdf`;
+      const pdfBlob = DriveApp.getFileById(copy.getId()).getAs(MimeType.PDF).setName(pdfName);
+      const pdfFile = folderOutput.createFile(pdfBlob);
+      // Opsi berbagi (dinonaktifkan): aktifkan jika ingin siapa saja dengan link dapat melihat
+      // try { pdfFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW); } catch (e) { Logger.log('setSharing error: ' + (e && e.message)); }
+      finalLink = `https://drive.google.com/file/d/${pdfFile.getId()}/view`;
+      // Hapus salinan Google Doc agar tidak menumpuk (kita hanya menyimpan PDF)
+      try { copy.setTrashed(true); } catch (e) { /* ignore */ }
+    } catch (e) {
+      Logger.log('Gagal membuat PDF untuk %s: %s', siswa.nama_siswa, e && e.message);
+      // Fallback: gunakan link dokumen jika PDF gagal dibuat
+      finalLink = `https://docs.google.com/document/d/${copy.getId()}/edit`;
+    }
+
+    // Update link di sheet (gunakan link PDF jika tersedia)
+    const linkIndex = headerSertifikat.indexOf('link');
+    if (linkIndex !== -1) {
+      const rowIndex = dataSertifikat.findIndex(r => r[headerSertifikat.indexOf('nama_siswa')] === siswa.nama_siswa) + 2; // +2 karena header dan 1-based
+      sheetSertifikat.getRange(rowIndex, linkIndex + 1).setValue(finalLink);
+      generatedLinks.push({ nama: siswa.nama_siswa, link: finalLink });
+    }
+  });
+
+  return generatedLinks;
+}
