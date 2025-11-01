@@ -1,12 +1,12 @@
-﻿# Sistem Informasi PKL & UKK Industri â€” TKJ SMKN 1 Telagasari
+# Sistem Informasi PKL & UKK Industri — TKJ SMKN 1 Telagasari
 
 > **Dokumentasi Lengkap untuk Deployment dan Maintenance**
 
-Sistem web berbasis HTML untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **Uji Kompetensi Keahlian (UKK) Industri** di jurusan TKJ SMKN 1 Telagasari. Aplikasi ini menggunakan Google Apps Script sebagai backend dan Google Sheets sebagai database.
+Sistem web berbasis untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **Uji Kompetensi Keahlian (UKK) Industri** di jurusan TKJ SMKN 1 Telagasari. Aplikasi ini menggunakan Google Apps Script sebagai backend dan Google Sheets sebagai database.
 
 ---
 
-## ðŸ“‹ Daftar Isi
+## 📃 Daftar Isi
 
 1. [Fitur Utama](#fitur-utama)
 2. [Arsitektur Sistem](#arsitektur-sistem)
@@ -20,7 +20,7 @@ Sistem web berbasis HTML untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **
 
 ---
 
-## ðŸŽ¯ Fitur Utama
+## 🎯 Fitur Utama
 
 ### Halaman Publik (Tanpa Login)
 - **Beranda (`index.html`)**: Pengantar sistem, panduan PKL & UKK, slideshow dokumentasi
@@ -48,30 +48,14 @@ Sistem web berbasis HTML untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **
 
 ---
 
-## ðŸ—ï¸ Arsitektur Sistem
+## 🏗️ Arsitektur Sistem
 
-```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚                      USER (Browser)                         â”‚
-â”‚  index.html | login.html | dashboard.html | dll.           â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                         â”‚ HTTPS Request
-                         â†“
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚              Google Apps Script (Backend)                   â”‚
-â”‚  - code-wa-fonnte.gs (Main Script)                          â”‚
-â”‚  - Routing & Authentication                                 â”‚
-â”‚  - CRUD Operations                                          â”‚
-â”‚  - WhatsApp Notification (Fonnte API)                       â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¬â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
-                         â”‚
-          â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¼â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-          â†“              â†“              â†“
-    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”    â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”   â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-    â”‚ Google  â”‚    â”‚  Google  â”‚   â”‚  Fonnte    â”‚
-    â”‚ Sheets  â”‚    â”‚  Drive   â”‚   â”‚  WhatsApp  â”‚
-    â”‚(Database)â”‚   â”‚(Storage) â”‚   â”‚  Gateway   â”‚
-    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜    â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜   â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
+```mermaid
+flowchart TD
+   A[USER (Browser)\nindex.html, login.html, dashboard.html, dll.] -->|HTTPS Request| B[Google Apps Script (Backend)]
+   B --> S[(Google Sheets\nDatabase)]
+   B --> D[(Google Drive\nStorage)]
+   B --> F[(Fonnte WhatsApp\nGateway)]
 ```
 
 ### Teknologi Stack
@@ -84,7 +68,7 @@ Sistem web berbasis HTML untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **
 
 ---
 
-## ðŸš€ Persiapan Awal
+## 🚀 Persiapan Awal
 
 ### 1. Template Google Spreadsheet
 Duplikat template spreadsheet dari:
@@ -136,7 +120,7 @@ Jika menggunakan fitur generate sertifikat, template sudah berisi placeholder:
 
 ---
 
-## âš™ï¸ Setup Backend (Google Apps Script)
+## ⚙️ Setup Backend (Google Apps Script)
 
 ### Langkah 1: Buat Project Apps Script
 
@@ -165,7 +149,7 @@ const FONTE_API_TOKEN_DEFAULT = 'YOUR_FONNTE_TOKEN_HERE'; // Dapatkan dari fonnt
 **Cara mendapatkan Folder ID:**
 ```
 URL: https://drive.google.com/drive/folders/1RZIHlwgAeWKlxTxt-KZ_OjC2cJBjq2dS
-                                            â†‘â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ini adalah Folder ID
+                                            ↑────────── Ini adalah Folder ID
 ```
 
 ### Langkah 3: Setup User dan Password
@@ -194,14 +178,14 @@ Di sheet **USERS**, tambahkan data user:
 5. **Copy URL Web App** yang diberikan (format: `https://script.google.com/macros/s/AKfycb.../exec`)
 6. Authorize akses jika diminta
 
-**âš ï¸ Setiap kali update kode, deploy versi baru:**
-- Deploy > Manage deployments > âœï¸ Edit > Version: New version > Deploy
+**⚠️ Setiap kali update kode, deploy versi baru:**
+- Deploy > Manage deployments > ✏️ Edit > Version: New version > Deploy
 
 ### Langkah 5: Setup Script Properties (Opsional untuk WhatsApp)
 
 Untuk keamanan, simpan API token di Script Properties:
 
-1. Di Apps Script, klik **Project Settings** (âš™ï¸)
+1. Di Apps Script, klik **Project Settings** (⚙️)
 2. Scroll ke **Script Properties**
 3. Tambahkan:
    ```
@@ -211,7 +195,7 @@ Untuk keamanan, simpan API token di Script Properties:
 
 ---
 
-## ðŸŽ¨ Setup Frontend (HTML)
+## 🎨 Setup Frontend (HTML)
 
 ### Langkah 1: Clone/Download Repository
 
@@ -230,7 +214,7 @@ Edit file `config.js`:
 ```javascript
 (function(){
   const CONFIG = {
-    BASE_URL: 'https://script.google.com/macros/s/AKfycb.../exec' // â† Paste URL dari Deploy
+   BASE_URL: 'https://script.google.com/macros/s/AKfycb.../exec' // ← Paste URL dari Deploy
   };
   
   Object.freeze(CONFIG);
@@ -289,7 +273,7 @@ netlify deploy --prod
 
 ---
 
-## ðŸ“± Konfigurasi Notifikasi WhatsApp
+## 📱 Konfigurasi Notifikasi WhatsApp
 
 Sistem menggunakan **Fonnte** untuk mengirim notifikasi WhatsApp otomatis ke penguji saat siswa upload dokumen.
 
@@ -323,8 +307,8 @@ Di sheet **PENGUJI**, tambahkan kolom `phone`:
 | 1 | Bapak Dedi | Ahmad | XII TKJ-1 | PT Telkom | 628123456789 |
 
 **Format nomor**: 
-- âœ… Benar: `628123456789` (62 = kode Indonesia)
-- âŒ Salah: `08123456789`, `8123456789`, `+62-812-3456-789`
+- ✅ Benar: `628123456789` (62 = kode Indonesia)
+- ❌ Salah: `08123456789`, `8123456789`, `+62-812-3456-789`
 
 ### Cara Kerja Notifikasi
 
@@ -354,7 +338,7 @@ Jika notifikasi tidak terkirim, cek sheet **NOTIFICATIONS**:
 
 ---
 
-## ðŸ“– Cara Menggunakan Aplikasi
+## 📖 Cara Menggunakan Aplikasi
 
 ### Untuk Admin/Pembuat
 
@@ -450,7 +434,7 @@ Password: guru123
 Dashboard > Lihat daftar upload siswa yang dibimbing/diuji
 - Tab PKL: Laporan PKL
 - Tab UKK: Dokumentasi UKK
-- Klik ikon ðŸ‘ï¸ untuk buka file di Drive
+- Klik ikon 👁️ untuk buka file di Drive
 ```
 
 #### 3. Input Nilai Presentasi
@@ -478,7 +462,7 @@ Dashboard > Lihat daftar upload siswa yang dibimbing/diuji
 
 ---
 
-## ðŸ”§ Troubleshooting
+## 🔧 Troubleshooting
 
 ### Error: "Sesi tidak valid"
 **Penyebab**: Token login expired atau tidak valid
@@ -504,10 +488,10 @@ Dashboard > Lihat daftar upload siswa yang dibimbing/diuji
 ```
 1. Buka sheet NOTIFICATIONS
 2. Cek kolom 'status' baris terakhir:
-   - config_missing â†’ Set FONTE_API_TOKEN
-   - no_penguji â†’ Tambahkan penguji di sheet PENGUJI
-   - no_phones â†’ Tambahkan kolom 'phone' di sheet PENGUJI
-   - failed â†’ Cek httpCode (401=token salah, 429=limit exceeded)
+   - config_missing → Set FONTE_API_TOKEN
+   - no_penguji → Tambahkan penguji di sheet PENGUJI
+   - no_phones → Tambahkan kolom 'phone' di sheet PENGUJI
+   - failed → Cek httpCode (401=token salah, 429=limit exceeded)
 ```
 
 **Solusi**:
@@ -556,29 +540,29 @@ Dashboard > Lihat daftar upload siswa yang dibimbing/diuji
 **Penyebab & Solusi**:
 ```
 # Jika ok:false, error:"Header XXX wajib"
-â†’ Tambahkan kolom yang missing di sheet
+→ Tambahkan kolom yang missing di sheet
 
 # Jika ok:false, error:"Parameter dataset diperlukan"
-â†’ Cek config.js, pastikan BASE_URL benar
+→ Cek config.js, pastikan BASE_URL benar
 
 # Jika HTTP 404
-â†’ URL Apps Script salah atau deployment dihapus
-â†’ Deploy ulang, update config.js
+→ URL Apps Script salah atau deployment dihapus
+→ Deploy ulang, update config.js
 
 # Jika CORS error
-â†’ Deploy Apps Script dengan "Who has access: Anyone"
+→ Deploy Apps Script dengan "Who has access: Anyone"
 ```
 
 ---
 
-## ðŸ”„ Maintenance dan Update
+## 🛠️ Maintenance dan Update
 
 ### Update Kode Backend
 
 ```
 1. Edit code-wa-fonnte.gs di Apps Script
 2. Save (Ctrl+S)
-3. Deploy > Manage deployments > âœï¸ Edit active deployment
+3. Deploy > Manage deployments > ✏️ Edit active deployment
 4. Version: New version
 5. Description: "Update fitur XXX"
 6. Deploy
@@ -639,7 +623,7 @@ rows.push({
   username: v[idx['username']]||'', 
   nama: v[idx['nama']]||'', 
   total: v[idx['total']]||'',
-  nilai_industri: v[idx['nilai_industri']]||'', // â† Tambahan
+   nilai_industri: v[idx['nilai_industri']]||'', // ← Tambahan
   timestamp: v[idx['timestamp']]||''
 });
 ```
@@ -667,7 +651,7 @@ if(me){
 
 ---
 
-## ðŸ“ Catatan Penting
+## 📝 Catatan Penting
 
 ### Keamanan
 
@@ -680,8 +664,8 @@ if(me){
 
 2. **Password di sheet harus ter-hash:**
    ```
-   âŒ Jangan: password123 (plain text)
-   âœ… Benar: =HASH_SHA256("password123")
+   ❌ Jangan: password123 (plain text)
+   ✅ Benar: =HASH_SHA256("password123")
    ```
 
 3. **Script Properties untuk API token:**
@@ -705,7 +689,7 @@ if(me){
 
 ---
 
-## ðŸ“ž Support & Kontak
+## 📞 Support & Kontak
 
 **Developer:**
 - GitHub: [@kelastkj](https://github.com/kelastkj)
@@ -718,36 +702,36 @@ if(me){
 
 ---
 
-## ðŸ“„ Struktur Berkas Lengkap
+## 🗂️ Struktur Berkas Lengkap
 
 ```
 ukkpkl/
-â”œâ”€â”€ index.html              # Beranda & panduan
-â”œâ”€â”€ login.html              # Halaman login
-â”œâ”€â”€ dashboard.html          # Dashboard siswa/guru
-â”œâ”€â”€ pembimbing.html         # Daftar pembimbing
-â”œâ”€â”€ penguji.html            # Daftar penguji
-â”œâ”€â”€ pengujian.html          # Input nilai presentasi (guru)
-â”œâ”€â”€ bimbingan.html          # Kelola bimbingan (guru)
-â”œâ”€â”€ peserta.html            # Daftar peserta PKL
-â”œâ”€â”€ ukk.html                # Kompetensi UKK
-â”œâ”€â”€ ppsp.html               # Form penilaian cetak
-â”œâ”€â”€ sertifikat.html         # Generate sertifikat (guru)
-â”œâ”€â”€ config.js               # Konfigurasi BASE_URL
-â”œâ”€â”€ code-wa-fonnte.gs       # Backend Apps Script
-â”œâ”€â”€ code.gs                 # (deprecated, gunakan code-wa-fonnte.gs)
-â”œâ”€â”€ logo.png                # Logo aplikasi
-â”œâ”€â”€ README.md               # Dokumentasi ini
-â”œâ”€â”€ CNAME                   # (opsional, untuk custom domain)
-â””â”€â”€ slide/                  # Folder gambar slideshow
-    â”œâ”€â”€ IMG-20240305-WA0034-scaled.jpg
-    â”œâ”€â”€ IMG20240304133855-scaled.jpg
-    â””â”€â”€ ... (8 gambar total)
+├─ index.html              # Beranda & panduan
+├─ login.html              # Halaman login
+├─ dashboard.html          # Dashboard siswa/guru
+├─ pembimbing.html         # Daftar pembimbing
+├─ penguji.html            # Daftar penguji
+├─ pengujian.html          # Input nilai presentasi (guru)
+├─ bimbingan.html          # Kelola bimbingan (guru)
+├─ peserta.html            # Daftar peserta PKL
+├─ ukk.html                # Kompetensi UKK
+├─ ppsp.html               # Form penilaian cetak
+├─ sertifikat.html         # Generate sertifikat (guru)
+├─ config.js               # Konfigurasi BASE_URL
+├─ code-wa-fonnte.gs       # Backend Apps Script
+├─ code.gs                 # (deprecated, gunakan code-wa-fonnte.gs)
+├─ logo.png                # Logo aplikasi
+├─ README.md               # Dokumentasi ini
+├─ CNAME                   # (opsional, untuk custom domain)
+└─ slide/                  # Folder gambar slideshow
+   ├─ IMG-20240305-WA0034-scaled.jpg
+   ├─ IMG20240304133855-scaled.jpg
+   └─ ... (8 gambar total)
 ```
 
 ---
 
-## ðŸ”— Kontrak API (Backend Endpoints)
+## 🔌 Kontrak API (Backend Endpoints)
 
 Semua request menggunakan **GET** atau **POST** ke `BASE_URL`:
 ```
@@ -935,7 +919,7 @@ Response: HTML dengan postMessage callback
 
 ---
 
-## ðŸŽ“ Best Practices
+## 🎓 Best Practices
 
 ### Untuk Developer
 
@@ -974,7 +958,7 @@ Response: HTML dengan postMessage callback
 
 ---
 
-## âœ… Checklist Deployment
+## ✅ Checklist Deployment
 
 ### Pertama Kali Setup
 
@@ -1007,7 +991,7 @@ Response: HTML dengan postMessage callback
 
 ---
 
-## ðŸ†˜ FAQ (Pertanyaan Umum)
+## ❓ FAQ (Pertanyaan Umum)
 
 **Q: Apakah sistem ini gratis?**  
 A: Ya, 100% gratis menggunakan tools Google (Sheets, Drive, Apps Script). Biaya hanya untuk hosting frontend (GitHub Pages gratis) dan WhatsApp API (Fonnte gratis 100 pesan/hari).
@@ -1053,7 +1037,7 @@ A: Ya, tapi butuh Google Workspace for Education dan Classroom API. Alternatif: 
 
 ---
 
-## ðŸ“š Referensi Eksternal
+## 📚 Referensi Eksternal
 
 - [Google Apps Script Docs](https://developers.google.com/apps-script)
 - [Google Sheets API](https://developers.google.com/sheets/api)
@@ -1063,12 +1047,12 @@ A: Ya, tapi butuh Google Workspace for Education dan Classroom API. Alternatif: 
 
 ---
 
-## ðŸ“œ Lisensi
+## 📜 Lisensi
 
 Konten ini ditujukan untuk kebutuhan internal/pendidikan **TKJ SMKN 1 Telagasari**.  
 Jika ingin dipublikasikan ulang, mohon cantumkan atribusi yang sesuai.
 
-**Â© 2025 Sistem Informasi PKL & UKK Industri â€” TKJ SMKN 1 Telagasari**
+**© 2025 Sistem Informasi PKL & UKK Industri — TKJ SMKN 1 Telagasari**
 
 ---
 
