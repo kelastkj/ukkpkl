@@ -107,12 +107,12 @@
     }
     .slideshow-dots {
       text-align: center;
-      padding: 10px;
+      padding: 8px;
     }
     .dot {
-      height: 12px;
-      width: 12px;
-      margin: 0 4px;
+      height: 10px;
+      width: 10px;
+      margin: 0 3px;
       background-color: rgba(255, 255, 255, 0.5);
       border-radius: 50%;
       display: inline-block;
@@ -134,16 +134,21 @@
     }
     .slideshow-container-mobile img {
       width: 100%;
-      height: 300px;
+      height: 200px;
       object-fit: cover;
       display: none;
+    }
+    @media (min-width: 480px) {
+      .slideshow-container-mobile img {
+        height: 250px;
+      }
     }
     .slideshow-container-mobile img.active {
       display: block;
     }
     .slideshow-dots-mobile {
       text-align: center;
-      padding: 10px;
+      padding: 8px;
     }
 
     /* Skeleton Loader */
@@ -257,24 +262,22 @@
 
   <header class="relative overflow-hidden hero-decor bg-grid bg-sky-50 border-b">
 
-    <div class="mx-auto max-w-6xl px-4 py-14 md:py-20 text-center">
+    <div class="mx-auto max-w-6xl px-3 sm:px-4 py-8 sm:py-12 md:py-16 text-center">
 
-      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-sky-800 flex justify-center items-center gap-2 animate-fade-up mt-6">
-
-        <i data-lucide="network" class="w-8 h-8 text-sky-700"></i>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-sky-800 animate-fade-up">
 
         Sistem Informasi PKL & UKK Industri
 
       </h1>
 
-      <p class="text-slate-600 mt-6 text-lg md:text-xl max-w-3xl mx-auto animate-fade-up leading-relaxed">
+      <p class="text-slate-600 mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg max-w-3xl mx-auto animate-fade-up leading-relaxed font-medium">
 
         Platform terpadu untuk mendukung pelaksanaan <strong>Praktik Kerja Lapangan (PKL)</strong> dan <strong>UKK Industri</strong> di jurusan TKJ SMKN 1 Telagasari.
 
       </p>
 
       <!-- Slideshow Mobile -->
-      <div class="md:hidden mt-8 slideshow-container-mobile">
+      <div class="md:hidden mt-3 sm:mt-4 slideshow-container-mobile">
         <div class="relative">
           <div class="skeleton"></div>
           <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Slide 1" class="active" loading="lazy" onload="this.previousElementSibling.style.display='none'">
@@ -320,7 +323,7 @@
       </div>
 
       <!-- Slideshow Desktop -->
-      <div class="hidden md:block mt-8 slideshow-container">
+      <div class="hidden md:block mt-6 slideshow-container">
         <div class="slide active">
           <div class="relative">
             <div class="skeleton"></div>
@@ -373,26 +376,83 @@
 
   </header>
 
+  <!-- Statistics Section (Below Slideshow) - Compact Promo Style -->
+  <section class="mx-auto max-w-6xl px-3 sm:px-4 py-3 sm:py-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3" id="statsContainer">
+      <!-- Peserta Card -->
+      <div class="rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow relative stat-card" id="card-peserta">
+        <div class="skeleton absolute inset-0 rounded-lg opacity-50"></div>
+        <div class="flex items-center gap-2 sm:gap-3 relative z-10">
+          <div class="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white flex-shrink-0">
+            <i data-lucide="users" class="w-4 sm:w-5 h-4 sm:h-5"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xl sm:text-2xl md:text-3xl font-bold text-emerald-700" id="stat-peserta"></p>
+            <p class="text-xs text-emerald-700 font-medium">Peserta PKL</p>
+          </div>
+        </div>
+      </div>
 
+      <!-- Pembimbing Card -->
+      <div class="rounded-lg bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow relative stat-card" id="card-pembimbing">
+        <div class="skeleton absolute inset-0 rounded-lg opacity-50"></div>
+        <div class="flex items-center gap-2 sm:gap-3 relative z-10">
+          <div class="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 flex items-center justify-center text-white flex-shrink-0">
+            <i data-lucide="book-open" class="w-4 sm:w-5 h-4 sm:h-5"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xl sm:text-2xl md:text-3xl font-bold text-sky-700" id="stat-pembimbing"></p>
+            <p class="text-xs text-sky-700 font-medium">Pembimbing</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Penguji Card -->
+      <div class="rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow relative stat-card" id="card-penguji">
+        <div class="skeleton absolute inset-0 rounded-lg opacity-50"></div>
+        <div class="flex items-center gap-2 sm:gap-3 relative z-10">
+          <div class="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white flex-shrink-0">
+            <i data-lucide="check-circle" class="w-4 sm:w-5 h-4 sm:h-5"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xl sm:text-2xl md:text-3xl font-bold text-teal-700" id="stat-penguji"></p>
+            <p class="text-xs text-teal-700 font-medium">Penguji PKL</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mitra Card -->
+      <div class="rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 p-3 sm:p-4 shadow-sm hover:shadow-md transition-shadow relative stat-card" id="card-mitra">
+        <div class="skeleton absolute inset-0 rounded-lg opacity-50"></div>
+        <div class="flex items-center gap-2 sm:gap-3 relative z-10">
+          <div class="h-8 sm:h-10 w-8 sm:w-10 rounded-lg bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white flex-shrink-0">
+            <i data-lucide="briefcase" class="w-4 sm:w-5 h-4 sm:h-5"></i>
+          </div>
+          <div class="min-w-0">
+            <p class="text-xl sm:text-2xl md:text-3xl font-bold text-orange-700" id="stat-mitra"></p>
+            <p class="text-xs text-orange-700 font-medium">Mitra Industri</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <!-- MAIN CONTENT -->
 
-  <main id="main" class="mx-auto max-w-6xl px-6 md:px-4 py-10 space-y-10">
+  <main id="main" class="mx-auto max-w-6xl px-3 sm:px-6 md:px-4 py-0 space-y-10">
 <!-- Pembimbing & Penguji -->
 
     <section class="grid md:grid-cols-2 gap-6">
 
-      <div class="rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
+      <div class="rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border p-6 shadow-sm hover:shadow-md transition">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="book-open"></i></div>
+        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="book-open"></i></div>
 
-        <h3 class="text-lg font-semibold text-emerald-900">Peran Pembimbing (Laporan)</h3>
+        <h3 class="text-lg font-semibold text-emerald-900 mb-3">Peran Pembimbing (Laporan)</h3>
 
-        <p class="mt-2 text-slate-700 leading-relaxed">
+        <p class="text-slate-700 leading-relaxed text-base">
 
-          Pembimbing mendampingi siswa dalam <strong>penyusunan laporan PKL</strong> yang disajikan dalam bentuk <strong>presentasi</strong> PowerPoint atau Canva.
-
-          Laporan berisi <em>judul, data diri, ringkasan pekerjaan, dokumentasi,</em> dan <em>refleksi hasil belajar</em>.
+          Pembimbing mendampingi siswa dalam <strong>penyusunan laporan PKL</strong> yang disajikan dalam bentuk <strong>presentasi</strong> PowerPoint atau Canva. Laporan berisi <em>judul, data diri, ringkasan pekerjaan, dokumentasi,</em> dan <em>refleksi hasil belajar</em>.
 
         </p>
 
@@ -400,17 +460,15 @@
 
 
 
-      <div class="rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
+      <div class="rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 border p-6 shadow-sm hover:shadow-md transition">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-500 text-white mb-2"><i data-lucide="user-check"></i></div>
+        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-500 text-white mb-3"><i data-lucide="user-check"></i></div>
 
-        <h3 class="text-lg font-semibold text-sky-900">Peran Penguji (Laporan)</h3>
+        <h3 class="text-lg font-semibold text-sky-900 mb-3">Peran Penguji (Laporan)</h3>
 
-        <p class="mt-2 text-slate-700 leading-relaxed">
+        <p class="text-slate-700 leading-relaxed text-base">
 
-          Penguji menilai <strong>presentasi laporan PKL</strong> berdasarkan kemampuan menjelaskan pekerjaan, 
-
-          penggunaan teknologi, dan komunikasi profesional. Durasi ideal presentasi adalah <strong>5-7 menit</strong>.
+          Penguji menilai <strong>presentasi laporan PKL</strong> berdasarkan kemampuan menjelaskan pekerjaan, penggunaan teknologi, dan komunikasi profesional. Durasi ideal presentasi adalah <strong>5-7 menit</strong>.
 
         </p>
 
@@ -422,21 +480,21 @@
 
     <section class="mt-6">
 
-      <div class="rounded-2xl bg-white border p-4 shadow-sm">
+      <div class="rounded-2xl bg-white border p-6 shadow-sm">
 
-        <h3 class="font-semibold text-lg text-emerald-800">Panduan singkat: Unggah Laporan PKL</h3>
+        <h3 class="font-semibold text-lg text-emerald-800 mb-3">Panduan Singkat: Unggah Laporan PKL</h3>
 
-        <p class="text-slate-700 mt-2">Setelah Anda berkonsultasi dan laporan akhir disetujui oleh pembimbing, silakan unggah laporan PKL ke sistem.</p>
+        <p class="text-slate-700 leading-relaxed text-base mb-4">Setelah Anda berkonsultasi dan laporan akhir disetujui oleh pembimbing, silakan unggah laporan PKL ke sistem.</p>
 
-        <ul class="list-disc ml-5 mt-2 text-slate-700">
+        <ul class="list-disc ml-6 space-y-2 text-slate-700 leading-relaxed text-base">
 
           <li>Pastikan pembimbing telah menandatangani atau menyetujui laporan akhir.</li>
 
-          <li>Konversi laporan ke PDF dan beri nama file: <code>NISN_Nama_LaporanPKL.pdf</code>.</li>
+          <li>Konversi laporan ke PDF dan beri nama file: <code class="bg-slate-100 px-1 rounded">NISN_Nama_LaporanPKL.pdf</code>.</li>
 
           <li>Ukuran maksimum file: <strong>10 MB</strong>. Jika lebih besar, kompres gambar atau kurangi resolusi foto.</li>
 
-          <li>Unggah melalui <strong>Dashboard &rsaquo; Upload Laporan PKL</strong> (menu Upload PKL di dashboard siswa).</li>
+          <li>Unggah melalui <strong>Dashboard › Upload Laporan PKL</strong> (menu Upload PKL di dashboard siswa).</li>
 
         </ul>
 
@@ -448,9 +506,9 @@
 
     <!-- UKK Industri -->
 
-    <section class="rounded-2xl bg-gradient-to-br from-teal-100 to-teal-200 border p-6 shadow-sm hover:shadow-md transition hover:scale-105">
+    <section class="rounded-2xl bg-gradient-to-br from-teal-100 to-teal-200 border p-6 shadow-sm hover:shadow-md transition">
 
-      <div class="flex items-center gap-2 mb-3">
+      <div class="flex items-center gap-2 mb-4">
 
         <i data-lucide="briefcase" class="w-5 h-5 text-teal-700"></i>
 
@@ -458,40 +516,36 @@
 
       </div>
 
-      <p class="text-slate-700 leading-relaxed">
-        <strong>Uji Kompetensi Keahlian (UKK) adalah asesmen akhir</strong> untuk membuktikan apakah siswa SMK sudah benar-benar kompeten di bidangnya. <strong>UKK wajib dilakukan karena diatur dalam undang-undang pendidikan</strong> dan menjadi <strong>syarat kelulusan serta penerbitan sertifikat kompetensi</strong>.
+      <p class="text-slate-700 leading-relaxed text-base mb-4">
+        <strong>Uji Kompetensi Keahlian (UKK)</strong> adalah asesmen akhir untuk membuktikan kompetensi siswa SMK di bidangnya. UKK wajib dilakukan berdasarkan undang-undang pendidikan dan menjadi syarat kelulusan serta penerbitan sertifikat kompetensi.
       </p>
-      <p class="text-slate-700 leading-relaxed">
-        <strong>UKK dapat dilaksanakan dengan tiga cara:</strong> <strong>oleh industri</strong>, <strong>oleh SMK bekerja sama dengan Lembaga Sertifikasi Profesi (LSP)</strong>, atau <strong>secara mandiri di sekolah</strong>. Jika tahun sebelumnya sekolah melaksanakan UKK Mandiri, maka tahun ini UKK dilaksanakan langsung di dunia industri bersamaan dengan kegiatan PKL. <strong>Dengan cara ini, siswa diuji di lingkungan kerja nyata oleh tenaga ahli dari industri sehingga hasilnya lebih diakui dan sesuai kebutuhan dunia kerja.</strong>
+      <p class="text-slate-700 leading-relaxed text-base mb-4">
+        UKK dapat dilaksanakan dengan tiga cara: oleh industri, oleh SMK bekerja sama dengan Lembaga Sertifikasi Profesi (LSP), atau secara mandiri di sekolah. Tahun ini UKK dilaksanakan langsung di dunia industri bersamaan dengan kegiatan PKL, sehingga siswa diuji di lingkungan kerja nyata oleh tenaga ahli.
       </p>
 
-      <p class="mt-3 text-slate-700">
-
-        Siswa wajib mempelajari <strong>kompetensi yang diujikan oleh industri</strong> agar siap menghadapi dunia kerja.
-
-        Daftar kompetensi tiap mitra dapat dilihat di halaman <a href="ukk.html" class="text-teal-700 font-semibold hover:underline">UKK Industri</a>.
-
+      <p class="text-slate-700 leading-relaxed text-base mb-4">
+        Siswa wajib mempelajari kompetensi yang diujikan oleh industri agar siap menghadapi dunia kerja. Daftar kompetensi tiap mitra dapat dilihat di halaman <a href="ukk.html" class="text-teal-700 font-semibold hover:underline">UKK Industri</a>.
       </p>
 
       <!-- Short inline guidance requested: students are assessed on agreed competencies, not only presentation -->
 
-      <div class="mt-4 rounded-lg border-l-4 border-teal-600 bg-teal-50 p-4">
+      <div class="mt-6 rounded-lg border-l-4 border-teal-600 bg-teal-50 p-5">
 
-        <div class="font-semibold text-teal-800">Panduan singkat UKK</div>
+        <div class="font-semibold text-teal-800 mb-3">Panduan Singkat UKK</div>
 
-        <p class="text-slate-700 mt-1">Catatan penting: penilaian UKK didasarkan pada kompetensi yang disepakati oleh sekolah dan mitra industri.</p>
+        <p class="text-slate-700 leading-relaxed text-base mb-3">Penilaian UKK didasarkan pada kompetensi yang disepakati oleh sekolah dan mitra industri.</p>
 
-        <ul class="list-disc ml-5 mt-2 text-slate-700">
+        <ul class="list-disc ml-6 space-y-2 text-slate-700 leading-relaxed text-sm">
 
-          <li>Pelajari daftar kompetensi untuk mitra tempat Anda magang.</li>
+          <li>Pelajari daftar kompetensi untuk mitra tempat Anda magang</li>
 
-          <li>Konfirmasikan ruang lingkup dan jadwal ujian dengan pembimbing industri.</li>
+          <li>Konfirmasikan ruang lingkup dan jadwal ujian dengan pembimbing industri</li>
 
-          <li>Dokumentasikan pelaksanaan (minimal 5 foto) dan buat file PDF yang berisi laporan singkat + foto.</li>
+          <li>Dokumentasikan pelaksanaan (minimal 5 foto) dan buat file PDF laporan singkat + foto</li>
 
-          <li>Pastikan PDF berukuran &le; 5 MB dan beri nama sesuai format (mis. NISN_Nama_UKK_Mitra.pdf).</li>
+          <li>Pastikan PDF berukuran ≤ 5 MB dan beri nama sesuai format (mis. NISN_Nama_UKK_Mitra.pdf)</li>
 
-          <li>Unggah PDF melalui menu <strong>Upload Dokumentasi UKK</strong> di dashboard siswa.</li>
+          <li>Unggah PDF melalui menu Upload Dokumentasi UKK di dashboard siswa</li>
 
         </ul>
 
@@ -503,27 +557,27 @@
 
     <!-- Panduan Laporan -->
 
-    <section id="panduan">
+    <section id="panduan" class="space-y-4">
 
-      <h2 class="text-xl font-semibold mb-3 flex items-center gap-2 text-emerald-800">
+      <h2 class="text-2xl font-semibold mb-4 flex items-center gap-2 text-emerald-800">
 
         <i data-lucide="presentation"></i> Panduan Laporan PKL
 
       </h2>
 
-      <p class="text-slate-700">Berikut struktur presentasi yang direkomendasikan:</p>
+      <p class="text-slate-700 leading-relaxed text-base">Berikut adalah struktur presentasi yang direkomendasikan untuk laporan PKL Anda:</p>
 
 
 
-      <div class="mt-5 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="mt-6 grid md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-5 shadow-sm hover:shadow-md transition">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="type"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="type"></i></div>
 
-          <h4 class="font-semibold">Slide 1 &mdash; Judul</h4>
+          <h4 class="font-semibold text-base mb-3">Slide 1 — Judul</h4>
 
-          <ul class="mt-2 text-sm text-slate-700 list-disc ml-5">
+          <ul class="text-sm text-slate-700 list-disc ml-5 space-y-1 leading-relaxed">
 
             <li>Judul laporan</li><li>Nama, NISN, kelas</li><li>Nama Mitra</li>
 
@@ -533,13 +587,13 @@
 
 
 
-        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-5 shadow-sm hover:shadow-md transition">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="user"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="user"></i></div>
 
-          <h4 class="font-semibold">Slide 2 &mdash; Data Diri</h4>
+          <h4 class="font-semibold text-base mb-3">Slide 2 — Data Diri</h4>
 
-          <ul class="mt-2 text-sm text-slate-700 list-disc ml-5">
+          <ul class="text-sm text-slate-700 list-disc ml-5 space-y-1 leading-relaxed">
 
             <li>Identitas siswa</li><li>Periode PKL</li><li>Alamat Mitra</li>
 
@@ -549,13 +603,13 @@
 
 
 
-        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-5 shadow-sm hover:shadow-md transition">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="wrench"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="wrench"></i></div>
 
-          <h4 class="font-semibold">Slide 3-5 &mdash; Ringkasan Pekerjaan</h4>
+          <h4 class="font-semibold text-base mb-3">Slide 3-5 — Ringkasan Pekerjaan</h4>
 
-          <ul class="mt-2 text-sm text-slate-700 list-disc ml-5">
+          <ul class="text-sm text-slate-700 list-disc ml-5 space-y-1 leading-relaxed">
 
             <li>Tugas utama</li><li>Alat/software</li><li>Hasil kerja</li>
 
@@ -565,13 +619,13 @@
 
 
 
-        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-4 shadow-sm hover:shadow-md transition hover:scale-105">
+        <div class="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 border p-5 shadow-sm hover:shadow-md transition">
 
-          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-2"><i data-lucide="camera"></i></div>
+          <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="camera"></i></div>
 
-          <h4 class="font-semibold">Slide Tambahan &mdash; Dokumentasi</h4>
+          <h4 class="font-semibold text-base mb-3">Slide Tambahan — Dokumentasi</h4>
 
-          <ul class="mt-2 text-sm text-slate-700 list-disc ml-5">
+          <ul class="text-sm text-slate-700 list-disc ml-5 space-y-1 leading-relaxed">
 
             <li>Foto kegiatan</li><li>Refleksi pembelajaran</li><li>Ucapan terima kasih</li>
 
@@ -587,55 +641,147 @@
 
     <!-- Tips Presentasi -->
 
-    <section class="rounded-2xl border bg-gradient-to-r from-emerald-100 via-sky-100 to-teal-100 p-5 shadow-sm hover:shadow-md transition hover:scale-105">
+    <section class="rounded-2xl border bg-gradient-to-r from-emerald-100 via-sky-100 to-teal-100 p-5 shadow-sm">
 
-      <div class="flex items-center gap-2 mb-2">
+      <div class="flex items-start gap-3 mb-3">
 
-        <i data-lucide="lightbulb" class="w-5 h-5 text-emerald-600"></i>
+        <i data-lucide="lightbulb" class="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5"></i>
 
-        <h3 class="font-semibold">Tips Presentasi</h3>
+        <div class="flex-1">
+
+          <h3 class="font-semibold text-sm text-slate-900 mb-2">Tips Presentasi yang Efektif</h3>
+
+          <ul class="space-y-1.5 text-xs text-slate-700">
+
+            <li class="flex gap-2"><span class="text-emerald-600 font-bold">•</span><span>Atur durasi presentasi antara 5-7 menit agar ringkas namun tetap komprehensif.</span></li>
+
+            <li class="flex gap-2"><span class="text-sky-600 font-bold">•</span><span>Gunakan visual dan poin singkat yang mudah dipahami oleh audiens.</span></li>
+
+            <li class="flex gap-2"><span class="text-teal-600 font-bold">•</span><span>Pilih warna yang konsisten dan latar belakang bersih untuk kesan profesional.</span></li>
+
+            <li class="flex gap-2"><span class="text-emerald-600 font-bold">•</span><span>Berlatih berbicara dengan percaya diri dan artikulasi yang jelas di depan cermin atau teman.</span></li>
+
+          </ul>
+
+        </div>
 
       </div>
 
-      <ul class="list-disc ml-5 text-sm text-slate-700">
+    </section>
 
-        <li>Durasi ideal 5-7 menit.</li>
+    <!-- Timeline Section -->
+    <section class="space-y-4">
+      <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2 text-emerald-800">
+        <i data-lucide="calendar" class="w-5 h-5"></i> Jadwal Pelaksanaan Tahun Ajaran 2025/2026
+      </h2>
+      
+      <div class="grid md:grid-cols-2 gap-4">
+        <!-- PKL -->
+        <div class="rounded-lg bg-gradient-to-br from-emerald-50 to-emerald-100 border border-emerald-200 p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500 flex items-center justify-center text-white">
+              <i data-lucide="briefcase" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-semibold text-emerald-900 text-base">Praktik Kerja Lapangan</h3>
+          </div>
+          <p class="text-sm font-medium text-emerald-700 mb-2">21 Juli - 21 November 2025</p>
+          <p class="text-xs text-slate-600 leading-relaxed">Pelaksanaan praktik kerja di industri mitra dengan bimbingan penuh dari pembimbing lapangan.</p>
+        </div>
 
-        <li>Gunakan poin singkat dan visual yang jelas.</li>
+        <!-- UKK Industri -->
+        <div class="rounded-lg bg-gradient-to-br from-teal-50 to-teal-100 border border-teal-200 p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="h-8 w-8 rounded-lg bg-teal-500 flex items-center justify-center text-white">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-semibold text-teal-900 text-base">UKK Industri</h3>
+          </div>
+          <p class="text-sm font-medium text-teal-700 mb-2">Bersamaan dengan PKL</p>
+          <p class="text-xs text-slate-600 leading-relaxed">Sesuai jadwal dan kompetensi yang ditetapkan oleh mitra industri masing-masing.</p>
+        </div>
 
-        <li>Gunakan warna konsisten dan latar bersih.</li>
+        <!-- Bimbingan -->
+        <div class="rounded-lg bg-gradient-to-br from-sky-50 to-sky-100 border border-sky-200 p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="h-8 w-8 rounded-lg bg-sky-500 flex items-center justify-center text-white">
+              <i data-lucide="book-open" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-semibold text-sky-900 text-base">Bimbingan Laporan</h3>
+          </div>
+          <p class="text-sm font-medium text-sky-700 mb-2">24 - 28 November 2025</p>
+          <p class="text-xs text-slate-600 leading-relaxed">Konsultasi intensif dengan pembimbing di sekolah untuk penyempurnaan laporan.</p>
+        </div>
 
-        <li>Berlatih berbicara dengan percaya diri.</li>
+        <!-- Presentasi -->
+        <div class="rounded-lg bg-gradient-to-br from-orange-50 to-orange-100 border border-orange-200 p-5">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center text-white">
+              <i data-lucide="presentation" class="w-4 h-4"></i>
+            </div>
+            <h3 class="font-semibold text-orange-900 text-base">Presentasi Laporan</h3>
+          </div>
+          <p class="text-sm font-medium text-orange-700 mb-2">1 - 5 Desember 2025</p>
+          <p class="text-xs text-slate-600 leading-relaxed">Durasi presentasi 5-7 menit per siswa di hadapan dewan penguji.</p>
+        </div>
+      </div>
+    </section>
 
-      </ul>
+    <!-- Contact & Support Section -->
+    <section class="grid md:grid-cols-2 gap-6">
+      <!-- WhatsApp Support -->
+      <div class="rounded-2xl bg-gradient-to-br from-green-100 to-green-50 border p-6 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start gap-3 mb-4">
+          <i data-lucide="message-circle" class="w-5 h-5 text-green-600 mt-1 flex-shrink-0"></i>
+          <div>
+            <h3 class="font-semibold text-green-900 text-base">Hubungi via WhatsApp</h3>
+            <p class="text-slate-700 text-sm leading-relaxed mt-2">Tanya jawab teknis, pertanyaan, atau keluhan dengan admin sistem</p>
+          </div>
+        </div>
+        <a href="https://wa.me/6285167436497?text=Halo%2C%20saya%20ingin%20bertanya%20tentang%20sistem%20PKL%20dan%20UKK%20Industri" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+          <i data-lucide="send" class="w-4 h-4"></i> Chat WhatsApp
+        </a>
+      </div>
 
+      <!-- FAQ Link -->
+      <div class="rounded-2xl bg-gradient-to-br from-blue-100 to-blue-50 border p-6 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start gap-3 mb-4">
+          <i data-lucide="help-circle" class="w-5 h-5 text-blue-600 mt-1 flex-shrink-0"></i>
+          <div>
+            <h3 class="font-semibold text-blue-900 text-base">Baca Panduan & FAQ</h3>
+            <p class="text-slate-700 text-sm leading-relaxed mt-2">Jawaban lengkap pertanyaan umum dan panduan menggunakan sistem</p>
+          </div>
+        </div>
+        <a href="#faq" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+          <i data-lucide="book-open" class="w-4 h-4"></i> Lihat Panduan
+        </a>
+      </div>
     </section>
 
     <!-- FAQ Section -->
-    <section class="rounded-2xl bg-white border p-6 shadow-sm">
-      <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-emerald-800">
+    <section id="faq" class="rounded-2xl bg-white border p-6 shadow-sm">
+      <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2 text-emerald-800">
         <i data-lucide="help-circle"></i> Pertanyaan Umum (FAQ)
       </h2>
       <div class="space-y-4">
-        <details class="border-b pb-4">
-          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Apa itu PKL?</summary>
-          <p class="mt-2 text-slate-700">Praktik Kerja Lapangan (PKL) adalah kegiatan wajib bagi siswa SMK untuk mengaplikasikan teori yang dipelajari di sekolah ke dunia kerja nyata. Durasi PKL biasanya 3-6 bulan di perusahaan mitra.</p>
+        <details class="border-b pb-5">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600 text-base pb-2">Apa itu PKL?</summary>
+          <p class="text-slate-700 leading-relaxed text-base">Praktik Kerja Lapangan (PKL) adalah kegiatan wajib bagi siswa SMK untuk mengaplikasikan teori yang dipelajari di sekolah ke dunia kerja nyata. Durasi PKL biasanya 3-6 bulan di perusahaan mitra dengan bimbingan penuh dari pembimbing lapangan.</p>
         </details>
-        <details class="border-b pb-4">
-          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Bagaimana cara mengunggah laporan PKL?</summary>
-          <p class="mt-2 text-slate-700">Setelah laporan disetujui pembimbing, konversi ke PDF dengan nama file NISN_Nama_LaporanPKL.pdf, pastikan ukuran ≤10 MB, lalu unggah melalui Dashboard > Upload Laporan PKL.</p>
+        <details class="border-b pb-5">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600 text-base pb-2">Bagaimana cara mengunggah laporan PKL?</summary>
+          <p class="text-slate-700 leading-relaxed text-base">Setelah laporan disetujui pembimbing, konversi ke PDF dengan nama file NISN_Nama_LaporanPKL.pdf, pastikan ukuran ≤10 MB, lalu unggah melalui Dashboard > Upload Laporan PKL. Ikuti panduan singkat yang telah disediakan di halaman ini untuk memastikan format yang benar.</p>
         </details>
-        <details class="border-b pb-4">
-          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Apa perbedaan PKL dan UKK Industri?</summary>
-          <p class="mt-2 text-slate-700">PKL fokus pada pengalaman kerja praktis, sedangkan UKK Industri adalah uji kompetensi akhir yang dilakukan di dunia industri untuk mendapatkan sertifikat kompetensi.</p>
+        <details class="border-b pb-5">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600 text-base pb-2">Apa perbedaan PKL dan UKK Industri?</summary>
+          <p class="text-slate-700 leading-relaxed text-base">PKL fokus pada pengalaman kerja praktis dan mendapatkan keterampilan nyata di lapangan, sedangkan UKK Industri adalah uji kompetensi akhir yang dilakukan di dunia industri untuk mendapatkan sertifikat kompetensi resmi yang diakui secara nasional.</p>
         </details>
-        <details class="border-b pb-4">
-          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Siapa yang bisa mengakses sistem ini?</summary>
-          <p class="mt-2 text-slate-700">Sistem ini dapat diakses oleh siswa, pembimbing, penguji, dan admin sekolah untuk mengelola dokumen PKL dan UKK.</p>
+        <details class="border-b pb-5">
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600 text-base pb-2">Siapa yang bisa mengakses sistem ini?</summary>
+          <p class="text-slate-700 leading-relaxed text-base">Sistem ini dapat diakses oleh siswa, pembimbing lapangan, penguji, dan admin sekolah untuk mengelola dokumen PKL, UKK, dan komunikasi terkait proses pelaksanaan program.</p>
         </details>
         <details>
-          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600">Bagaimana jika lupa password?</summary>
-          <p class="mt-2 text-slate-700">Hubungi admin sekolah atau pembimbing untuk reset password melalui email atau kontak resmi.</p>
+          <summary class="cursor-pointer font-medium text-slate-800 hover:text-emerald-600 text-base pb-2">Bagaimana jika lupa password?</summary>
+          <p class="text-slate-700 leading-relaxed text-base">Hubungi admin sekolah atau pembimbing untuk reset password melalui email resmi sekolah atau kontak langsung yang telah diberikan di awal tahun ajaran.</p>
         </details>
       </div>
     </section>
@@ -838,6 +984,118 @@
     setInterval(function() {
       plusSlidesMobile(1);
     }, 4000);
+
+    // ===== LOAD STATISTICS =====
+    (function loadStatistics() {
+      // Wait for APP_CONFIG to be available (config.js is deferred)
+      function waitForConfig(callback, maxAttempts = 50) {
+        let attempts = 0;
+        const interval = setInterval(() => {
+          attempts++;
+          if (window.APP_CONFIG && window.APP_CONFIG.BASE_URL) {
+            clearInterval(interval);
+            callback(window.APP_CONFIG.BASE_URL);
+          } else if (attempts >= maxAttempts) {
+            clearInterval(interval);
+            callback(null);
+          }
+        }, 100);
+      }
+
+      waitForConfig((baseUrl) => {
+        if (!baseUrl) {
+          return;
+        }
+
+        // Helper function untuk fetch dengan no-cache
+        async function fetchData(url) {
+          try {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) {
+              throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return await response.json();
+          } catch (error) {
+            throw error;
+          }
+        }
+
+        // Helper function to remove skeleton and show content
+        function showStatistic(elementId, value) {
+          const numberEl = document.getElementById(elementId);
+          if (numberEl) {
+            numberEl.textContent = value;
+            const card = numberEl.closest('.stat-card');
+            if (card) {
+              const skeleton = card.querySelector('.skeleton');
+              if (skeleton) {
+                skeleton.style.display = 'none';
+              }
+            }
+          }
+        }
+
+        // Fetch pembimbing count
+        fetchData(baseUrl + '?dataset=pembimbing&route=meta')
+          .then(d => {
+            if (d.ok && d.meta && d.meta.pembimbing) {
+              const count = d.meta.pembimbing.length;
+              showStatistic('stat-pembimbing', count);
+            }
+          })
+          .catch(e => {});
+
+        // Fetch penguji count
+        fetchData(baseUrl + '?dataset=penguji&route=meta')
+          .then(d => {
+            if (d.ok && d.meta && d.meta.penguji) {
+              const count = d.meta.penguji.length;
+              showStatistic('stat-penguji', count);
+            }
+          })
+          .catch(e => {});
+
+        // Fetch mitra count
+        fetchData(baseUrl + '?dataset=ukk&route=meta')
+          .then(d => {
+            if (d.ok && d.meta && d.meta.mitra) {
+              const count = d.meta.mitra.length;
+              showStatistic('stat-mitra', count);
+            }
+          })
+          .catch(e => {});
+
+        // Fetch peserta count - aggregate all peserta
+        fetchData(baseUrl + '?dataset=peserta&route=meta')
+          .then(d => {
+            if (d.ok && d.meta && d.meta.mitra && Array.isArray(d.meta.mitra)) {
+              let totalPeserta = 0;
+              let completed = 0;
+              const mitraCount = d.meta.mitra.length;
+              
+              d.meta.mitra.forEach((m, idx) => {
+                fetchData(baseUrl + '?dataset=peserta&mitra=' + encodeURIComponent(m))
+                  .then(data => {
+                    if (data.ok && data.count) {
+                      totalPeserta += data.count;
+                    }
+                    completed++;
+                    if (completed === mitraCount) {
+                      showStatistic('stat-peserta', totalPeserta);
+                    }
+                  })
+                  .catch(e => {
+                    completed++;
+                    if (completed === mitraCount) {
+                      showStatistic('stat-peserta', totalPeserta);
+                    }
+                  });
+              });
+            }
+          })
+          .catch(e => {});
+      });
+    })();
 
     // Swipe support for mobile slideshow
     let startX;
