@@ -52,10 +52,10 @@ Sistem web berbasis untuk mengelola **Praktik Kerja Lapangan (PKL)** dan **Uji K
 
 ```mermaid
 flowchart TD
-   A[USER (Browser)\nindex.html, login.html, dashboard.html, dll.] -->|HTTPS Request| B[Google Apps Script (Backend)]
-   B --> S[(Google Sheets\nDatabase)]
-   B --> D[(Google Drive\nStorage)]
-   B --> F[(Fonnte WhatsApp\nGateway)]
+   A["USER (Browser)<br/>index.html, login.html, dashboard.html, dll."] -->|HTTPS Request| B["Google Apps Script (Backend)"]
+   B --> S["Google Sheets<br/>Database"]
+   B --> D["Google Drive<br/>Storage"]
+   B --> F["Fonnte WhatsApp<br/>Gateway"]
 ```
 
 ### Teknologi Stack
