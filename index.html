@@ -16,6 +16,20 @@
 
   <link rel="icon" href="logo.png" />
 
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="id_ID" />
+  <meta property="og:title" content="Sistem Informasi PKL &amp; UKK Industri — TKJ SMKN 1 Telagasari" />
+  <meta property="og:description" content="Sistem Informasi PKL &amp; UKK Industri — informasi pembimbing laporan, penguji laporan, peserta PKL, dan kompetensi UKK Industri di TKJ SMKN 1 Telagasari." />
+  <meta property="og:image" content="logo.png" />
+  <meta property="og:image:alt" content="Logo TKJ SMKN 1 Telagasari" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sistem Informasi PKL &amp; UKK Industri — TKJ SMKN 1 Telagasari" />
+  <meta name="twitter:description" content="Sistem Informasi PKL &amp; UKK Industri — informasi pembimbing laporan, penguji laporan, peserta PKL, dan kompetensi UKK Industri di TKJ SMKN 1 Telagasari." />
+  <meta name="twitter:image" content="logo.png" />
+
   <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
   <link rel="preload" as="image" href="logo.png" />
@@ -26,9 +40,23 @@
 
   <script defer src="config.js"></script>
 
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "TKJ SMKN 1 Telagasari",
+    "department": {
+      "@type": "Organization",
+      "name": "Program Keahlian Teknik Komputer dan Jaringan"
+    },
+    "logo": "logo.png"
+  }
+  </script>
+
     <style>
     :root { color-scheme: light; }
-    html { scroll-behavior: smooth; }
+  html { scroll-behavior: smooth; scrollbar-gutter: stable; }
     body { text-rendering: optimizeLegibility; }
     /* Catatan: Tailwind Play CDN tidak mendukung @apply. Utility Tailwind akan di-inline langsung. */
     section { scroll-margin-top: 80px; content-visibility: auto; contain-intrinsic-size: 600px; }
@@ -66,6 +94,8 @@
     .burger-close .close-line { stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fade-up { animation: fadeUp .5s ease-out both; }  
+  /* Stabilize sticky navbar to avoid jitter on scroll */
+  nav[aria-label="Navigasi utama"] { -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; backface-visibility: hidden; }
 
     /* Slideshow Styles */
     .slideshow-container {
@@ -262,64 +292,64 @@
 
   <header class="relative overflow-hidden hero-decor bg-grid bg-sky-50 border-b">
 
-    <div class="mx-auto max-w-6xl px-3 sm:px-4 py-6 sm:py-10 md:py-14 text-center">
+    <div class="mx-auto max-w-6xl px-3 sm:px-4 py-5 sm:py-9 md:py-12 text-center">
 
-      <h1 class="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight text-sky-800 animate-fade-up">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-sky-800 animate-fade-up">
 
         Sistem Informasi PKL & UKK Industri
 
       </h1>
 
-      <p class="text-slate-600 mt-3 sm:mt-4 md:mt-5 text-sm sm:text-base md:text-lg max-w-3xl mx-auto animate-fade-up leading-relaxed font-medium">
+  <p class="text-slate-600 mt-2 sm:mt-4 md:mt-5 text-base sm:text-base md:text-lg max-w-3xl mx-auto animate-fade-up leading-relaxed font-medium">
 
         Platform terpadu untuk mendukung pelaksanaan <strong>Praktik Kerja Lapangan (PKL)</strong> dan <strong>UKK Industri</strong> di jurusan TKJ SMKN 1 Telagasari.
 
       </p>
 
       <!-- Slideshow Mobile -->
-      <div class="md:hidden mt-4 sm:mt-5 slideshow-container-mobile">
+  <div class="md:hidden mt-3 sm:mt-5 slideshow-container-mobile">
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Slide 1" class="active" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Kegiatan PKL siswa TKJ di industri mitra" class="active" loading="eager" fetchpriority="high" decoding="async" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG20240304133855-scaled.jpg" alt="Slide 2" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG20240304133855-scaled.jpg" alt="Suasana kerja praktik dan pembelajaran di tempat PKL" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG20240304134248-scaled.jpg" alt="Slide 3" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG20240304134248-scaled.jpg" alt="Dokumentasi aktivitas PKL bidang jaringan komputer" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG20240304141648-scaled.jpg" alt="Slide 4" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG20240304141648-scaled.jpg" alt="Pendampingan dan monitoring oleh pembimbing industri" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Slide 5" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Instalasi perangkat dan troubleshooting jaringan" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Slide 6" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Presentasi dan pelaporan hasil kegiatan PKL" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Slide 7" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Kolaborasi tim saat pelaksanaan tugas di industri" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
         <div class="relative">
           <div class="skeleton"></div>
-          <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Slide 8" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Kunjungan dan evaluasi kegiatan PKL oleh sekolah" loading="lazy" onload="this.previousElementSibling.style.display='none'">
         </div>
       </div>
       <div class="md:hidden slideshow-dots-mobile">
-        <span class="dot active" onclick="currentSlideMobile(1)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(2)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(3)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(4)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(5)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(6)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(7)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
-        <span class="dot" onclick="currentSlideMobile(8)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot active" role="button" aria-label="Slide 1" tabindex="0" onclick="currentSlideMobile(1)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 2" tabindex="0" onclick="currentSlideMobile(2)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 3" tabindex="0" onclick="currentSlideMobile(3)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 4" tabindex="0" onclick="currentSlideMobile(4)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 5" tabindex="0" onclick="currentSlideMobile(5)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 6" tabindex="0" onclick="currentSlideMobile(6)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 7" tabindex="0" onclick="currentSlideMobile(7)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
+        <span class="dot" role="button" aria-label="Slide 8" tabindex="0" onclick="currentSlideMobile(8)" style="height: 8px; width: 8px; margin: 0 2px;"></span>
       </div>
 
       <!-- Slideshow Desktop -->
@@ -327,49 +357,49 @@
         <div class="slide active">
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Slide 1" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG-20240305-WA0034-scaled.jpg" alt="Kegiatan PKL siswa TKJ di industri mitra" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG20240304133855-scaled.jpg" alt="Slide 2" loading="lazy" onload="this.previousElementSibling.style.display='none'">
-          </div>
-        </div>
-        <div class="slide">
-          <div class="relative">
-            <div class="skeleton"></div>
-            <img src="slide/IMG20240304134248-scaled.jpg" alt="Slide 3" loading="lazy" onload="this.previousElementSibling.style.display='none'">
-          </div>
-          <div class="relative">
-            <div class="skeleton"></div>
-            <img src="slide/IMG20240304141648-scaled.jpg" alt="Slide 4" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG20240304133855-scaled.jpg" alt="Suasana kerja praktik dan pembelajaran di tempat PKL" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
         </div>
         <div class="slide">
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Slide 5" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG20240304134248-scaled.jpg" alt="Dokumentasi aktivitas PKL bidang jaringan komputer" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Slide 6" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG20240304141648-scaled.jpg" alt="Pendampingan dan monitoring oleh pembimbing industri" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
         </div>
         <div class="slide">
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Slide 7" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG_20240304_093505-scaled.jpg" alt="Instalasi perangkat dan troubleshooting jaringan" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
           <div class="relative">
             <div class="skeleton"></div>
-            <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Slide 8" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+            <img src="slide/IMG_20240305_101422-scaled.jpg" alt="Presentasi dan pelaporan hasil kegiatan PKL" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+        </div>
+        <div class="slide">
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240305_101453-scaled.jpg" alt="Kolaborasi tim saat pelaksanaan tugas di industri" loading="lazy" onload="this.previousElementSibling.style.display='none'">
+          </div>
+          <div class="relative">
+            <div class="skeleton"></div>
+            <img src="slide/IMG_20240305_122821-scaled.jpg" alt="Kunjungan dan evaluasi kegiatan PKL oleh sekolah" loading="lazy" onload="this.previousElementSibling.style.display='none'">
           </div>
         </div>
       </div>
       <div class="hidden md:block slideshow-dots">
-        <span class="dot active" onclick="currentSlide(1)"></span>
-        <span class="dot" onclick="currentSlide(2)"></span>
-        <span class="dot" onclick="currentSlide(3)"></span>
-        <span class="dot" onclick="currentSlide(4)"></span>
+        <span class="dot active" role="button" aria-label="Slide 1" tabindex="0" onclick="currentSlide(1)"></span>
+        <span class="dot" role="button" aria-label="Slide 2" tabindex="0" onclick="currentSlide(2)"></span>
+        <span class="dot" role="button" aria-label="Slide 3" tabindex="0" onclick="currentSlide(3)"></span>
+        <span class="dot" role="button" aria-label="Slide 4" tabindex="0" onclick="currentSlide(4)"></span>
       </div>
 
     </div>
@@ -387,7 +417,7 @@
             <i data-lucide="users" class="w-4 sm:w-5 h-4 sm:h-5"></i>
           </div>
           <div class="min-w-0">
-            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-700" id="stat-peserta"></p>
+            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-emerald-700" id="stat-peserta" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" aria-label="Peserta: memuat…"></p>
             <p class="text-[11px] sm:text-xs text-emerald-700 font-medium">Peserta</p>
           </div>
         </div>
@@ -401,7 +431,7 @@
             <i data-lucide="book-open" class="w-4 sm:w-5 h-4 sm:h-5"></i>
           </div>
           <div class="min-w-0">
-            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-sky-700" id="stat-pembimbing"></p>
+            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-sky-700" id="stat-pembimbing" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" aria-label="Pembimbing: memuat…"></p>
             <p class="text-[11px] sm:text-xs text-sky-700 font-medium">Pembimbing</p>
           </div>
         </div>
@@ -415,7 +445,7 @@
             <i data-lucide="check-circle" class="w-4 sm:w-5 h-4 sm:h-5"></i>
           </div>
           <div class="min-w-0">
-            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-teal-700" id="stat-penguji"></p>
+            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-teal-700" id="stat-penguji" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" aria-label="Penguji: memuat…"></p>
             <p class="text-[11px] sm:text-xs text-teal-700 font-medium">Penguji</p>
           </div>
         </div>
@@ -429,7 +459,7 @@
             <i data-lucide="briefcase" class="w-4 sm:w-5 h-4 sm:h-5"></i>
           </div>
           <div class="min-w-0">
-            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-orange-700" id="stat-mitra"></p>
+            <p class="text-lg sm:text-2xl md:text-3xl font-bold text-orange-700" id="stat-mitra" role="status" aria-live="polite" aria-atomic="true" aria-busy="true" aria-label="Mitra: memuat…"></p>
             <p class="text-[11px] sm:text-xs text-orange-700 font-medium">Mitra</p>
           </div>
         </div>
@@ -446,9 +476,10 @@
 
       <div class="rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 border p-6 shadow-sm hover:shadow-md transition">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-500 text-white mb-3"><i data-lucide="book-open"></i></div>
-
-        <h3 class="text-lg font-semibold text-emerald-900 mb-3">Peran Pembimbing (Laporan)</h3>
+        <div class="mb-3 flex items-center gap-2 md:block">
+          <div class="h-5 w-5 md:h-10 md:w-10 flex items-center justify-center rounded-xl md:bg-gradient-to-br md:from-emerald-400 md:to-emerald-500 text-emerald-700 md:text-white md:mb-3 flex-shrink-0"><i data-lucide="book-open" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+          <h3 class="text-lg font-semibold text-emerald-900 mb-0 md:mb-0">Peran Pembimbing (Laporan)</h3>
+        </div>
 
         <p class="text-slate-700 leading-relaxed text-base">
 
@@ -462,9 +493,10 @@
 
       <div class="rounded-2xl bg-gradient-to-br from-sky-100 to-sky-200 border p-6 shadow-sm hover:shadow-md transition">
 
-        <div class="h-10 w-10 flex items-center justify-center rounded-xl bg-gradient-to-br from-sky-400 to-sky-500 text-white mb-3"><i data-lucide="user-check"></i></div>
-
-        <h3 class="text-lg font-semibold text-sky-900 mb-3">Peran Penguji (Laporan)</h3>
+        <div class="mb-3 flex items-center gap-2 md:block">
+          <div class="h-5 w-5 md:h-10 md:w-10 flex items-center justify-center rounded-xl md:bg-gradient-to-br md:from-sky-400 md:to-sky-500 text-sky-700 md:text-white md:mb-3 flex-shrink-0"><i data-lucide="user-check" class="w-5 h-5 md:w-6 md:h-6"></i></div>
+          <h3 class="text-lg font-semibold text-sky-900 mb-0 md:mb-0">Peran Penguji (Laporan)</h3>
+        </div>
 
         <p class="text-slate-700 leading-relaxed text-base">
 
@@ -961,24 +993,48 @@
 
     function showSlidesMobile(n) {
       let i;
-      let slides = document.getElementsByClassName("slideshow-container-mobile")[0].getElementsByTagName("img");
-      let dots = document.getElementsByClassName("dot"); // Assuming same class, but since hidden, ok
+      const mobileContainer = document.getElementsByClassName("slideshow-container-mobile")[0];
+      if (!mobileContainer) return;
+      const slides = mobileContainer.getElementsByTagName("img");
       if (n > slides.length) {slideIndexMobile = 1}
       if (n < 1) {slideIndexMobile = slides.length}
       for (i = 0; i < slides.length; i++) {
         slides[i].classList.remove("active");
       }
-      for (i = 0; i < dots.length; i++) {
-        dots[i].className = dots[i].className.replace(" active", "");
-      }
       slides[slideIndexMobile-1].classList.add("active");
-      // For mobile dots, need to select only mobile ones
-      let mobileDots = document.querySelectorAll('.slideshow-dots-mobile .dot');
+      // Update only mobile dots
+      const mobileDots = document.querySelectorAll('.slideshow-dots-mobile .dot');
       for (i = 0; i < mobileDots.length; i++) {
         mobileDots[i].className = mobileDots[i].className.replace(" active", "");
       }
-      mobileDots[slideIndexMobile-1].className += " active";
+      if (mobileDots[slideIndexMobile-1]) {
+        mobileDots[slideIndexMobile-1].className += " active";
+      }
     }
+
+    // Keyboard support for dots (accessibility)
+    (function enhanceDotsA11y(){
+      // Desktop dots
+      const desktopDots = document.querySelectorAll('.slideshow-dots .dot');
+      desktopDots.forEach((dot, idx) => {
+        dot.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            currentSlide(idx + 1);
+          }
+        });
+      });
+      // Mobile dots
+      const mobileDots = document.querySelectorAll('.slideshow-dots-mobile .dot');
+      mobileDots.forEach((dot, idx) => {
+        dot.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            currentSlideMobile(idx + 1);
+          }
+        });
+      });
+    })();
 
     // Auto slideshow mobile
     setInterval(function() {
@@ -1025,6 +1081,10 @@
           const numberEl = document.getElementById(elementId);
           if (numberEl) {
             numberEl.textContent = value;
+            numberEl.setAttribute('aria-busy', 'false');
+            const labels = { 'stat-peserta': 'Peserta', 'stat-pembimbing': 'Pembimbing', 'stat-penguji': 'Penguji', 'stat-mitra': 'Mitra' };
+            const label = labels[elementId] || 'Statistik';
+            numberEl.setAttribute('aria-label', label + ': ' + value);
             const card = numberEl.closest('.stat-card');
             if (card) {
               const skeleton = card.querySelector('.skeleton');
