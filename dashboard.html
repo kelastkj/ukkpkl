@@ -35,14 +35,14 @@
     /* Responsive table ? cards on small screens */
     .resp-table{ width:100%; border-collapse:collapse; }
     .resp-th, .resp-td{ border-bottom:1px solid #e5e7eb; padding:8px 12px; vertical-align:top; }
-    @media (max-width: 640px){
+  @media (max-width: 640px){
       .resp-table thead{ display:none; }
       .resp-table tr{ display:block; border:none; border-radius:12px; margin:12px 0; overflow:hidden; background:#fff; box-shadow:0 10px 26px rgba(2,6,23,.06); position:relative; }
       /* Category accent bar on the left */
       .resp-table tr::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background: var(--accent, #cbd5e1); }
       .resp-table tr[data-category="pkl"]{ --accent:#10b981; }
       .resp-table tr[data-category="ukk"]{ --accent:#3b82f6; }
-      .resp-table td.resp-td{ display:grid; grid-template-columns: 40% 60%; gap:8px; border-bottom:1px solid #f1f5f9; }
+      .resp-table td.resp-td{ display:grid; grid-template-columns: 40% 60%; gap:8px; border-bottom:1px solid #f1f5f9; word-break:break-word; overflow-wrap:anywhere; }
       .resp-table td.resp-td:last-child{ border-bottom:none; }
       .resp-table td.resp-td::before{ content: attr(data-label); font-weight:600; color:#475569; }
       /* Remove outer border to avoid double-border look */
@@ -58,6 +58,17 @@
     .badge-cat{ display:inline-block; font-size:12px; padding:2px 8px; border-radius:999px; font-weight:600; border:1px solid transparent; }
     .badge-pkl{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
     .badge-ukk{ background:#eff6ff; color:#1e3a8a; border-color:#bfdbfe; }
+  /* Dropzone fallback styling */
+  .dropzone{ position:relative; border:2px dashed #cbd5e1; border-radius:14px; padding:16px; background:#f8fafc; transition:.15s ease-in-out; cursor:pointer; width:100%; }
+  .dropzone:hover{ background:#f1f5f9; border-color:#94a3b8; }
+  .dropzone.dragover{ background:#ecfeff; border-color:#06b6d4; box-shadow:0 0 0 4px rgba(6,182,212,.12) inset; }
+  .file-pill{ display:inline-flex; align-items:center; gap:8px; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; border:1px solid #c7d2fe; font-size:12px; font-weight:600; max-width:100%; }
+  .file-pill [id$="selected-name"]{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70vw; display:inline-block; }
+  .seg{ display:flex; flex-wrap:wrap; background:#f1f5f9; border:1px solid #e2e8f0; border-radius:12px; padding:4px; gap:4px; }
+  .seg button{ appearance:none; border:0; background:transparent; padding:6px 10px; border-radius:10px; font-weight:600; color:#334155; cursor:pointer; }
+  .seg button[aria-pressed="true"]{ background:white; color:#0f172a; box-shadow:0 2px 6px rgba(2,6,23,.06); }
+  /* Show inline spinner icon inside disabled button */
+  button[disabled] .busy{ display:inline-block !important; }
   /* Toast notifications */
   .toast-container{ position:fixed; right:1rem; bottom:1rem; display:flex; flex-direction:column; gap:0.5rem; z-index:60; }
   .toast{ min-width:220px; max-width:360px; display:flex; gap:0.75rem; align-items:center; background:white; border-radius:12px; padding:10px 12px; box-shadow:0 10px 25px rgba(2,6,23,.12); border:1px solid #e6eef6; }
@@ -75,6 +86,15 @@
     .hero-sub{ margin-top:6px; font-size:14px; opacity:.95; }
     .hero-badges{ margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
     .hero-badge{ display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.25); font-size:12px; font-weight:600; }
+    /* Compact score badges on small screens */
+    @media (max-width: 640px){
+      #hero-student .hero-badges{ gap:6px; }
+      #hero-student .hero-badge{ padding:4px 8px; border-radius:10px; }
+      #hero-student .hero-badge i{ width:14px !important; height:14px !important; }
+      #hero-student .hero-badge .flex{ flex-direction:row !important; align-items:center; gap:6px; }
+      #hero-student .hero-badge .flex span:nth-child(2){ display:none; }
+      #hero-student .hero-badge .flex span:first-child{ font-size:12px; }
+    }
     /* Tabs fallback styling for guru section */
     .tabs{ display:flex; align-items:center; gap:8px; }
     .tab-btn{ appearance:none; border:1px solid #dbe3ef; background:#f8fafc; color:#334155; font-weight:600; padding:6px 12px; border-radius:999px; cursor:pointer; }
@@ -206,6 +226,56 @@
                 </div>
               </span>
             </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Student contact hero cards (separate, eye-catching) -->
+  <section id="contact-student" class="max-w-6xl mx-auto px-4 mt-4 hidden" aria-label="Kontak Pembimbing dan Penguji">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Pembimbing Card -->
+      <div class="relative overflow-hidden rounded-2xl shadow-xl ring-1 ring-emerald-400/20 bg-gradient-to-br from-emerald-500 via-emerald-600 to-emerald-700 text-white">
+        <div class="absolute inset-0 opacity-20" style="background: radial-gradient(60% 40% at 20% 10%, #fff, transparent), radial-gradient(50% 50% at 90% 20%, #fff, transparent);"></div>
+        <div class="relative p-4 sm:p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-white/80">Kontak</div>
+              <h3 class="text-base sm:text-lg font-extrabold tracking-tight">Pembimbing</h3>
+              <p class="text-white/90 text-xs sm:text-sm mt-1">Hubungi pembimbing untuk arahan bimbingan PKL/UKK.</p>
+            </div>
+            <div class="rounded-xl bg-white/15 ring-1 ring-white/30 p-2">
+              <i data-lucide="user-check" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <ul id="list-pembimbing" class="space-y-1.5 text-[13px] sm:text-sm">
+              <li class="opacity-95">Memuat pembimbing...</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Penguji Card -->
+      <div class="relative overflow-hidden rounded-2xl shadow-xl ring-1 ring-blue-400/20 bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 text-white">
+        <div class="absolute inset-0 opacity-20" style="background: radial-gradient(60% 40% at 20% 10%, #fff, transparent), radial-gradient(50% 50% at 90% 20%, #fff, transparent);"></div>
+        <div class="relative p-4 sm:p-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-wider text-white/80">Kontak</div>
+              <h3 class="text-base sm:text-lg font-extrabold tracking-tight">Penguji</h3>
+              <p class="text-white/90 text-xs sm:text-sm mt-1">Hubungi penguji bila ada pertanyaan terkait penilaian.</p>
+            </div>
+            <div class="rounded-xl bg-white/15 ring-1 ring-white/30 p-2">
+              <i data-lucide="clipboard-check" class="w-6 h-6"></i>
+            </div>
+          </div>
+          <div class="mt-3">
+            <ul id="list-penguji" class="space-y-1.5 text-[13px] sm:text-sm">
+              <li class="opacity-95">Memuat penguji...</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -238,8 +308,16 @@
   <main id="main-grid" class="max-w-6xl mx-auto px-4 py-3 grid grid-cols-1 gap-4 md:grid-cols-2">
     <section id="card-pkl" class="card p-5 space-y-3 order-1 hidden">
       <div>
-        <h2 class="font-semibold text-lg">Upload Laporan PKL</h2>
-        <p class="text-sm text-slate-500 leading-relaxed">File laporan harus berformat PDF. Ukuran maksimum file: 10 MB.</p>
+        <h2 class="font-semibold text-lg">Unggah Laporan PKL (PDF)</h2>
+        <p class="text-sm text-slate-500 leading-relaxed">Satu kali unggah untuk kategori ini. Jika perlu mengganti, hapus unggahan lama lalu unggah ulang.</p>
+        <details class="mt-2">
+          <summary class="text-sm text-slate-600 cursor-pointer">Ketentuan unggahan</summary>
+          <ul class="mt-2 list-disc list-inside text-sm text-slate-500">
+            <li>Format: PDF</li>
+            <li>Ukuran maksimum: 10 MB</li>
+            <li>Disarankan nama file: Laporan-PKL-NamaKamu.pdf</li>
+          </ul>
+        </details>
       </div>
       <div id="pkl-upload-area">
         <div id="pkl-loader" class="flex items-center gap-2 text-sm text-slate-500" role="status">
@@ -247,12 +325,22 @@
           Memuat status unggahan...
         </div>
         <form id="form-pkl" class="space-y-3 hidden" method="post" target="upload_iframe">
-        <label class="block">
-          <span class="sr-only">File laporan PKL</span>
-          <input type="file" id="pkl-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
-        </label>
+        <input type="file" id="pkl-file" accept="application/pdf" class="sr-only" required />
+        <div id="pkl-drop" class="dropzone flex items-center gap-3" tabindex="0" role="button" aria-describedby="pkl-hint">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200">
+            <i data-lucide="file-up" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold">Seret & lepas file PDF ke sini, atau klik untuk memilih</div>
+            <div class="text-xs text-slate-500">Maks 10 MB • Format PDF</div>
+          </div>
+        </div>
+        <div id="pkl-selected" class="hidden">
+          <span class="file-pill"><i data-lucide="file" class="w-4 h-4"></i><span id="pkl-selected-name">-</span><button type="button" id="pkl-clear" class="ml-1 text-slate-500 hover:text-red-600" aria-label="Hapus pilihan">&times;</button></span>
+        </div>
+        <p id="pkl-hint" class="text-xs text-slate-500">Tips: Pastikan file sudah final sebelum diunggah.</p>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Upload</button>
+          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 inline-flex items-center gap-2"><svg class="busy hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Unggah</span></button>
           <div id="pkl-msg" class="text-sm text-slate-500 min-h-[1.5rem]"></div>
         </div>
         <input type="hidden" name="action" value="upload" />
@@ -263,14 +351,22 @@
         <input type="hidden" name="file_b64" />
         <input type="hidden" name="redirect" value="" />
         </form>
-        <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Terima kasih.</div>
+        <div id="pkl-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah laporan PKL. Jika perlu mengganti, hapus unggahan lalu unggah ulang.</div>
       </div>
     </section>
 
     <section id="card-ukk" class="card p-5 space-y-3 order-2 hidden">
       <div>
-        <h2 class="font-semibold text-lg">Upload Dokumentasi UKK</h2>
-  <p class="text-sm text-slate-500 leading-relaxed">File dokumentasi harus berformat PDF. File PDF harus berisi minimal 5 foto dokumentasi. Ukuran maksimum file: 5 MB.</p>
+        <h2 class="font-semibold text-lg">Unggah Dokumentasi UKK (PDF)</h2>
+  <p class="text-sm text-slate-500 leading-relaxed">Satu kali unggah untuk kategori ini. Jika perlu mengganti, hapus unggahan lama lalu unggah ulang.</p>
+  <details class="mt-2">
+    <summary class="text-sm text-slate-600 cursor-pointer">Ketentuan unggahan</summary>
+    <ul class="mt-2 list-disc list-inside text-sm text-slate-500">
+      <li>Format: PDF berisi minimal 5 foto dokumentasi</li>
+      <li>Ukuran maksimum: 5 MB</li>
+      <li>Disarankan nama file: Dokumentasi-UKK-NamaKamu.pdf</li>
+    </ul>
+  </details>
       </div>
       <div id="ukk-upload-area">
         <div id="ukk-loader" class="flex items-center gap-2 text-sm text-slate-500" role="status">
@@ -278,12 +374,22 @@
           Memuat status unggahan...
         </div>
         <form id="form-ukk" class="space-y-3 hidden" method="post" target="upload_iframe">
-        <label class="block">
-          <span class="sr-only">File dokumentasi UKK</span>
-          <input type="file" id="ukk-file" accept="application/pdf" class="block w-full text-sm file:mr-3 file:rounded-md file:border file:border-slate-200 file:bg-slate-50 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-200" required />
-        </label>
+        <input type="file" id="ukk-file" accept="application/pdf" class="sr-only" required />
+        <div id="ukk-drop" class="dropzone flex items-center gap-3" tabindex="0" role="button" aria-describedby="ukk-hint">
+          <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-200">
+            <i data-lucide="file-up" class="w-5 h-5"></i>
+          </div>
+          <div class="flex-1">
+            <div class="font-semibold">Seret & lepas file PDF ke sini, atau klik untuk memilih</div>
+            <div class="text-xs text-slate-500">Maks 5 MB • Format PDF</div>
+          </div>
+        </div>
+        <div id="ukk-selected" class="hidden">
+          <span class="file-pill"><i data-lucide="file" class="w-4 h-4"></i><span id="ukk-selected-name">-</span><button type="button" id="ukk-clear" class="ml-1 text-slate-500 hover:text-red-600" aria-label="Hapus pilihan">&times;</button></span>
+        </div>
+        <p id="ukk-hint" class="text-xs text-slate-500">Pastikan foto jelas dan relevan sebelum diubah ke PDF.</p>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200">Upload</button>
+          <button type="submit" class="w-full sm:w-auto px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium shadow-sm hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-200 inline-flex items-center gap-2"><svg class="busy hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg><span>Unggah</span></button>
           <div id="ukk-msg" class="text-sm text-slate-500 min-h-[1.5rem]"></div>
         </div>
         <input type="hidden" name="action" value="upload" />
@@ -294,15 +400,30 @@
         <input type="hidden" name="file_b64" />
         <input type="hidden" name="redirect" value="" />
         </form>
-        <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Terima kasih.</div>
+        <div id="ukk-done" class="hidden rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">Anda sudah mengunggah dokumentasi UKK. Jika perlu mengganti, hapus unggahan lalu unggah ulang.</div>
       </div>
     </section>
 
   <section id="card-my" class="card p-5 space-y-3 order-3 col-span-full md:col-span-2 hidden">
       <div>
         <h2 class="font-semibold text-lg">Unggahan Saya</h2>
-        <p class="text-sm text-slate-500 leading-relaxed">Daftar unggahan yang sudah dikirim ke sistem.</p>
+        <p class="text-sm text-slate-500 leading-relaxed">Daftar unggahan yang sudah dikirim ke sistem. Gunakan filter untuk mempercepat pencarian.</p>
       </div>
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        <div class="seg" role="group" aria-label="Filter kategori">
+          <button id="my-filter-all" type="button" class="px-3 py-1.5 rounded-lg" aria-pressed="true">Semua</button>
+          <button id="my-filter-pkl" type="button" class="px-3 py-1.5 rounded-lg" aria-pressed="false">PKL</button>
+          <button id="my-filter-ukk" type="button" class="px-3 py-1.5 rounded-lg" aria-pressed="false">UKK</button>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+          <div class="relative w-full sm:w-auto">
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2"></i>
+            <input id="my-search" type="text" class="pl-7 pr-3 py-1.5 w-full sm:w-56 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-200" placeholder="Cari nama file..." />
+          </div>
+          <button id="my-refresh" type="button" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 text-sm hover:bg-slate-50"><i data-lucide="refresh-ccw" class="w-4 h-4"></i><span>Segarkan</span></button>
+        </div>
+      </div>
+      <div id="my-updated" class="text-xs text-slate-400">Terakhir diperbarui: -</div>
     <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
   <table class="resp-table text-sm">
           <thead class="bg-slate-50">
@@ -618,7 +739,7 @@
       const input = form.querySelector('input[type="file"]');
       const btn = form.querySelector('button[type="submit"]');
       if(input){ input.disabled = !!locked; input.classList.toggle('opacity-60', !!locked); input.classList.toggle('cursor-not-allowed', !!locked); }
-      if(btn){ btn.disabled = !!locked; btn.classList.toggle('opacity-60', !!locked); btn.classList.toggle('cursor-not-allowed', !!locked); }
+      if(btn){ btn.disabled = !!locked; btn.classList.toggle('opacity-60', !!locked); btn.classList.toggle('cursor-not-allowed', !!locked); btn.setAttribute('aria-busy', locked ? 'true' : 'false'); }
     }
 
     function setAllDeleteButtonsDisabled(disabled){
@@ -627,6 +748,55 @@
         b.classList.toggle('opacity-60', !!disabled);
         b.classList.toggle('cursor-not-allowed', !!disabled);
       });
+    }
+
+    // Format bytes into friendly string
+    function formatBytes(n){
+      if(!n && n!==0) return '';
+      const u = ['B','KB','MB','GB'];
+      let i = 0; let v = n;
+      while(v >= 1024 && i < u.length-1){ v/=1024; i++; }
+      return (Math.round(v*10)/10) + ' ' + u[i];
+    }
+
+    function setupDropzone(cat, maxBytes){
+      const drop = document.getElementById(cat+'-drop');
+      const input = document.getElementById(cat+'-file');
+      const selected = document.getElementById(cat+'-selected');
+      const selectedName = document.getElementById(cat+'-selected-name');
+      const clearBtn = document.getElementById(cat+'-clear');
+      const msgEl = document.getElementById(cat+'-msg');
+      if(!drop || !input) return;
+      const updateSelected = (file)=>{
+        if(!selected || !selectedName) return;
+        if(file){
+          const sizeTxt = typeof file.size === 'number' ? ` • ${formatBytes(file.size)}` : '';
+          selectedName.textContent = `${file.name}${sizeTxt}`;
+          selected.classList.remove('hidden');
+        } else {
+          selected.classList.add('hidden');
+        }
+        if(window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+      };
+      const pick = ()=>{ try{ input.click(); }catch(_){ /* noop */ } };
+      drop.addEventListener('click', pick);
+      drop.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pick(); }
+      });
+      drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.classList.add('dragover'); });
+      drop.addEventListener('dragleave', ()=> drop.classList.remove('dragover'));
+      drop.addEventListener('drop', (e)=>{
+        e.preventDefault(); drop.classList.remove('dragover');
+        const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+        if(!f) return;
+        const mimeOk = (f.type||'').toLowerCase()==='application/pdf' || /\.pdf$/i.test(f.name||'');
+        if(!mimeOk){ if(msgEl) msgEl.textContent = 'Hanya menerima file PDF.'; return; }
+        if(typeof maxBytes === 'number' && f.size > maxBytes){ if(msgEl) msgEl.textContent = 'Ukuran file melebihi batas.'; return; }
+        try{ const dt = new DataTransfer(); dt.items.add(f); input.files = dt.files; }catch(_){ /* browser fallback */ }
+        updateSelected(f);
+      });
+      input.addEventListener('change', ()=>{ const f = input.files && input.files[0]; updateSelected(f||null); if(msgEl) msgEl.textContent=''; });
+      if(clearBtn){ clearBtn.addEventListener('click', ()=>{ try{ input.value=''; }catch(_){ } updateSelected(null); if(msgEl) msgEl.textContent=''; }); }
     }
 
     async function getMyUploadsCount(){
@@ -799,7 +969,28 @@
       const tb = document.getElementById(tbodyId);
       tb.innerHTML = '';
       if(!rows || rows.length === 0){
-        tb.innerHTML = `<tr><td colspan="${cols.length}" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>`;
+        if(tbodyId === 'my-tbody'){
+          tb.innerHTML = `<tr><td colspan="${cols.length}" class="px-3 py-6">
+            <div class="flex flex-col items-center justify-center text-center gap-3 p-4 rounded-xl border border-slate-200 bg-white/60">
+              <div class="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                <i data-lucide="folder-open" class="w-6 h-6"></i>
+              </div>
+              <div class="space-y-1">
+                <div class="font-semibold text-slate-700">Belum ada unggahan</div>
+                <p class="text-sm text-slate-500">Unggah laporan PKL atau dokumentasi UKK menggunakan formulir di atas.</p>
+              </div>
+              <div class="flex flex-wrap items-center justify-center gap-2">
+                <a href="#card-pkl" class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 text-white text-sm px-3 py-1.5 hover:bg-emerald-700"><i data-lucide="file-text" class="w-4 h-4"></i><span>Unggah PKL</span></a>
+                <a href="#card-ukk" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 text-white text-sm px-3 py-1.5 hover:bg-blue-700"><i data-lucide="folder" class="w-4 h-4"></i><span>Unggah UKK</span></a>
+              </div>
+            </div>
+          </td></tr>`;
+        } else {
+          tb.innerHTML = `<tr><td colspan="${cols.length}" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>`;
+        }
+        if(window.lucide && typeof window.lucide.createIcons === 'function'){
+          window.lucide.createIcons();
+        }
         return;
       }
       const labels = { waktu: 'Waktu', category: 'Kategori', fileName: 'Nama File', aksi: 'Aksi' };
@@ -866,6 +1057,7 @@
       const heroStudent = document.getElementById('hero-student');
       const heroGuru = document.getElementById('hero-guru');
       const guruSection = document.getElementById('guru-section');
+      const contactStudent = document.getElementById('contact-student');
       const cardPKL = document.getElementById('card-pkl');
       const cardUKK = document.getElementById('card-ukk');
       const cardMY  = document.getElementById('card-my');
@@ -893,6 +1085,7 @@
         if(cardUKK){ cardUKK.classList.add('hidden'); cardUKK.style.display = 'none'; }
         if(cardMY){  cardMY.classList.add('hidden');  cardMY.style.display = 'none'; }
         if(heroStudent){ heroStudent.classList.add('hidden'); heroStudent.style.display = 'none'; }
+        if(contactStudent){ contactStudent.classList.add('hidden'); contactStudent.style.display = 'none'; }
         // Tampilkan UI guru
         if(heroGuru){ heroGuru.classList.remove('hidden'); heroGuru.style.display = ''; }
         if(guruSection){ guruSection.classList.remove('hidden'); guruSection.style.display = ''; }
@@ -904,12 +1097,29 @@
         if(cardUKK){ cardUKK.classList.remove('hidden'); cardUKK.style.display = ''; }
         if(cardMY){  cardMY.classList.remove('hidden');  cardMY.style.display = ''; }
         if(heroStudent){ heroStudent.classList.remove('hidden'); heroStudent.style.display = ''; }
+        if(contactStudent){ contactStudent.classList.remove('hidden'); contactStudent.style.display = ''; }
         // Sembunyikan UI guru
         if(heroGuru){ heroGuru.classList.add('hidden'); heroGuru.style.display = 'none'; }
         if(guruSection){ guruSection.classList.add('hidden'); guruSection.style.display = 'none'; }
         document.querySelectorAll('[data-guru="1"]').forEach(el=> { el.classList.add('hidden'); el.style.display = 'none'; });
         hideGuruNav();
       }
+    }
+
+    let MY_UPLOADS_CACHE = [];
+    let MY_FILTER = 'all';
+    let MY_QUERY = '';
+
+    function renderMyUploads(){
+      const q = (MY_QUERY||'').toLowerCase();
+      const filtered = (MY_UPLOADS_CACHE||[]).filter(r=>{
+        const cat = (r.category||'').toLowerCase();
+        const okCat = (MY_FILTER==='all') || cat===MY_FILTER;
+        const name = String(r.fileName||'').toLowerCase();
+        const okSearch = !q || name.includes(q);
+        return okCat && okSearch;
+      });
+      renderRows('my-tbody', filtered, ['waktu','category','fileName','aksi']);
     }
 
     async function loadMyUploads(){
@@ -932,7 +1142,9 @@
         setUploadsReady('ukk', false);
         const data = await jsonp(url);
         if(!data.ok) throw new Error(data.error||'Gagal memuat');
-        renderRows('my-tbody', data.data, ['waktu','category','fileName','aksi']);
+        MY_UPLOADS_CACHE = Array.isArray(data.data) ? data.data : [];
+        renderMyUploads();
+        try{ const upd = document.getElementById('my-updated'); if(upd){ upd.textContent = 'Terakhir diperbarui: ' + new Date().toLocaleString('id-ID'); } }catch(_){ }
         // Mark uploads ready and update availability (also hide loaders)
         setUploadsReady(null, true, Array.isArray(data.data) ? data.data : []);
         updateUploadAvailability(Array.isArray(data.data) ? data.data : []);
@@ -1120,6 +1332,76 @@
         }catch(e){}
       }catch(_){ /* ignore */ }
     }
+
+    async function loadMentorExamContacts(){
+      try{
+        const prof = getProfile();
+        const roleRaw = (prof.role||'').toString().trim().toLowerCase();
+        const isGuru = roleRaw === 'guru' || roleRaw.includes('guru') || roleRaw.includes('pembimbing') || roleRaw.includes('penguji');
+        if(isGuru) return; // only for siswa
+        const token = localStorage.getItem('auth_token');
+        const student = (prof.nama||prof.username||'').trim();
+        const pbEl = document.getElementById('list-pembimbing');
+        const pjEl = document.getElementById('list-penguji');
+        function render(listEl, items, emptyText){
+          if(!listEl) return;
+          listEl.innerHTML = '';
+          if(!items || items.length===0){ listEl.innerHTML = `<li class="opacity-90">${emptyText}</li>`; return; }
+          items.forEach(it=>{
+            const name = it.nama || it.pembimbing || it.penguji || '';
+            const phone = (it.phone||'').replace(/\s+/g,'');
+            const li = document.createElement('li');
+            li.className = 'flex items-center justify-between gap-3';
+            const left = document.createElement('span');
+            left.className = 'font-semibold';
+            left.textContent = name;
+            li.appendChild(left);
+            if(phone){
+              const msg = encodeURIComponent(`Halo Bapak/Ibu ${name}, saya ${student}. Mohon bimbingannya.`);
+              const a = document.createElement('a');
+              a.href = `https://wa.me/${encodeURIComponent(phone)}?text=${msg}`;
+              a.target = '_blank';
+              a.rel = 'noopener';
+              a.className = 'inline-flex items-center gap-1 rounded-lg bg-emerald-600/90 hover:bg-emerald-600 px-2 py-1 text-xs font-medium text-white ring-1 ring-white/20';
+              a.innerHTML = `<i data-lucide="message-circle" class="w-4 h-4"></i><span>WhatsApp</span>`;
+              li.appendChild(a);
+            } else {
+              const badge = document.createElement('span');
+              badge.className = 'text-[11px] px-2 py-0.5 rounded-full bg-white/20 ring-1 ring-white/30';
+              badge.textContent = 'No. WA belum tersedia';
+              li.appendChild(badge);
+            }
+            listEl.appendChild(li);
+          });
+          if(window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+        }
+        // Try consolidated kontak endpoint first
+        try{
+          const data = await jsonp(`${BASE}?dataset=kontak&route=by_student&token=${encodeURIComponent(token)}`);
+          if(data && data.ok){
+            render(pbEl, Array.isArray(data.pembimbing)?data.pembimbing:[], 'Belum ada pembimbing');
+            render(pjEl, Array.isArray(data.penguji)?data.penguji:[], 'Belum ada penguji');
+            return;
+          }
+        }catch(_){ /* fall back below */ }
+        // Fallback: query by name to at least show names (tanpa nomor)
+        const [pb, pj] = await Promise.all([
+          jsonp(`${BASE}?dataset=pembimbing&q=${encodeURIComponent(student)}`),
+          jsonp(`${BASE}?dataset=penguji&q=${encodeURIComponent(student)}`)
+        ]);
+        const pbNames = (pb && pb.ok && Array.isArray(pb.data) ? pb.data.filter(r => (r.siswa||'')===student).map(r => ({ nama:r.pembimbing })) : []);
+        const pjNames = (pj && pj.ok && Array.isArray(pj.data) ? pj.data.filter(r => (r.siswa||'')===student).map(r => ({ nama:r.penguji })) : []);
+        render(pbEl, pbNames, 'Belum ada pembimbing');
+        render(pjEl, pjNames, 'Belum ada penguji');
+      }catch(e){
+        try{
+          const pbEl = document.getElementById('list-pembimbing');
+          const pjEl = document.getElementById('list-penguji');
+          if(pbEl) pbEl.innerHTML = `<li class="opacity-90">Gagal memuat: ${e.message}</li>`;
+          if(pjEl) pjEl.innerHTML = `<li class="opacity-90">Gagal memuat: ${e.message}</li>`;
+        }catch(_){/* noop */}
+      }
+    }
     function openConfirm(fileId){
       if(!fileId) return;
       if(isDeleting) return;
@@ -1192,6 +1474,9 @@
       if(formPkl) formPkl.addEventListener('submit', prepareAndSubmit('form-pkl','pkl-file','pkl-msg'));
       const formUkk = document.getElementById('form-ukk');
       if(formUkk) formUkk.addEventListener('submit', prepareAndSubmit('form-ukk','ukk-file','ukk-msg'));
+      // Enhance file inputs with drag & drop UX
+      setupDropzone('pkl', 10*1024*1024);
+      setupDropzone('ukk', 5*1024*1024);
       const mc = document.getElementById('modalCancel');
       const mcf = document.getElementById('modalConfirm');
       const modal = document.getElementById('confirmModal');
@@ -1205,6 +1490,31 @@
       document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') closeConfirm(); });
       setupProfileMenu();
       setupBurger();
+      // My uploads filters + search + refresh
+      (function(){
+        const bAll = document.getElementById('my-filter-all');
+        const bPkl = document.getElementById('my-filter-pkl');
+        const bUkk = document.getElementById('my-filter-ukk');
+        const search = document.getElementById('my-search');
+        const refresh = document.getElementById('my-refresh');
+        function applyFilter(which){
+          if(typeof which === 'string'){
+            MY_FILTER = which;
+            if(bAll) bAll.setAttribute('aria-pressed', which==='all'?'true':'false');
+            if(bPkl) bPkl.setAttribute('aria-pressed', which==='pkl'?'true':'false');
+            if(bUkk) bUkk.setAttribute('aria-pressed', which==='ukk'?'true':'false');
+            try{ renderMyUploads(); }catch(_){ }
+          }
+        }
+        if(bAll) bAll.addEventListener('click', ()=> applyFilter('all'));
+        if(bPkl) bPkl.addEventListener('click', ()=> applyFilter('pkl'));
+        if(bUkk) bUkk.addEventListener('click', ()=> applyFilter('ukk'));
+        if(search) search.addEventListener('input', ()=>{ MY_QUERY = (search.value||'').toLowerCase(); try{ renderMyUploads(); }catch(_){ } });
+        if(refresh) refresh.addEventListener('click', ()=>{
+          const tb = document.getElementById('my-tbody'); if(tb) tb.innerHTML = '<tr><td colspan="4" class="px-3 py-3 text-slate-500">Memuat...</td></tr>';
+          loadMyUploads();
+        });
+      })();
       const token = requireAuth();
       if(!token) return;
       // --- Render immediately from cached profile (avoid UI delay) ---
@@ -1220,6 +1530,7 @@
       loadMyUploads();
       loadStudentsUploads();
       loadMyScores();
+  loadMentorExamContacts();
 
       // --- Background: validate token with server and refresh authoritative profile ---
       (async ()=>{

@@ -185,6 +185,16 @@ function _getPengujiNamesForStudent(studentName) {
   } catch (e) { return []; }
 }
 
+// Find pembimbing names for a given student by scanning PEMBIMBING sheet
+function _getPembimbingNamesForStudent(studentName) {
+  if (!studentName) return [];
+  try {
+    const rows = _readRowsGeneric(SHEET_PEMBIMBING).rows;
+    const names = rows.filter(r => (r.siswa || '') === studentName).map(r => r.pembimbing).filter(Boolean);
+    return Array.from(new Set(names));
+  } catch (e) { return []; }
+}
+
 // Send WhatsApp message via Fonte -- expects Script Properties: FONTE_API_URL and FONTE_API_TOKEN
 function _sendWhatsAppViaFonte(to, message) {
   if (!to || !message) return false;
@@ -918,6 +928,32 @@ function doGet(e) {
         return p.callback ? _jsonp(out, p.callback) : _json(out);
       }
       const out = {ok:false,error:'Parameter kurang untuk dataset=penguji. Gunakan route=meta, q=, atau penguji='};
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
+    // KONTAK (baru): kembalikan daftar pembimbing & penguji untuk seorang siswa beserta nomor WA (jika ada)
+    if(dataset === 'kontak'){
+      const sess = _auth_check(p.token);
+      if(!sess) return p.callback ? _jsonp({ ok:false, error:'Sesi tidak valid' }, p.callback) : _json({ ok:false, error:'Sesi tidak valid' });
+      const route = (p.route||'').toLowerCase();
+      if(route === 'by_student'){
+        const student = _norm(p.student) || (sess.profile && (sess.profile.nama || sess.profile.username)) || '';
+        if(!student) return p.callback ? _jsonp({ ok:false, error:'Nama siswa kosong' }, p.callback) : _json({ ok:false, error:'Nama siswa kosong' });
+        const pbNames = _getPembimbingNamesForStudent(student);
+        const pjNames = _getPengujiNamesForStudent(student);
+        const pbPhoneMap = _lookupPhoneMapForNames(pbNames);
+        const pjPhoneMap = _lookupPhoneMapForNames(pjNames);
+        // helper to map name -> phone (optional)
+        function toMap(arr){ const m = {}; (arr||[]).forEach(x=>{ if(x && x.name) m[String(x.name)] = x.phone||''; }); return m; }
+        const pbMap = toMap(pbPhoneMap);
+        const pjMap = toMap(pjPhoneMap);
+        const pembimbing = pbNames.map(n => ({ nama: n, phone: pbMap[n] || '' }));
+        const penguji = pjNames.map(n => ({ nama: n, phone: pjMap[n] || '' }));
+        const out = { ok:true, route:'by_student', student, pembimbing, penguji };
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      // future: by_names
+      const out = { ok:false, error:'Route tidak dikenal untuk dataset=kontak' };
       return p.callback ? _jsonp(out, p.callback) : _json(out);
     }
 
