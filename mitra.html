@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sistem Informasi PKL & UKK Industri — Direktori Mitra</title>
+  <meta name="description" content="Direktori Mitra Industri — cari mitra berdasarkan bidang, lokasi, dan status; lihat kompetensi UKK yang tersedia."/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="config.js"></script>
+  <!-- Leaflet CSS for map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <style>
+    :root { color-scheme: light; }
+    @media print { nav, #filters { display: none !important; } }
+    .shimmer { position: relative; overflow: hidden; background-color: rgb(241 245 249); }
+    .shimmer::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%);
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.6), transparent);
+      animation: shimmer 1.2s infinite; }
+    @keyframes shimmer { 100% { transform: translateX(100%); } }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .hyphens-auto { hyphens: auto; }
+  .ow-anywhere { overflow-wrap: anywhere; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(15,23,42,.5); display: none; align-items: center; justify-content: center; padding: 16px; padding-top: calc(env(safe-area-inset-top) + 16px); padding-bottom: calc(env(safe-area-inset-bottom) + 16px); }
+    .modal-backdrop.show { display: flex; }
+    .modal-card { width: 100%; max-width: 760px; border: 1px solid rgb(226 232 240); border-radius: 14px; background: #fff; box-shadow: 0 16px 40px rgba(2, 6, 23, 0.25); display: flex; flex-direction: column; max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); overflow: hidden; }
+    .modal-header { position: sticky; top: 0; z-index: 1; display:flex; align-items:center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid rgb(226 232 240); background: linear-gradient(180deg, #ffffff, #f8fafc); border-top-left-radius: 14px; border-top-right-radius: 14px; }
+    .modal-body { padding: 16px 18px; flex: 1 1 auto; max-height: none; overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <!-- NAV -->
+  <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4">
+      <div class="flex h-14 items-center justify-between">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <img src="logo.png" alt="Logo TKJ SMKN 1 Telagasari" class="h-8 w-8 rounded-lg" />
+          <div class="leading-tight">
+            <div class="font-bold tracking-tight">SI PKL & UKK Industri</div>
+            <div class="text-[11px] text-slate-500">TKJ SMKN 1 Telagasari</div>
+          </div>
+        </a>
+        <ul class="hidden md:flex items-center gap-1 text-sm">
+          <li><a href="index.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>Home</a></li>
+          <li><a href="mitra.html" aria-current="page" class="px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Mitra</a></li>
+          <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4"></i>UKK Industri</a></li>
+          <li><a id="navAuth" href="login.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-4 h-4"></i><span id="navAuthText">Login</span></a></li>
+        </ul>
+        <button id="burgerBtn" class="md:hidden h-11 w-11 flex items-center justify-center border rounded-lg hover:bg-slate-100">
+          <svg id="burgerIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7h16M4 12h16M4 17h16"/>
+          </svg>
+          <svg id="closeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div id="mobileMenu" class="md:hidden hidden border-t bg-white transition-all duration-300">
+      <div class="mx-auto max-w-6xl px-4 py-2">
+        <ul class="flex flex-col gap-1 text-sm">
+          <li><a href="index.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
+          <li><a href="mitra.html" aria-current="page" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 flex items-center gap-2"><i data-lucide="building-2" class="w-5 h-5"></i>Mitra</a></li>
+          <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i>Pembimbing</a></li>
+          <li><a href="penguji.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-5 h-5"></i>Penguji PKL</a></li>
+          <li><a href="peserta.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Peserta</a></li>
+          <li><a href="ukk.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="briefcase" class="w-5 h-5"></i>UKK Industri</a></li>
+          <li><a id="navAuthMobile" href="login.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="log-in" class="w-5 h-5"></i><span id="navAuthMobileText">Login</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="border-b bg-gradient-to-r from-emerald-50 via-sky-50 to-teal-50">
+    <div class="mx-auto max-w-6xl px-4 py-6">
+      <h1 class="text-xl md:text-2xl font-bold tracking-tight">Direktori Mitra Industri</h1>
+      <p class="text-sm text-slate-600">Cari mitra berdasarkan bidang, lokasi, dan status. Kompetensi UKK akan tampil jika tersedia.</p>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="mx-auto max-w-6xl px-6 md:px-4 py-6">
+    <!-- Filters -->
+    <section id="filters" class="mb-4">
+      <div class="rounded-2xl border bg-white p-4 shadow-sm grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <label class="flex flex-col">
+          <span class="text-sm font-medium text-slate-600">Bidang</span>
+          <select id="fBidang" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-300" disabled>
+            <option>Memuat…</option>
+          </select>
+        </label>
+        <label class="flex flex-col">
+          <span class="text-sm font-medium text-slate-600">Kota/Kabupaten</span>
+          <select id="fKota" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-300" disabled>
+            <option>Memuat…</option>
+          </select>
+        </label>
+        <label class="flex flex-col">
+          <span class="text-sm font-medium text-slate-600">Provinsi</span>
+          <select id="fProv" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-300" disabled>
+            <option>Memuat…</option>
+          </select>
+        </label>
+        <label class="flex flex-col">
+          <span class="text-sm font-medium text-slate-600">Status</span>
+          <select id="fStatus" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-300">
+            <option value="">Semua</option>
+            <option>Aktif</option>
+            <option>Nonaktif</option>
+          </select>
+        </label>
+        <label class="flex flex-col col-span-full lg:col-span-1">
+          <span class="text-sm font-medium text-slate-600">Cari</span>
+          <input id="fQ" type="search" class="mt-1 w-full rounded-xl border px-3 py-2 bg-white focus:ring-2 focus:ring-emerald-300" placeholder="Nama/bidang/lokasi" />
+        </label>
+      </div>
+      <div class="flex items-center justify-between mt-2">
+        <div id="resultInfo" class="text-xs text-slate-600" role="status" aria-live="polite">&nbsp;</div>
+        <button id="btnReset" class="text-xs px-3 py-1.5 border rounded-lg hover:bg-slate-50">Reset</button>
+      </div>
+    </section>
+
+    <section class="rounded-2xl border bg-white p-4 shadow-sm">
+      <div id="grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" aria-live="polite"></div>
+      <div id="skeleton" class="mt-2 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div class="h-28 rounded-xl shimmer"></div>
+        <div class="h-28 rounded-xl shimmer"></div>
+        <div class="h-28 rounded-xl shimmer"></div>
+      </div>
+      <p id="empty" class="hidden text-sm text-slate-500">Tidak ada mitra yang cocok dengan filter saat ini.</p>
+      <div class="mt-4 flex items-center justify-center gap-3">
+        <button id="prev" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm rounded-xl border bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Halaman sebelumnya" title="Sebelumnya">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          <span>Sebelumnya</span>
+        </button>
+        <span id="pageInfo" class="text-xs text-slate-600"></span>
+        <button id="next" class="inline-flex items-center gap-1.5 px-3.5 py-2 text-sm rounded-xl border bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" aria-label="Halaman berikutnya" title="Berikutnya">
+          <span>Berikutnya</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- DETAIL MODAL -->
+  <div id="detailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="detailTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="detailTitle" class="text-base font-semibold text-slate-800">Detail Mitra</h3>
+        <button id="detailClose" class="h-9 w-9 inline-flex items-center justify-center rounded-lg border hover:bg-slate-50" aria-label="Tutup detail">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="detailContent" class="space-y-3">
+          <div class="h-6 w-2/3 shimmer rounded"></div>
+          <div class="h-4 w-full shimmer rounded"></div>
+          <div class="h-4 w-5/6 shimmer rounded"></div>
+          <div class="h-20 w-full shimmer rounded"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-t bg-white mt-10">
+    <div class="mx-auto max-w-6xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
+      <div>© <span id="year"></span> Sistem Informasi PKL & UKK Industri — TKJ SMKN 1 Telagasari.</div>
+      <nav aria-label="Tautan footer">
+        <a href="index.html" class="hover:underline mr-3">Home</a>
+        <a href="mitra.html" class="hover:underline mr-3">Mitra</a>
+        <a href="pembimbing.html" class="hover:underline mr-3">Pembimbing</a>
+        <a href="penguji.html" class="hover:underline mr-3">Penguji PKL</a>
+        <a href="peserta.html" class="hover:underline mr-3">Peserta</a>
+        <a href="ukk.html" class="hover:underline mr-3">UKK Industri</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+    const BASE_URL=(window.APP_CONFIG && window.APP_CONFIG.BASE_URL) || '';
+    const yearEl=document.getElementById('year'); yearEl.textContent=new Date().getFullYear();
+
+    // Auth nav swap
+    (function(){
+      const navAuth=document.getElementById('navAuth');
+      const navAuthMobile=document.getElementById('navAuthMobile');
+      const navAuthText=document.getElementById('navAuthText');
+      const navAuthMobileText=document.getElementById('navAuthMobileText');
+      const token=localStorage.getItem('auth_token');
+      function makeDashboard(el,textEl){ if(!el) return; const ic=el.id?.includes('Mobile')?'w-5 h-5':'w-4 h-4'; el.innerHTML='<i data-lucide="layout-dashboard" class="'+ic+'"></i><span id="'+(textEl?textEl.id:'')+'">Dashboard</span>'; el.href='dashboard.html'; if(window.lucide && typeof window.lucide.createIcons==='function') lucide.createIcons(); }
+      if(token){ makeDashboard(navAuth, navAuthText); makeDashboard(navAuthMobile, navAuthMobileText); }
+    })();
+
+    // Burger menu
+    const burgerBtn=document.getElementById('burgerBtn'),burgerIcon=document.getElementById('burgerIcon'),closeIcon=document.getElementById('closeIcon'),mobileMenu=document.getElementById('mobileMenu');
+    burgerBtn?.addEventListener('click',()=>{mobileMenu.classList.toggle('hidden');burgerIcon.classList.toggle('hidden');closeIcon.classList.toggle('hidden');});
+    mobileMenu?.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{mobileMenu.classList.add('hidden');burgerIcon.classList.remove('hidden');closeIcon.classList.add('hidden');}));
+
+    // Helpers
+    function $(id){ return document.getElementById(id); }
+    const grid=$('grid'), skeleton=$('skeleton'), empty=$('empty'), resultInfo=$('resultInfo'), pageInfo=$('pageInfo');
+    const fBidang=$('fBidang'), fKota=$('fKota'), fProv=$('fProv'), fStatus=$('fStatus'), fQ=$('fQ'), btnReset=$('btnReset');
+    const prev=$('prev'), next=$('next');
+
+    let state={ page:1, limit:12, bidang:'', kota:'', provinsi:'', status:'', q:'' };
+
+    function show(e){ e.classList.remove('hidden'); }
+    function hide(e){ e.classList.add('hidden'); }
+    async function fetchJSON(u){ const r=await fetch(u,{cache:'no-store'}); if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }
+
+    function buildQuery(){
+      const p=new URLSearchParams();
+      p.set('dataset','mitra');
+      p.set('route','list');
+      if(state.bidang) p.set('bidang', state.bidang);
+      if(state.kota) p.set('kota', state.kota);
+      if(state.provinsi) p.set('provinsi', state.provinsi);
+      if(state.status) p.set('status', state.status);
+      if(state.q) p.set('q', state.q);
+      p.set('page', String(state.page));
+      p.set('limit', String(state.limit));
+      return `${BASE_URL}?${p.toString()}`;
+    }
+
+    function render(items, total){
+      grid.innerHTML='';
+      if(!items.length){ hide(skeleton); show(empty); resultInfo.textContent='0 hasil.'; pageInfo.textContent=''; return; }
+      hide(empty);
+      items.forEach(it=>{
+        const div=document.createElement('div');
+        div.className='mitra-card group rounded-xl border border-emerald-100 bg-gradient-to-br from-white to-emerald-50 p-4 hover:shadow-md hover:border-emerald-200 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-300';
+        div.setAttribute('role','button');
+        div.setAttribute('tabindex','0');
+        if(it.id) div.setAttribute('data-id', it.id);
+        if(it.nama) div.setAttribute('data-nama', it.nama);
+        const initials=(it.nama||'?').trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase();
+        const logo = it.logo_url ? `<img src="${it.logo_url}" alt="Logo ${it.nama}" class="h-10 w-10 rounded-lg object-cover ring-1 ring-white/60" />` : `<div class="h-10 w-10 rounded-lg bg-emerald-100 flex items-center justify-center text-xs font-semibold text-emerald-700 ring-1 ring-emerald-200/60">${initials}</div>`;
+        const desc = it.deskripsi_singkat ? `<p class="mt-2 text-sm text-slate-600 line-clamp-2">${it.deskripsi_singkat}</p>` : '';
+        div.innerHTML=`
+          <div class="flex items-start gap-3">
+            ${logo}
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-slate-900 break-words hyphens-auto ow-anywhere line-clamp-2">${it.nama || '-'}</div>
+              <div class="mt-0.5 flex items-center gap-1 flex-wrap">
+                ${it.bidang ? `<span class='inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-700 border border-emerald-200'>${it.bidang}</span>` : ''}
+                <span class="text-[11px] text-slate-600">${[it.kota,it.provinsi].filter(Boolean).join(', ') || '-'}</span>
+              </div>
+              ${desc}
+            </div>
+          </div>`;
+        grid.appendChild(div);
+      });
+      resultInfo.textContent = `${total} hasil.`;
+      const totalPages = Math.max(1, Math.ceil(total / state.limit));
+      pageInfo.textContent = `Hal ${state.page} / ${totalPages}`;
+      prev.disabled = state.page<=1; next.disabled = state.page>=totalPages;
+      hide(skeleton);
+
+      // Bind click/keyboard to open detail
+      grid.querySelectorAll('.mitra-card').forEach(card=>{
+        const open = ()=>{
+          const id = card.getAttribute('data-id')||'';
+          const nama = card.getAttribute('data-nama')||'';
+          openDetail({id, nama});
+        };
+        card.addEventListener('click', open);
+        card.addEventListener('keydown', (e)=>{
+          if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); }
+        });
+      });
+    }
+
+    async function loadMeta(){
+      try{
+        const j=await fetchJSON(`${BASE_URL}?dataset=mitra&route=meta`);
+        function fill(sel, list, defLabel){ sel.innerHTML=''; const opt=document.createElement('option'); opt.value=''; opt.textContent=defLabel||'Semua'; sel.appendChild(opt); (list||[]).forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }); sel.disabled=false; }
+        fill(fBidang, j.meta?.bidang||[], 'Semua bidang');
+        fill(fKota, j.meta?.kota||[], 'Semua kota');
+        fill(fProv, j.meta?.provinsi||[], 'Semua provinsi');
+        // Status sudah punya default opsi
+      }catch(e){
+        // fallback: enable empty selects
+        [fBidang,fKota,fProv].forEach(s=>{ s.innerHTML='<option value="">Semua</option>'; s.disabled=false; });
+      }
+    }
+
+    async function loadList(){
+      show(skeleton); hide(empty);
+      try{
+        const url=buildQuery();
+        const j=await fetchJSON(url);
+        if(!j.ok) throw new Error(j.error||'Gagal memuat');
+        render(j.items||[], j.count||0);
+      }catch(e){
+        render([], 0);
+      }
+    }
+
+    function applyAndReload(){ state.page=1; loadList(); }
+
+    fBidang.addEventListener('change', ()=>{ state.bidang=fBidang.value; applyAndReload(); });
+    fKota.addEventListener('change', ()=>{ state.kota=fKota.value; applyAndReload(); });
+    fProv.addEventListener('change', ()=>{ state.provinsi=fProv.value; applyAndReload(); });
+    fStatus.addEventListener('change', ()=>{ state.status=fStatus.value; applyAndReload(); });
+    fQ.addEventListener('input', ()=>{ state.q=fQ.value.trim(); applyAndReload(); });
+    btnReset.addEventListener('click', ()=>{ state={ page:1, limit:12, bidang:'', kota:'', provinsi:'', status:'', q:'' }; fBidang.value=''; fKota.value=''; fProv.value=''; fStatus.value=''; fQ.value=''; loadList(); });
+
+    prev.addEventListener('click', ()=>{ if(state.page>1){ state.page--; loadList(); }});
+    next.addEventListener('click', ()=>{ state.page++; loadList(); });
+
+    // init
+    Promise.resolve().then(loadMeta).then(loadList);
+
+    // ===== Detail modal handlers =====
+    const detailModal = document.getElementById('detailModal');
+    const detailClose = document.getElementById('detailClose');
+    const detailContent = document.getElementById('detailContent');
+    let detailLeafletMap = null;
+
+    function parseCoord(v){
+      if(v===undefined || v===null || v==='') return null;
+      if(typeof v === 'number'){ return Number.isFinite(v) ? v : null; }
+      let s = String(v).trim();
+      // keep digits, comma, dot, minus; drop others (e.g., ° N E S W)
+      s = s.replace(/[^0-9,.-]/g, '');
+      // remove spaces
+      s = s.replace(/\s+/g, '');
+      const hasDot = s.includes('.');
+      const hasComma = s.includes(',');
+      if(hasDot && hasComma){
+        // Assume locale: dots are thousand separators, comma is decimal
+        s = s.replace(/\./g, '');
+        s = s.replace(',', '.');
+      }else if(hasComma && !hasDot){
+        // Only comma present -> treat as decimal separator
+        s = s.replace(',', '.');
+      }else if(hasDot){
+        // Multiple dots -> keep the last as decimal separator
+        const parts = s.split('.');
+        if(parts.length > 2){
+          const last = parts.pop();
+          s = parts.join('') + '.' + last;
+        }
+      }
+      let n = parseFloat(s);
+      if(!Number.isFinite(n)) return null;
+      // Normalize out-of-range values likely caused by missing decimal placement (e.g., 1159847627)
+      let iter = 0;
+      while(Math.abs(n) > 180 && iter < 12){ n = n / 10; iter++; }
+      if(Math.abs(n) > 180) return null; // still invalid
+      return n;
+    }
+
+    function fixLatLng(lat, lng){
+      // Swap if clearly reversed: lat > 90 or lng within [-90,90] while lat outside
+      if(lat!=null && lng!=null){
+        const alat = Math.abs(lat), alng = Math.abs(lng);
+        if(alat > 90 && alng <= 90){ return [lng, lat]; }
+        if(alng > 180 && alat <= 90){ return [lng, lat]; }
+      }
+      return [lat, lng];
+    }
+
+    function populateDetail(item){
+      const initials=(item.nama||'?').trim().split(/\s+/).map(s=>s[0]).slice(0,2).join('').toUpperCase();
+      const logo = item.logo_url ? `<img src="${item.logo_url}" alt="Logo ${item.nama}" class="h-11 w-11 rounded-lg object-cover ring-1 ring-white/60" />` : `<div class="h-11 w-11 rounded-lg bg-emerald-100 flex items-center justify-center text-sm font-semibold text-emerald-700 ring-1 ring-emerald-200/60">${initials}</div>`;
+      const kompetensi = Array.isArray(item.kompetensi) && item.kompetensi.length
+        ? `<div class="mt-3"><div class="text-xs font-semibold text-slate-700 mb-1">Kompetensi UKK</div><div class="flex flex-wrap gap-1.5">${item.kompetensi.map(k=>`<span class="inline-flex items-center border border-emerald-200 bg-emerald-50 text-emerald-700 rounded-full px-2 py-0.5 text-[11px]">${k}</span>`).join('')}</div></div>`
+        : '';
+      const website = item.website ? `<a href="${item.website}" target="_blank" rel="noopener noreferrer" class="text-sky-700 hover:underline">${item.website}</a>` : '-';
+      const address = [item.alamat, [item.kota,item.provinsi].filter(Boolean).join(', ')].filter(Boolean).join('\n');
+      const lokasiText = [item.kota,item.provinsi].filter(Boolean).join(', ') || '-';
+      const statusBadge = item.status ? `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium ${item.status==='Aktif' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}">${item.status}</span>` : '';
+      let lat = parseCoord(item.lat ?? item.latitude ?? item.latitud ?? item.lintang);
+      let lng = parseCoord(item.lng ?? item.long ?? item.longitude ?? item.lon ?? item.bujur);
+      // Try to fix swapped coordinates if detected
+      [lat, lng] = fixLatLng(lat, lng);
+      // Validate ranges strictly before showing map
+      const validCoords = lat!=null && lng!=null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180;
+      const mapsLink = validCoords
+        ? `https://www.google.com/maps?q=${lat},${lng}`
+        : (address ? `https://www.google.com/maps?q=${encodeURIComponent(address)}` : null);
+
+      detailContent.innerHTML = `
+        <div class="flex items-start gap-3">
+          ${logo}
+          <div class="min-w-0">
+            <div class="text-lg font-semibold text-slate-900">${item.nama||'-'}</div>
+            <div class="mt-0.5 flex items-center gap-1.5 flex-wrap">
+              ${item.bidang ? `<span class='inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-700 border border-emerald-200'>${item.bidang}</span>` : ''}
+              <span class="text-[12px] text-slate-600">${lokasiText}</span>
+              ${statusBadge}
+            </div>
+          </div>
+        </div>
+        ${item.deskripsi_singkat ? `<p class="mt-3 text-sm leading-relaxed text-slate-700">${item.deskripsi_singkat}</p>` : ''}
+        <div class="grid md:grid-cols-2 gap-3 mt-3">
+          <div class="rounded-lg border bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">Alamat</div>
+            <pre class="text-sm text-slate-800 whitespace-pre-wrap">${address || '-'}</pre>
+          </div>
+          <div class="rounded-lg border bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">Website</div>
+            <div class="text-sm text-slate-800">${website}</div>
+          </div>
+          <div class="rounded-lg border bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">Periode</div>
+            <div class="text-sm text-slate-800">${[item.tahun_mulai,item.tahun_akhir].filter(Boolean).join(' - ') || '-'}</div>
+          </div>
+          <div class="rounded-lg border bg-slate-50 p-3">
+            <div class="text-xs text-slate-500 mb-1">Kuota PKL</div>
+            <div class="text-sm text-slate-800">${item.kuota_pkl || '-'}</div>
+          </div>
+          <div class="rounded-lg border bg-slate-50 p-3 md:col-span-2">
+            <div class="text-xs text-slate-500 mb-1">PIC</div>
+            <div class="text-sm text-slate-800">${[item.pic_nama, item.pic_wa].filter(Boolean).join(' • ') || '-'}</div>
+          </div>
+        </div>
+        <div class="mt-3 rounded-lg border overflow-hidden">
+          <div class="px-3 pt-3 flex items-center gap-2 text-xs text-slate-500">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+            <span>Lokasi</span>
+            ${mapsLink ? `<a href="${mapsLink}" target="_blank" rel="noopener noreferrer" class="ml-auto text-sky-700 hover:underline">Buka di Google Maps</a>` : ''}
+          </div>
+          ${validCoords ? `<div id="detailMap" class="h-64 w-full"></div>` : `<div class="p-3 text-sm text-slate-600">Lokasi belum tersedia.</div>`}
+        </div>
+        ${kompetensi}
+      `;
+
+      if(validCoords){
+        initDetailMap(lat, lng, item.nama || 'Lokasi Mitra');
+      }
+    }
+
+  async function openDetail(ref){
+      // Show modal and reset content
+  detailModal.classList.add('show');
+      detailModal.setAttribute('aria-hidden','false');
+  // focus close button for accessibility
+  setTimeout(()=>{ try{ detailClose.focus(); }catch(_){} }, 0);
+      detailContent.innerHTML = `
+        <div class="h-6 w-2/3 shimmer rounded"></div>
+        <div class="h-4 w-full shimmer rounded"></div>
+        <div class="h-4 w-5/6 shimmer rounded"></div>
+        <div class="h-20 w-full shimmer rounded"></div>
+      `;
+      try{
+        const p=new URLSearchParams(); p.set('dataset','mitra');
+        if(ref.id) p.set('id', ref.id); else if(ref.nama) p.set('nama', ref.nama);
+        const j=await fetchJSON(`${BASE_URL}?${p.toString()}`);
+        if(!j.ok || !j.item){ throw new Error(j.error||'Gagal memuat detail'); }
+        populateDetail(j.item);
+        if(window.lucide && typeof window.lucide.createIcons === 'function') lucide.createIcons();
+      }catch(e){
+        detailContent.innerHTML = `<div class="text-sm text-red-600">Gagal memuat detail mitra.</div>`;
+      }
+    }
+
+    function closeDetail(){
+      detailModal.classList.remove('show');
+      detailModal.setAttribute('aria-hidden','true');
+      try{ if(detailLeafletMap){ detailLeafletMap.remove(); detailLeafletMap=null; } }catch(_){ }
+    }
+    detailClose.addEventListener('click', closeDetail);
+    detailModal.addEventListener('click', (e)=>{ if(e.target === detailModal) closeDetail(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && detailModal.classList.contains('show')) closeDetail(); });
+ 
+    function initDetailMap(lat, lng, title){
+      if(!(window.L && document.getElementById('detailMap'))) return;
+      try{ if(detailLeafletMap){ detailLeafletMap.remove(); detailLeafletMap=null; } }catch(_){ }
+      detailLeafletMap = L.map('detailMap', { scrollWheelZoom: false, zoomControl: true });
+      detailLeafletMap.setView([lat, lng], 16);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(detailLeafletMap);
+      L.marker([lat, lng]).addTo(detailLeafletMap).bindPopup(title || 'Lokasi');
+      // Recenter after size invalidation to ensure marker stays in view center
+      setTimeout(()=>{ try{ detailLeafletMap.invalidateSize(); detailLeafletMap.setView([lat, lng], 16, { animate: false }); }catch(_){ } }, 200);
+    }
+  </script>
+  <!-- Leaflet JS for map -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+</body>
+</html>

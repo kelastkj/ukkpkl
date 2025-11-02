@@ -40,6 +40,10 @@
 
   <script defer src="config.js"></script>
 
+  <!-- Leaflet Map CSS/JS for displaying Mitra locations -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <!-- Structured Data -->
   <script type="application/ld+json">
   {
@@ -230,6 +234,8 @@
 
           <li><a href="index.html" aria-current="page" title="Beranda" class="px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="home" class="w-4 h-4"></i>Home</a></li>
 
+          <li><a href="mitra.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="building-2" class="w-4 h-4"></i>Mitra</a></li>
+
           <li><a href="pembimbing.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-4 h-4"></i>Pembimbing</a></li>
 
           <li><a href="penguji.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="user-check" class="w-4 h-4"></i>Penguji PKL</a></li>
@@ -267,6 +273,8 @@
         <ul class="flex flex-col gap-1 text-sm">
 
           <li><a href="index.html" aria-current="page" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="home" class="w-5 h-5"></i>Home</a></li>
+
+          <li><a href="mitra.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="building-2" class="w-5 h-5"></i>Mitra</a></li>
 
           <li><a href="pembimbing.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5"></i>Pembimbing</a></li>
 
@@ -470,6 +478,25 @@
   <!-- MAIN CONTENT -->
 
   <main id="main" class="mx-auto max-w-6xl px-3 sm:px-6 md:px-4 py-0 space-y-10">
+    <!-- Peta Lokasi Mitra -->
+    <section id="mitraMapSection" class="rounded-2xl bg-white border p-6 shadow-sm">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="map-pin" class="w-5 h-5 text-emerald-700"></i>
+        <h2 class="text-xl font-semibold text-emerald-800">Lokasi Mitra</h2>
+      </div>
+      <p class="text-slate-600 text-sm mb-4">Titik di peta menunjukkan lokasi mitra PKL/UKK yang terdaftar.</p>
+      <div class="relative">
+        <div class="skeleton absolute inset-0 rounded-lg"></div>
+        <div id="mitraMap" class="h-72 sm:h-80 md:h-96 rounded-lg border"></div>
+      </div>
+      <p id="mitraMapEmpty" class="hidden mt-3 text-sm text-slate-600">Lokasi mitra belum tersedia.</p>
+      <div class="mt-4">
+        <a href="mitra.html" class="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 font-medium text-sm">
+          <i data-lucide="list"></i>
+          Lihat Direktori Mitra
+        </a>
+      </div>
+    </section>
 <!-- Pembimbing & Penguji -->
 
     <section class="grid md:grid-cols-2 gap-6">
@@ -832,9 +859,11 @@
 
         <div class="flex gap-3">
 
-        <a href="index.html" class="hover:underline">Home</a>
+  <a href="index.html" class="hover:underline">Home</a>
 
-        <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
+  <a href="mitra.html" class="hover:underline">Mitra</a>
+
+  <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
 
         <a href="penguji.html" class="hover:underline">Penguji PKL</a>
 
@@ -1115,15 +1144,32 @@
           })
           .catch(e => {});
 
-        // Fetch mitra count
-        fetchData(baseUrl + '?dataset=ukk&route=meta')
+        // Fetch mitra count (read from Sheet MITRA via dataset=mitra routes)
+        // Primary: dataset=mitra&route=list to get accurate count from MITRA sheet
+        fetchData(baseUrl + '?dataset=mitra&route=list&limit=1')
           .then(d => {
-            if (d.ok && d.meta && d.meta.mitra) {
-              const count = d.meta.mitra.length;
+            // Support both {count} or {pagination: { total }} shapes
+            const count = (typeof d.count === 'number') ? d.count : (d.pagination && typeof d.pagination.total === 'number' ? d.pagination.total : null);
+            if (d.ok && count !== null) {
               showStatistic('stat-mitra', count);
+            } else {
+              throw new Error('Unexpected MITRA list response');
             }
           })
-          .catch(e => {});
+          .catch(() => {
+            // Fallback: legacy from UKK meta if MITRA endpoint unavailable (backward compatibility)
+            fetchData(baseUrl + '?dataset=ukk&route=meta')
+              .then(d => {
+                if (d.ok && d.meta && d.meta.mitra) {
+                  const count = d.meta.mitra.length;
+                  showStatistic('stat-mitra', count);
+                }
+              })
+              .catch(() => {
+                // Last resort: show dash and remove skeleton
+                showStatistic('stat-mitra', '—');
+              });
+          });
 
         // Fetch peserta count - aggregate all peserta
         fetchData(baseUrl + '?dataset=peserta&route=meta')
@@ -1154,6 +1200,145 @@
             }
           })
           .catch(e => {});
+      });
+    })();
+
+    // ===== LOKASI MITRA MAP =====
+    (function initIndexMitraMap(){
+      const section = document.getElementById('mitraMapSection');
+      const mapEl = document.getElementById('mitraMap');
+      if(!section || !mapEl) return;
+
+      function waitForDeps(cb, maxAttempts = 60){
+        let attempts = 0;
+        const t = setInterval(() => {
+          attempts++;
+          if (window.APP_CONFIG && window.APP_CONFIG.BASE_URL && window.L && typeof window.L.map === 'function') {
+            clearInterval(t);
+            cb(window.APP_CONFIG.BASE_URL);
+          } else if (attempts >= maxAttempts) {
+            clearInterval(t);
+            cb(null);
+          }
+        }, 100);
+      }
+
+      function parseCoord(val){
+        if (typeof val === 'number') return val;
+        if (typeof val !== 'string') return null;
+        let s = val.trim();
+        // Replace comma as decimal if no dot present, remove thousand separators
+        if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) {
+          s = s.replace(/,/g, '.');
+        }
+        // Remove all except digits, minus, dot
+        s = s.replace(/[^0-9\-\.]/g, '');
+        // If multiple dots, keep first
+        const parts = s.split('.');
+        if (parts.length > 2) {
+          s = parts.shift() + '.' + parts.join('');
+        }
+        const n = parseFloat(s);
+        return isNaN(n) ? null : n;
+      }
+
+      function fixLatLng(lat, lng){
+        let la = parseCoord(lat);
+        let ln = parseCoord(lng);
+        if (la == null || ln == null) return { lat: null, lng: null };
+        const inLat = (x) => x >= -90 && x <= 90;
+        const inLng = (x) => x >= -180 && x <= 180;
+        if (!inLat(la) && inLat(ln) && inLng(la)) {
+          // swapped
+          [la, ln] = [ln, la];
+        }
+        if (!inLat(la) || !inLng(ln)) return { lat: null, lng: null };
+        return { lat: la, lng: ln };
+      }
+
+      async function fetchJson(url){
+        const res = await fetch(url, { cache: 'no-store' });
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      }
+
+      async function fetchAllMitra(baseUrl){
+        const limit = 500;
+        const first = await fetchJson(baseUrl + '?dataset=mitra&route=list&limit=' + limit);
+        let items = Array.isArray(first.items) ? first.items : (Array.isArray(first.data) ? first.data : []);
+        const total = typeof first.count === 'number' ? first.count : (first.pagination && typeof first.pagination.total === 'number' ? first.pagination.total : items.length);
+        const pages = Math.ceil(total / limit);
+        if (pages <= 1) return items;
+        const fetches = [];
+        for (let p = 2; p <= pages && p <= 10; p++) { // hard cap to 10 pages (5000 rows)
+          fetches.push(fetchJson(baseUrl + '?dataset=mitra&route=list&limit=' + limit + '&page=' + p));
+        }
+        const rest = await Promise.allSettled(fetches);
+        for (const r of rest) {
+          if (r.status === 'fulfilled') {
+            const arr = Array.isArray(r.value.items) ? r.value.items : (Array.isArray(r.value.data) ? r.value.data : []);
+            items = items.concat(arr);
+          }
+        }
+        return items;
+      }
+
+      function renderMap(baseUrl){
+        const wrapper = mapEl.parentElement;
+        const skeleton = wrapper ? wrapper.querySelector('.skeleton') : null;
+        const emptyEl = document.getElementById('mitraMapEmpty');
+        const map = L.map('mitraMap', { zoomControl: true, attributionControl: true });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19,
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        fetchAllMitra(baseUrl).then(items => {
+          const markers = [];
+          items.forEach(it => {
+            const { lat, lng } = fixLatLng(it.lat ?? it.latitude ?? it.lintang, it.lng ?? it.lon ?? it.long ?? it.longitude ?? it.bujur);
+            if (lat == null || lng == null) return;
+            const name = it.nama || it.name || 'Mitra';
+            const bidang = it.bidang ? ('<br/><small>' + String(it.bidang) + '</small>') : '';
+            const gmaps = `https://www.google.com/maps?q=${lat},${lng}`;
+            const marker = L.marker([lat, lng]).bindPopup(`<strong>${name}</strong>${bidang}<br/><a href="${gmaps}" target="_blank" rel="noopener">Buka di Google Maps</a>`);
+            marker.addTo(map);
+            markers.push(marker);
+          });
+
+          if (markers.length > 0) {
+            const group = L.featureGroup(markers);
+            try { map.fitBounds(group.getBounds(), { padding: [20, 20] }); } catch(_) { map.setView([markers[0].getLatLng().lat, markers[0].getLatLng().lng], 13); }
+            setTimeout(() => map.invalidateSize(), 200);
+            if (skeleton) skeleton.style.display = 'none';
+            if (emptyEl) emptyEl.classList.add('hidden');
+          } else {
+            map.setView([-2.5, 118], 5); // center Indonesia fallback
+            if (skeleton) skeleton.style.display = 'none';
+            if (emptyEl) emptyEl.classList.remove('hidden');
+          }
+        }).catch(() => {
+          // On error, hide skeleton and show empty
+          map.setView([-2.5, 118], 5);
+          if (wrapper) {
+            const sk = wrapper.querySelector('.skeleton');
+            if (sk) sk.style.display = 'none';
+          }
+          if (emptyEl) emptyEl.classList.remove('hidden');
+        });
+      }
+
+      waitForDeps((baseUrl) => {
+        if (!baseUrl) {
+          // deps not ready; show empty state
+          const wrapper = mapEl.parentElement;
+          const sk = wrapper ? wrapper.querySelector('.skeleton') : null;
+          if (sk) sk.style.display = 'none';
+          const emptyEl = document.getElementById('mitraMapEmpty');
+          if (emptyEl) emptyEl.classList.remove('hidden');
+          return;
+        }
+        renderMap(baseUrl);
       });
     })();
 

@@ -16,6 +16,7 @@ const SHEET_USERS      = 'USERS';
 const SHEET_UPLOADS    = 'UPLOADS';
 const SHEET_NILAI      = 'NILAI-PRESENTASI';
 const SHEET_SERTIFIKAT = 'SERTIFIKAT';
+const SHEET_MITRA      = 'MITRA'; // Direktori Mitra (baru)
 
 // Drive folders (replace with your own IDs in deployment)
 const FOLDER_PKL_ID    = '1RZIHlwgAeWKlxTxt-KZ_OjC2cJBjq2dS';
@@ -483,6 +484,154 @@ function _readRowsGeneric(sheetName) {
 }
 
 /* =====================================================
+ *  ===========  DATASET: MITRA (BARU) ==================
+ *  Sheet MITRA (sederhana):
+ *   id | nama | bidang | deskripsi_singkat | alamat | kota | provinsi | website | logo_url | status | tahun_mulai | tahun_akhir | pic_nama | pic_wa | kuota_pkl
+ *  Catatan: Tidak ada kolom consent/last_contacted/catatan_internal.
+ *  Kompetensi diambil dari sheet UKK berdasarkan nama mitra (jika ada).
+ * ===================================================== */
+// Read MITRA with robustness: case-insensitive sheet name and header aliasing
+function _readMitra_(){
+  try{
+    // Try exact sheet name first, then case-insensitive match without creating a new sheet
+    const ss = SpreadsheetApp.getActive();
+    let sh = _sheet(SHEET_MITRA);
+    if(!sh){
+      const target = String(SHEET_MITRA).toLowerCase();
+      const sheets = ss.getSheets();
+      for(var i=0;i<sheets.length;i++){
+        if(String(sheets[i].getName()).toLowerCase() === target){ sh = sheets[i]; break; }
+      }
+    }
+    if(!sh || sh.getLastRow() === 0){ return { header:[], rows:[] }; }
+    const values = sh.getDataRange().getValues();
+    if(!values || !values.length){ return { header:[], rows:[] }; }
+    var header = values[0].map(function(h){ return _norm(h).toLowerCase(); });
+    var rows = [];
+    for(var r=1;r<values.length;r++){
+      var obj = {};
+      for(var c=0;c<header.length;c++){ obj[header[c]] = _norm(values[r][c]); }
+      rows.push(obj);
+    }
+    // Normalize aliases so downstream code can rely on standard keys
+    function pick(o){
+      for(var i=1;i<arguments.length;i++){ var k = arguments[i]; if(o[k] != null && o[k] !== '') return o[k]; }
+      return '';
+    }
+    var normalized = rows.map(function(r){
+      // Map booleans/flags to status label if only 'aktif' exists
+      function normStatus(s){
+        var v = String(s||'').trim(); if(!v) return '';
+        var L = v.toLowerCase();
+        if(L==='ya' || L==='yes' || L==='true' || L==='1') return 'Aktif';
+        if(L==='tidak' || L==='no' || L==='false' || L==='0') return 'Nonaktif';
+        return v;
+      }
+      return {
+        id: pick(r, 'id'),
+        nama: pick(r, 'nama','mitra','nama_mitra'),
+        bidang: pick(r, 'bidang','bidang_usaha'),
+        deskripsi_singkat: pick(r, 'deskripsi_singkat','deskripsi','deskripsi_pendek'),
+        alamat: pick(r, 'alamat'),
+        kota: pick(r, 'kota','kota/kabupaten','kota_kabupaten','kabupaten'),
+        provinsi: pick(r, 'provinsi','propinsi'),
+        website: pick(r, 'website','url','link'),
+        logo_url: pick(r, 'logo_url','logo','logo link','logo-link','logourl'),
+        status: normStatus(pick(r, 'status','aktif')),
+        lat: pick(r, 'lat','latitude','lintang'),
+        lng: pick(r, 'lng','long','longitude','lon','bujur'),
+        tahun_mulai: pick(r, 'tahun_mulai','mulai','tahun mulai'),
+        tahun_akhir: pick(r, 'tahun_akhir','akhir','tahun akhir'),
+        kuota_pkl: pick(r, 'kuota_pkl','kuota','kuota pkl'),
+        pic_nama: pick(r, 'pic_nama','pic','nama_pic','contact_name'),
+        pic_wa: pick(r, 'pic_wa','wa','whatsapp','no_wa','no whatsapp')
+      };
+    });
+    return { header: header, rows: normalized };
+  }catch(e){ return { header:[], rows:[] }; }
+}
+
+function _mitra_collectKompetensiByMitra_(){
+  try{
+    const { header, rows } = _readRowsGeneric(SHEET_UKK);
+    const map = new Map();
+    rows.forEach(r => {
+      const m = r.mitra || '';
+      const k = r.kompetensi || '';
+      if(!m || !k) return;
+      if(!map.has(m)) map.set(m, []);
+      map.get(m).push(k);
+    });
+    return map;
+  }catch(e){ return new Map(); }
+}
+
+function mitra_meta(){
+  const { rows } = _readMitra_();
+  const bidang = new Set();
+  const kota = new Set();
+  const provinsi = new Set();
+  const status = new Set();
+  rows.forEach(r => {
+    if(r.bidang) bidang.add(r.bidang);
+    if(r.kota) kota.add(r.kota);
+    if(r.provinsi) provinsi.add(r.provinsi);
+    if(r.status) status.add(r.status);
+  });
+  return { ok:true, route:'meta', updatedAt:_now(), meta:{
+    bidang: Array.from(bidang).sort(),
+    kota: Array.from(kota).sort(),
+    provinsi: Array.from(provinsi).sort(),
+    status: Array.from(status).sort()
+  }};
+}
+
+function mitra_list(p){
+  const { rows } = _readMitra_();
+  const q = (_norm(p.q)||'').toLowerCase();
+  const bidang = _norm(p.bidang), kota = _norm(p.kota), provinsi = _norm(p.provinsi), status = _norm(p.status);
+  const page = Math.max(1, parseInt(p.page||'1',10) || 1);
+  const limit = Math.max(1, Math.min(50, parseInt(p.limit||'24',10) || 24));
+  const ukkMap = _mitra_collectKompetensiByMitra_();
+
+  let out = rows.filter(r => true);
+  if(bidang)  out = out.filter(r => (r.bidang||'') === bidang);
+  if(kota)    out = out.filter(r => (r.kota||'') === kota);
+  if(provinsi)out = out.filter(r => (r.provinsi||'') === provinsi);
+  if(status)  out = out.filter(r => (r.status||'') === status);
+  if(q) out = out.filter(r => (r.nama||'').toLowerCase().includes(q) || (r.bidang||'').toLowerCase().includes(q) || (r.kota||'').toLowerCase().includes(q) || (r.provinsi||'').toLowerCase().includes(q));
+
+  const total = out.length;
+  const start = (page-1)*limit;
+  const slice = out.slice(start, start+limit);
+  const items = slice.map(r => ({
+    id: r.id||'', nama: r.nama||'', bidang: r.bidang||'', kota: r.kota||'', provinsi: r.provinsi||'', status: r.status||'',
+    logo_url: r.logo_url||'', website: r.website||'', tahun_mulai: r.tahun_mulai||'', tahun_akhir: r.tahun_akhir||'',
+    lat: r.lat||'', lng: r.lng||'',
+    kompetensi_top: (ukkMap.get(r.nama||'')||[]).slice(0,3)
+  }));
+  return { ok:true, route:'list', updatedAt:_now(), count: total, page, limit, items };
+}
+
+function mitra_detail(p){
+  const { rows } = _readMitra_();
+  const id = _norm(p.id), nama = _norm(p.nama);
+  const rec = rows.find(r => (id && (r.id||'')===id) || (nama && (r.nama||'')===nama));
+  if(!rec) return { ok:false, error:'Mitra tidak ditemukan' };
+  const ukkMap = _mitra_collectKompetensiByMitra_();
+  const kompetensi = ukkMap.get(rec.nama||'') || [];
+  const out = {
+    id: rec.id||'', nama: rec.nama||'', bidang: rec.bidang||'', deskripsi_singkat: rec.deskripsi_singkat||'', alamat: rec.alamat||'',
+    kota: rec.kota||'', provinsi: rec.provinsi||'', website: rec.website||'', logo_url: rec.logo_url||'', status: rec.status||'',
+    lat: rec.lat||'', lng: rec.lng||'',
+    tahun_mulai: rec.tahun_mulai||'', tahun_akhir: rec.tahun_akhir||'', kuota_pkl: rec.kuota_pkl||'',
+    pic_nama: rec.pic_nama||'', pic_wa: rec.pic_wa||'',
+    kompetensi
+  };
+  return { ok:true, route:'detail', updatedAt:_now(), item: out };
+}
+
+/* =====================================================
  * NILAI PRESENTASI - penyimpanan dan pembacaan
  * Skema (header): nama | struktur | penyampaian | penguasaan | media | sikap | total | timestamp
  * ===================================================== */
@@ -825,6 +974,25 @@ function doGet(e) {
       return _json({ok:false,error:'Parameter kurang untuk dataset=peserta.'});
     }
 
+    // MITRA (BARU)
+    if(dataset === 'mitra'){
+      const route = (p.route||'').toLowerCase();
+      if(route === 'meta'){
+        const out = mitra_meta();
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(route === 'list'){
+        const out = mitra_list(p);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.id || p.nama){
+        const out = mitra_detail(p);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      const out = { ok:false, error:'Parameter kurang untuk dataset=mitra. Gunakan route=meta|list atau id=/nama=' };
+      return p.callback ? _jsonp(out, p.callback) : _json(out);
+    }
+
   // SERTIFIKAT (untuk guru)
   if(dataset === 'sertifikat'){
     const sess = _auth_check(p.token);
@@ -856,11 +1024,12 @@ function doGet(e) {
   if(p.route === 'meta') return p.callback ? _jsonp(ukk_meta(), p.callback) : _json(ukk_meta());
   // Public ukk data is allowed when dataset=ukk is provided. (The root/no-dataset case is already blocked above.)
   return p.callback ? _jsonp(ukk_data(p), p.callback) : _json(ukk_data(p));
-
+  
   } catch(err) {
     return _json({ ok:false, error: err.message });
   }
 }
+ 
 
 function doPost(e){
   try{
