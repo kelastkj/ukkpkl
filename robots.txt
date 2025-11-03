@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Non-index pages
+Disallow: /login.html
+Disallow: /dashboard.html
+Disallow: /tmp-dashboard-slice.html
+
+# Removed from sitemap (do not index)
+Disallow: /bimbingan.html
+Disallow: /sertifikat.html
+Disallow: /ppsp.html
+Disallow: /pengujian.html
+
+Sitemap: https://pkl.kelastkj.online/sitemap.xml
