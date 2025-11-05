@@ -77,6 +77,22 @@
     #loading{ position:fixed; inset:0; z-index:40; background:rgba(0,0,0,0.12); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center; }
     #loading.hidden{ display:none; }
     #loading > .rounded-xl{ padding:12px 14px; display:flex; gap:10px; align-items:center; }
+    
+    /* Statistics Cards */
+    .stat-card{ background:white; border-radius:12px; padding:16px; border:1px solid #e2e8f0; transition: all 0.2s; }
+    .stat-card:hover{ border-color:#cbd5e1; box-shadow:0 4px 12px rgba(0,0,0,0.08); }
+    .stat-value{ font-size:28px; font-weight:700; line-height:1.2; }
+    .stat-label{ font-size:13px; color:#64748b; margin-top:4px; }
+    .stat-icon{ width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; }
+    
+    /* Filter Section */
+    .filter-input{ width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; transition: all 0.2s; }
+    .filter-input:focus{ outline:none; border-color:#10b981; box-shadow:0 0 0 3px rgba(16,185,129,0.1); }
+    .filter-select{ width:100%; padding:8px 12px; border:1px solid #e2e8f0; border-radius:8px; font-size:14px; background:white; cursor:pointer; }
+    .filter-select:focus{ outline:none; border-color:#10b981; }
+    .quick-filter-btn{ padding:8px 16px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; border:1px solid #e2e8f0; background:white; transition: all 0.2s; }
+    .quick-filter-btn:hover{ background:#f8fafc; border-color:#cbd5e1; }
+    .quick-filter-btn.active{ background:#10b981; color:white; border-color:#10b981; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col text-slate-800">
@@ -169,6 +185,91 @@
 
     <!-- Actual Content -->
     <div id="actualContent" class="content-hidden">
+    
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+      <div class="stat-card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="stat-value text-slate-800" id="stat-total">0</div>
+            <div class="stat-label">Total Siswa</div>
+          </div>
+          <div class="stat-icon bg-blue-50">
+            <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="stat-value text-emerald-600" id="stat-pkl">0</div>
+            <div class="stat-label">Upload PKL</div>
+          </div>
+          <div class="stat-icon bg-emerald-50">
+            <i data-lucide="file-text" class="w-5 h-5 text-emerald-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="stat-value text-blue-600" id="stat-ukk">0</div>
+            <div class="stat-label">Upload UKK</div>
+          </div>
+          <div class="stat-icon bg-blue-50">
+            <i data-lucide="file-check" class="w-5 h-5 text-blue-600"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Filter & Search Section -->
+    <section class="card p-5 space-y-4 mb-6">
+      <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <!-- Search Box -->
+          <div class="relative">
+            <input 
+              type="text" 
+              id="searchInput" 
+              class="filter-input pl-10" 
+              placeholder="Cari siswa..."
+            />
+            <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+          </div>
+          
+          <!-- Filter Kelas -->
+          <select id="filterKelas" class="filter-select">
+            <option value="">Semua Kelas</option>
+          </select>
+          
+          <!-- Filter Mitra -->
+          <select id="filterMitra" class="filter-select">
+            <option value="">Semua Mitra</option>
+          </select>
+        </div>
+        
+        <!-- Quick Filters -->
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-sm text-slate-600 font-medium">Quick Filter:</span>
+          <button id="quickPKL" class="quick-filter-btn">
+            <i data-lucide="briefcase" class="w-4 h-4 inline mr-1"></i>
+            Hanya PKL
+          </button>
+          <button id="quickUKK" class="quick-filter-btn">
+            <i data-lucide="award" class="w-4 h-4 inline mr-1"></i>
+            Hanya UKK
+          </button>
+          <button id="quickReset" class="quick-filter-btn">
+            <i data-lucide="x" class="w-4 h-4 inline mr-1"></i>
+            Reset Filter
+          </button>
+        </div>
+      </div>
+    </section>
+    
     <section class="card p-5 space-y-4">
       <div class="flex items-center justify-between gap-3">
         <div class="tabs" role="tablist" aria-label="Kategori unggahan bimbingan">
@@ -250,6 +351,12 @@
   let CURRENT_PROFILE = null;
   function getProfile(){ try{ return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); }catch(e){ return {}; } }
   async function fetchServerProfile(token){ if(!token) return null; try{ const resp = await jsonp(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`); if(resp && resp.ok && resp.profile) return resp.profile; return null; }catch(e){ return null; } }
+  
+  // Global data for filtering
+  let ALL_PKL_DATA = [];
+  let ALL_UKK_DATA = [];
+  let FILTERED_PKL_DATA = [];
+  let FILTERED_UKK_DATA = [];
 
     // Lightweight toast helper (matches dashboard style)
     (function(){
@@ -385,9 +492,132 @@
       document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape') close(); });
     }
 
+    // Update statistics cards
+    function updateStatistics(){
+      const allData = [...ALL_PKL_DATA, ...ALL_UKK_DATA];
+      document.getElementById('stat-total').textContent = allData.length;
+      document.getElementById('stat-pkl').textContent = ALL_PKL_DATA.length;
+      document.getElementById('stat-ukk').textContent = ALL_UKK_DATA.length;
+    }
+    
+    // Populate filter dropdowns
+    function populateFilters(){
+      const allData = [...ALL_PKL_DATA, ...ALL_UKK_DATA];
+      
+      // Get unique kelas
+      const kelasSet = new Set();
+      allData.forEach(item => { if(item.kelas) kelasSet.add(item.kelas); });
+      const kelasList = Array.from(kelasSet).sort();
+      
+      const kelasSelect = document.getElementById('filterKelas');
+      kelasSelect.innerHTML = '<option value="">Semua Kelas</option>';
+      kelasList.forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = k;
+        kelasSelect.appendChild(opt);
+      });
+      
+      // Get unique mitra
+      const mitraSet = new Set();
+      allData.forEach(item => { if(item.mitra) mitraSet.add(item.mitra); });
+      const mitraList = Array.from(mitraSet).sort();
+      
+      const mitraSelect = document.getElementById('filterMitra');
+      mitraSelect.innerHTML = '<option value="">Semua Mitra</option>';
+      mitraList.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        mitraSelect.appendChild(opt);
+      });
+    }
+    
+    // Apply filters
+    function applyFilters(){
+      const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filterKelas = document.getElementById('filterKelas').value;
+      const filterMitra = document.getElementById('filterMitra').value;
+      
+      const filterFunc = (item) => {
+        // Search filter
+        if(searchTerm){
+          const matchNama = (item.nama || '').toLowerCase().includes(searchTerm);
+          const matchKelas = (item.kelas || '').toLowerCase().includes(searchTerm);
+          const matchMitra = (item.mitra || '').toLowerCase().includes(searchTerm);
+          if(!matchNama && !matchKelas && !matchMitra) return false;
+        }
+        
+        // Kelas filter
+        if(filterKelas && item.kelas !== filterKelas) return false;
+        
+        // Mitra filter
+        if(filterMitra && item.mitra !== filterMitra) return false;
+        
+        return true;
+      };
+      
+      FILTERED_PKL_DATA = ALL_PKL_DATA.filter(filterFunc);
+      FILTERED_UKK_DATA = ALL_UKK_DATA.filter(filterFunc);
+      
+      // Re-render tables
+      renderGuruRows('guru-bm-tbody-pkl', FILTERED_PKL_DATA);
+      renderGuruRows('guru-bm-tbody-ukk', FILTERED_UKK_DATA);
+      setTabCounts(FILTERED_PKL_DATA.length, FILTERED_UKK_DATA.length);
+    }
+    
+    // Setup filter event listeners
+    function setupFilters(){
+      const searchInput = document.getElementById('searchInput');
+      const filterKelas = document.getElementById('filterKelas');
+      const filterMitra = document.getElementById('filterMitra');
+      const quickPKL = document.getElementById('quickPKL');
+      const quickUKK = document.getElementById('quickUKK');
+      const quickReset = document.getElementById('quickReset');
+      
+      // Real-time search
+      if(searchInput){
+        searchInput.addEventListener('input', applyFilters);
+      }
+      
+      // Dropdown filters
+      if(filterKelas) filterKelas.addEventListener('change', applyFilters);
+      if(filterMitra) filterMitra.addEventListener('change', applyFilters);
+      
+      // Quick filter: PKL only
+      if(quickPKL){
+        quickPKL.addEventListener('click', () => {
+          document.getElementById('tab-btn-bm-pkl').click();
+          quickPKL.classList.add('active');
+          quickUKK.classList.remove('active');
+        });
+      }
+      
+      // Quick filter: UKK only
+      if(quickUKK){
+        quickUKK.addEventListener('click', () => {
+          document.getElementById('tab-btn-bm-ukk').click();
+          quickUKK.classList.add('active');
+          quickPKL.classList.remove('active');
+        });
+      }
+      
+      // Quick filter: Reset
+      if(quickReset){
+        quickReset.addEventListener('click', () => {
+          document.getElementById('searchInput').value = '';
+          document.getElementById('filterKelas').value = '';
+          document.getElementById('filterMitra').value = '';
+          quickPKL.classList.remove('active');
+          quickUKK.classList.remove('active');
+          applyFilters();
+        });
+      }
+    }
+    
     function renderGuruRows(tbodyId, rows){
       const tb = document.getElementById(tbodyId); if(!tb) return; tb.innerHTML='';
-      if(!rows || rows.length===0){ tb.innerHTML = '<tr><td colspan="7" class="px-3 py-3 text-slate-500 text-center">Belum ada data</td></tr>'; return; }
+      if(!rows || rows.length===0){ tb.innerHTML = '<tr><td colspan="7" class="px-3 py-3 text-slate-500 text-center">Tidak ada data yang sesuai</td></tr>'; return; }
       rows.forEach(r=>{
         const tr = document.createElement('tr'); tr.setAttribute('data-category', (r.category||'').toLowerCase());
         const t = (r.timestamp && String(r.timestamp).split('GMT')[0]) || r.timestamp || '';
@@ -447,9 +677,21 @@
         const rowsBM = rows.filter(r => bmNames.has(r.nama));
         const bmPKL = rowsBM.filter(r => (r.category||'').toLowerCase()==='pkl');
         const bmUKK = rowsBM.filter(r => (r.category||'').toLowerCase()==='ukk');
-        renderGuruRows('guru-bm-tbody-pkl', bmPKL);
-        renderGuruRows('guru-bm-tbody-ukk', bmUKK);
-        setTabCounts(bmPKL.length, bmUKK.length);
+        
+        // Store in global variables for filtering
+        ALL_PKL_DATA = bmPKL;
+        ALL_UKK_DATA = bmUKK;
+        FILTERED_PKL_DATA = [...bmPKL];
+        FILTERED_UKK_DATA = [...bmUKK];
+        
+        renderGuruRows('guru-bm-tbody-pkl', FILTERED_PKL_DATA);
+        renderGuruRows('guru-bm-tbody-ukk', FILTERED_UKK_DATA);
+        setTabCounts(FILTERED_PKL_DATA.length, FILTERED_UKK_DATA.length);
+        
+        // Populate filters and update statistics
+        populateFilters();
+        updateStatistics();
+        
         showSkeleton(false);
       }catch(e){
         showSkeleton(false);
@@ -520,6 +762,10 @@
       const mc = document.getElementById('modalCancel'); const mcf = document.getElementById('modalConfirm'); const modal = document.getElementById('confirmModal');
       if(mc) mc.addEventListener('click', closeConfirm); if(mcf) mcf.addEventListener('click', performDelete);
       if(modal){ modal.addEventListener('click', (e)=>{ if(e.target === modal || e.target.classList.contains('bg-black/40')) closeConfirm(); }); }
+      
+      // Setup filters
+      setupFilters();
+      
       if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
     }
   if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
