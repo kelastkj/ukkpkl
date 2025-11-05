@@ -1,0 +1,1781 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monitoring Upload - Dashboard Guru</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="config.js"></script>
+  <style>
+    :root{ color-scheme: light; }
+    body{ background: linear-gradient(180deg, rgba(240,253,250,1) 0%, rgba(239,246,255,1) 100%); }
+    .card{ background:white; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,.06); padding:16px; }
+    .hidden{ display:none; }
+    
+    /* Enhanced table styling - more compact like sertifikat.html */
+    .monitoring-table{ width:100%; border-collapse:collapse; }
+    .monitoring-th, .monitoring-td{ border-bottom:1px solid #e5e7eb; padding:8px 12px; vertical-align:middle; font-size:13px; }
+    .monitoring-th{ background:#f8fafc; font-weight:600; color:#475569; text-align:left; }
+    
+    /* Status badges - more compact */
+    .status-badge{ 
+      display:inline-flex; 
+      align-items:center; 
+      gap:3px; 
+      font-size:11px; 
+      padding:3px 8px; 
+      border-radius:999px; 
+      font-weight:600; 
+      border:1px solid transparent;
+    }
+    .status-uploaded{ background:#ecfdf5; color:#065f46; border-color:#a7f3d0; }
+    .status-not-uploaded{ background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+    .status-partial{ background:#fffbeb; color:#92400e; border-color:#fed7aa; }
+    
+    /* Filter section - more compact */
+    .filter-section{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+    .filter-input{ 
+      padding:6px 10px; 
+      border:1px solid #cbd5e1; 
+      border-radius:6px; 
+      font-size:13px;
+      min-width:180px;
+    }
+    .filter-select{ 
+      padding:6px 10px; 
+      border:1px solid #cbd5e1; 
+      border-radius:6px; 
+      font-size:13px;
+      background:white;
+      cursor:pointer;
+    }
+    .filter-btn{
+      padding:6px 12px;
+      border-radius:6px;
+      font-weight:600;
+      font-size:13px;
+      cursor:pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary{ background:#10b981; color:white; border:none; }
+    .btn-primary:hover{ background:#059669; }
+    .btn-secondary{ background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; }
+    .btn-secondary:hover{ background:#e2e8f0; }
+    
+    /* Stats cards - more compact */
+    .stats-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px; margin-bottom:20px; }
+    .stat-card{ 
+      background:white; 
+      border-radius:10px; 
+      padding:12px; 
+      box-shadow:0 2px 8px rgba(0,0,0,.04);
+      border-left:3px solid transparent;
+    }
+    .stat-card.green{ border-left-color:#10b981; }
+    .stat-card.red{ border-left-color:#ef4444; }
+    .stat-card.yellow{ border-left-color:#f59e0b; }
+    .stat-card.blue{ border-left-color:#3b82f6; }
+    .stat-value{ font-size:24px; font-weight:700; color:#0f172a; }
+    .stat-label{ font-size:12px; color:#64748b; margin-top:2px; }
+    
+    /* Responsive mobile table - keep as table but smaller text */
+    @media (max-width: 768px){
+      .monitoring-th, .monitoring-td{ 
+        font-size:11px; 
+        padding:6px 8px; 
+      }
+      .status-badge{ 
+        font-size:10px; 
+        padding:2px 6px; 
+      }
+      .action-btn{
+        padding:3px 6px;
+        font-size:10px;
+      }
+      .filter-section{ flex-direction:column; align-items:stretch; }
+      .filter-input, .filter-select{ width:100%; min-width:unset; }
+      .stats-grid{ grid-template-columns:repeat(2, 1fr); }
+      
+      /* Horizontal scroll for table on mobile */
+      .monitoring-table-wrapper{
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+    
+    /* Modal styles */
+    .modal-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.active{ display: flex; }
+    .modal-content{
+      background: white;
+      border-radius: 16px;
+      max-width: 600px;
+      width: 100%;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-header{
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title{
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .modal-close{
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      border: none;
+      background: #f1f5f9;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .modal-close:hover{
+      background: #e2e8f0;
+    }
+    .modal-body{
+      padding: 20px;
+      overflow-y: auto;
+    }
+    .file-list{
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .file-item{
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      gap: 12px;
+      align-items: start;
+      transition: all 0.2s;
+    }
+    .file-item:hover{
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+    .file-icon{
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: #dbeafe;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .file-info{
+      flex: 1;
+      min-width: 0;
+    }
+    .file-name{
+      font-weight: 600;
+      color: #0f172a;
+      font-size: 14px;
+      margin-bottom: 4px;
+      word-break: break-word;
+    }
+    .file-meta{
+      font-size: 12px;
+      color: #64748b;
+    }
+    .file-link{
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: #3b82f6;
+      color: white;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+    .file-link:hover{
+      background: #2563eb;
+    }
+    
+    /* Confirm modal buttons */
+    #confirmModal button{
+      transition: all 0.2s;
+    }
+    #confirmModal button:hover{
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    #confirmModal button:active{
+      transform: translateY(0);
+    }
+    #confirmButton:hover{
+      background: #059669 !important;
+    }
+    
+    /* Mobile menu */
+    #mobileMenu{ 
+      position:fixed; 
+      left:0; 
+      right:0; 
+      top:56px; 
+      z-index:40; 
+      max-height:calc(100vh - 56px); 
+      overflow:auto; 
+      box-shadow:0 8px 30px rgba(2,6,23,.08); 
+    }
+    @media (min-width: 768px){ 
+      #mobileMenu{ position:static; max-height:none; overflow:visible; box-shadow:none; } 
+    }
+    
+    /* Skeleton Loading Styles */
+    .skeleton-wrapper {
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .skeleton {
+      background: linear-gradient(
+        90deg,
+        #f0f4f8 0%,
+        #e2e8f0 20%,
+        #f0f4f8 40%,
+        #f0f4f8 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite linear;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .skeleton::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 100%
+      );
+      animation: shimmerOverlay 2s infinite;
+    }
+    
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    @keyframes shimmerOverlay {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    
+    .skeleton-stat {
+      height: 90px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    
+    .skeleton-filter {
+      height: 38px;
+      border-radius: 6px;
+    }
+    
+    .skeleton-table-row {
+      height: 45px;
+      margin-bottom: 2px;
+      border-radius: 4px;
+    }
+    
+    .skeleton-text {
+      height: 12px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .skeleton-text.large {
+      height: 24px;
+    }
+    
+    .skeleton-button {
+      height: 32px;
+      width: 80px;
+      border-radius: 6px;
+    }
+    
+    /* Hide skeleton when content loaded */
+    .content-hidden { 
+      display: none !important; 
+    }
+    
+    /* Fade in actual content */
+    #actualContent:not(.content-hidden) {
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    /* Old loading overlay - keep for notifications */
+    #loading{ 
+      position:fixed; 
+      inset:0; 
+      z-index:50; 
+      background:rgba(0,0,0,0.12); 
+      backdrop-filter: blur(4px); 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+    }
+    #loading.hidden{ display:none; }
+    
+    /* Toasts */
+    .toast-container{ position:fixed; right:1rem; bottom:1rem; display:flex; flex-direction:column; gap:0.5rem; z-index:60; }
+    .toast{ 
+      min-width:220px; 
+      max-width:360px; 
+      display:flex; 
+      gap:0.75rem; 
+      align-items:center; 
+      background:white; 
+      border-radius:12px; 
+      padding:12px 14px; 
+      box-shadow:0 10px 25px rgba(2,6,23,.12); 
+      border:1px solid #e6eef6; 
+    }
+    .toast.ok{ border-color:#d1fae5; background:linear-gradient(180deg,#ecfdf5,#ffffff); }
+    .toast.err{ border-color:#fee2e2; background:linear-gradient(180deg,#fff1f2,#ffffff); }
+    .toast .msg{ flex:1; font-size:13px; color:#0f172a; }
+    .toast .close{ background:transparent; border:0; color:#475569; cursor:pointer; padding:6px; border-radius:8px; }
+    .toast .icon{ width:20px; height:20px; flex:0 0 20px; }
+    
+    /* Action buttons - more compact */
+    .action-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:4px 8px;
+      border-radius:4px;
+      font-size:11px;
+      font-weight:600;
+      cursor:pointer;
+      transition: all 0.2s;
+      border:1px solid transparent;
+    }
+    .action-btn.view{ color:#3b82f6; background:#eff6ff; border-color:#bfdbfe; }
+    .action-btn.view:hover{ background:#dbeafe; }
+    .action-btn.whatsapp{ color:#059669; background:#d1fae5; border-color:#a7f3d0; }
+    .action-btn.whatsapp:hover{ background:#a7f3d0; }
+    .action-btn.whatsapp:disabled{ opacity:0.5; cursor:not-allowed; }
+    
+    /* Export button - more compact */
+    .export-btn{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 12px;
+      background:#0ea5e9;
+      color:white;
+      border:none;
+      border-radius:6px;
+      font-weight:600;
+      font-size:13px;
+      cursor:pointer;
+      transition: all 0.2s;
+    }
+    .export-btn:hover{ background:#0284c7; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col text-slate-800">
+  <!-- Navigation -->
+  <nav class="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4">
+      <div class="flex h-14 items-center justify-between gap-3">
+        <a href="index.html" class="flex items-center gap-2 shrink-0">
+          <img src="logo.png" alt="Logo TKJ SMKN 1 Telagasari" class="h-8 w-8 rounded-lg" onerror="this.style.display='none'" />
+          <div class="leading-tight">
+            <div class="font-bold tracking-tight">SI PKL & UKK Industri</div>
+            <div class="text-[11px] text-slate-500">Monitoring Upload</div>
+          </div>
+        </a>
+        <div class="flex items-center gap-3">
+          <ul class="hidden md:flex items-center gap-1 text-sm">
+            <li><a href="dashboard.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i>Dashboard</a></li>
+            <li><a href="bimbingan.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-4 h-4"></i>Bimbingan</a></li>
+            <li><a href="monitoring-guru.html" class="px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="monitor" class="w-4 h-4"></i>Monitoring</a></li>
+            <li><a href="pengujian.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-4 h-4"></i>Pengujian</a></li>
+            <li><a href="sertifikat.html" class="px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="award" class="w-4 h-4"></i>Sertifikat</a></li>
+          </ul>
+          <button id="burgerBtn" class="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border hover:bg-slate-100" aria-label="Menu">
+            <i data-lucide="menu" id="burgerIcon" class="w-5 h-5"></i>
+            <i data-lucide="x" id="closeIcon" class="w-5 h-5 hidden"></i>
+          </button>
+          <div class="relative">
+            <button id="profileToggle" type="button" class="flex items-center gap-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-sm font-medium text-slate-600 shadow-sm hover:border-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-200" aria-haspopup="true" aria-expanded="false">
+              <span id="profileInitial" class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-semibold">U</span>
+              <span class="hidden sm:flex flex-col items-start leading-tight">
+                <span id="profileName" class="text-sm font-medium text-slate-700">Pengguna</span>
+                <span id="profileRole" class="text-xs text-slate-500 uppercase tracking-wide">ROLE</span>
+              </span>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 10.584l3.71-3.353a.75.75 0 111.04 1.08l-4.24 3.83a.75.75 0 01-1.04 0l-4.24-3.83a.75.75 0 01.02-1.1z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <div id="profileMenu" class="absolute right-0 mt-2 w-52 origin-top-right rounded-xl border border-slate-200 bg-white shadow-lg ring-1 ring-black/5 hidden">
+              <div class="border-b border-slate-100 px-4 py-3">
+                <div id="profileFullName" class="text-sm font-semibold text-slate-800">Pengguna</div>
+                <div id="profileFullRole" class="text-xs font-medium uppercase tracking-wide text-slate-500">ROLE</div>
+              </div>
+              <button id="logout" class="flex w-full items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6A2.25 2.25 0 005.25 5.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                </svg>
+                Keluar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="md:hidden hidden border-t bg-white">
+    <div class="mx-auto max-w-7xl px-4 py-2">
+      <ul class="flex flex-col gap-1 text-sm">
+        <li><a href="dashboard.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-5 h-5"></i>Dashboard</a></li>
+        <li><a href="bimbingan.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="users" class="w-5 h-5"></i>Bimbingan</a></li>
+        <li><a href="monitoring-guru.html" class="block px-3 py-2 rounded-lg bg-emerald-600 text-white flex items-center gap-2"><i data-lucide="monitor" class="w-5 h-5"></i>Monitoring</a></li>
+        <li><a href="pengujian.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="clipboard-check" class="w-5 h-5"></i>Pengujian</a></li>
+        <li><a href="sertifikat.html" class="block px-3 py-2 rounded-lg hover:bg-slate-100 flex items-center gap-2"><i data-lucide="award" class="w-5 h-5"></i>Sertifikat</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div id="content" class="flex-1">
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <!-- Header -->
+      <header>
+        <h1 class="text-xl font-bold tracking-tight">Monitoring Upload Siswa</h1>
+        <p class="text-xs text-slate-600 mt-1">Status upload dokumentasi UKK dan laporan PKL seluruh siswa</p>
+      </header>
+
+      <!-- Skeleton Loading -->
+      <div id="skeletonLoader" class="skeleton-wrapper">
+        <!-- Skeleton Stats Cards -->
+        <div class="stats-grid">
+          <div class="skeleton skeleton-stat"></div>
+          <div class="skeleton skeleton-stat"></div>
+          <div class="skeleton skeleton-stat"></div>
+          <div class="skeleton skeleton-stat"></div>
+        </div>
+
+        <!-- Skeleton Filters -->
+        <div class="card mb-6">
+          <div class="filter-section">
+            <div class="skeleton skeleton-filter" style="width: 240px;"></div>
+            <div class="skeleton skeleton-filter" style="width: 150px;"></div>
+            <div class="skeleton skeleton-filter" style="width: 150px;"></div>
+            <div class="skeleton skeleton-filter" style="width: 150px;"></div>
+            <div class="skeleton skeleton-button"></div>
+            <div class="skeleton skeleton-button" style="width: 120px;"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton Table -->
+        <div class="card">
+          <div class="overflow-auto rounded-lg border border-slate-200">
+            <div style="padding: 12px;">
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+              <div class="skeleton skeleton-table-row"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actual Content (hidden initially) -->
+      <div id="actualContent" class="content-hidden">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total Siswa</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-value" id="stat-complete">0</div>
+          <div class="stat-label">Sudah Upload Semua</div>
+        </div>
+        <div class="stat-card yellow">
+          <div class="stat-value" id="stat-partial">0</div>
+          <div class="stat-label">Upload Sebagian</div>
+        </div>
+        <div class="stat-card red">
+          <div class="stat-value" id="stat-none">0</div>
+          <div class="stat-label">Belum Upload</div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Section -->
+      <section class="card mb-6">
+        <div class="filter-section">
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="filter-input" 
+            placeholder="Cari nama siswa, kelas, atau mitra..."
+            aria-label="Cari siswa"
+          />
+          <select id="filterKelas" class="filter-select" aria-label="Filter kelas">
+            <option value="">Semua Kelas</option>
+          </select>
+          <select id="filterMitra" class="filter-select" aria-label="Filter mitra">
+            <option value="">Semua Mitra</option>
+          </select>
+          <select id="filterStatus" class="filter-select" aria-label="Filter status upload">
+            <option value="">Semua Status</option>
+            <option value="complete">Sudah Upload Semua</option>
+            <option value="partial">Upload Sebagian</option>
+            <option value="none">Belum Upload</option>
+          </select>
+          <button id="resetFilter" class="filter-btn btn-secondary">
+            <i data-lucide="rotate-ccw" class="w-4 h-4 inline-block mr-1"></i>
+            Reset
+          </button>
+          <button id="exportBtn" class="export-btn">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            Export CSV
+          </button>
+        </div>
+      </section>
+
+      <!-- Data Table -->
+      <section class="card">
+        <div class="monitoring-table-wrapper overflow-auto rounded-lg border border-slate-200">
+          <table class="monitoring-table">
+            <thead>
+              <tr>
+                <th class="monitoring-th">No</th>
+                <th class="monitoring-th">Username</th>
+                <th class="monitoring-th">Nama Siswa</th>
+                <th class="monitoring-th">Kelas</th>
+                <th class="monitoring-th">Mitra</th>
+                <th class="monitoring-th">Status PKL</th>
+                <th class="monitoring-th">Status UKK</th>
+                <th class="monitoring-th">Status Keseluruhan</th>
+                <th class="monitoring-th">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="monitoringTableBody">
+              <tr><td colspan="9" class="monitoring-td text-center text-slate-500">Memuat data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-4 flex items-center justify-between text-sm text-slate-600">
+          <div id="tableInfo">Menampilkan 0 dari 0 siswa</div>
+          <div id="pagination" class="flex gap-2"></div>
+        </div>
+      </section>
+      </div>
+      <!-- End Actual Content -->
+    </main>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div id="loading" class="hidden">
+    <div class="rounded-xl bg-white shadow p-4 flex items-center gap-3">
+      <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <div class="text-sm text-slate-700">Memproses...</div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Footer -->
+  <footer class="border-t bg-white mt-6">
+    <div class="mx-auto max-w-7xl px-4 py-8 text-xs text-slate-500 flex flex-wrap items-center justify-between gap-3">
+      <div>&copy; <span id="year"></span> Sistem Informasi PKL & UKK Industri - TKJ SMKN 1 Telagasari</div>
+      <nav class="flex gap-3" aria-label="Tautan footer">
+        <a href="index.html" class="hover:underline">Home</a>
+        <a href="pembimbing.html" class="hover:underline">Pembimbing</a>
+        <a href="penguji.html" class="hover:underline">Penguji PKL</a>
+        <a href="peserta.html" class="hover:underline">Peserta</a>
+        <a href="ukk.html" class="hover:underline">UKK Industri</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    // Configuration & Constants
+    const BASE = (window.APP_CONFIG||{}).BASE_URL || '';
+    let CURRENT_PROFILE = null;
+    let ALL_USERS = [];
+    let ALL_UPLOADS = [];
+    let FILTERED_DATA = [];
+    const ITEMS_PER_PAGE = 20;
+    let currentPage = 1;
+    
+    // Debug: Log configuration on load
+    console.log('APP_CONFIG:', window.APP_CONFIG);
+    console.log('BASE URL:', BASE);
+
+    // Utility Functions
+    function getProfile(){ 
+      try{ 
+        return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); 
+      }catch(e){ 
+        return {}; 
+      } 
+    }
+
+    function jsonp(url, timeoutMs = 30000){
+      return new Promise((resolve, reject)=>{
+        const cb = 'cb_' + Math.random().toString(36).slice(2);
+        const sep = url.includes('?') ? '&' : '?';
+        const fullUrl = url + sep + 'callback=' + cb;
+        
+        console.log('JSONP Request:', fullUrl); // Debug log
+        
+        let timeoutId = null;
+        let completed = false;
+        
+        window[cb] = (data)=>{ 
+          if(completed) return;
+          completed = true;
+          console.log('JSONP Response:', data); // Debug log
+          if(timeoutId) clearTimeout(timeoutId);
+          resolve(data); 
+          cleanup(); 
+        };
+        
+        const s = document.createElement('script'); 
+        s.src = fullUrl; 
+        s.onerror = (e)=>{ 
+          if(completed) return;
+          completed = true;
+          console.error('JSONP Error:', e, 'URL:', fullUrl); // Debug log
+          if(timeoutId) clearTimeout(timeoutId);
+          reject(new Error('Gagal memuat JSONP dari: ' + url)); 
+          cleanup(); 
+        };
+        
+        // Set timeout
+        timeoutId = setTimeout(() => {
+          if(completed) return;
+          completed = true;
+          console.error('JSONP Timeout:', fullUrl); // Debug log
+          reject(new Error('Timeout: JSONP request melebihi ' + (timeoutMs/1000) + ' detik'));
+          cleanup();
+        }, timeoutMs);
+        
+        document.body.appendChild(s);
+        
+        function cleanup(){ 
+          try{ 
+            delete window[cb]; 
+            s.remove(); 
+          }catch(_){} 
+        }
+      });
+    }
+
+    function toast(type, text, opts){
+      const root = document.getElementById('toastContainer'); 
+      if(!root) return;
+      const id = 't_' + Math.random().toString(36).slice(2);
+      const div = document.createElement('div'); 
+      div.className = 'toast ' + (type==='ok'?'ok':(type==='err'?'err':''));
+      div.id = id;
+      const icon = document.createElement('span'); 
+      icon.className = 'icon'; 
+      icon.textContent = type==='ok' ? '✅' : (type==='err' ? '⚠️' : 'ℹ️');
+      const msg = document.createElement('div'); 
+      msg.className = 'msg'; 
+      msg.textContent = text || '';
+      const close = document.createElement('button'); 
+      close.className='close'; 
+      close.setAttribute('aria-label','Tutup'); 
+      close.innerHTML='&times;';
+      close.addEventListener('click', ()=>{ try{ div.remove(); }catch(_){} });
+      div.appendChild(icon); 
+      div.appendChild(msg); 
+      div.appendChild(close);
+      root.appendChild(div);
+      const ttl = (opts && opts.ttl) || 5000;
+      setTimeout(()=>{ try{ div.remove(); }catch(_){} }, ttl);
+    }
+
+    function showLoading(show){ 
+      const el = document.getElementById('loading'); 
+      if(!el) return; 
+      if(show) el.classList.remove('hidden'); 
+      else el.classList.add('hidden'); 
+    }
+
+    function requireGuru(){
+      const token = localStorage.getItem('auth_token');
+      if(!token){ 
+        location.href = 'login.html?to=' + encodeURIComponent('monitoring-guru.html'); 
+        return null; 
+      }
+      return token;
+    }
+
+    async function fetchServerProfile(token){ 
+      if(!token) return null; 
+      try{ 
+        const resp = await jsonp(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`); 
+        if(resp && resp.ok && resp.profile) return resp.profile; 
+        return null; 
+      }catch(e){ 
+        return null; 
+      } 
+    }
+
+    // Profile Menu Setup
+    function setupProfileMenu(){
+      const toggle = document.getElementById('profileToggle');
+      const menu = document.getElementById('profileMenu');
+      const logoutBtn = document.getElementById('logout');
+      
+      if(logoutBtn){ 
+        logoutBtn.addEventListener('click', ()=>{ 
+          localStorage.removeItem('auth_token'); 
+          localStorage.removeItem('auth_profile'); 
+          location.href='login.html'; 
+        }); 
+      }
+      
+      if(!toggle || !menu) return;
+      const closeMenu = ()=>{ 
+        menu.classList.add('hidden'); 
+        toggle.setAttribute('aria-expanded','false'); 
+      };
+      const openMenu = ()=>{ 
+        menu.classList.remove('hidden'); 
+        toggle.setAttribute('aria-expanded','true'); 
+      };
+      
+      toggle.addEventListener('click',(e)=>{ 
+        e.stopPropagation(); 
+        if(menu.classList.contains('hidden')) openMenu(); 
+        else closeMenu(); 
+      });
+      
+      document.addEventListener('click',(e)=>{ 
+        if(menu.classList.contains('hidden')) return; 
+        if(toggle.contains(e.target) || menu.contains(e.target)) return; 
+        closeMenu(); 
+      });
+      
+      document.addEventListener('keydown',(e)=>{ 
+        if(e.key==='Escape') closeMenu(); 
+      });
+    }
+
+    function greet(){
+      const prof = getProfile();
+      const nameRaw = (prof.nama || prof.username || 'Pengguna').trim();
+      const name = nameRaw || 'Pengguna';
+      const parts = name.split(/\s+/).filter(Boolean);
+      const shortName = parts.slice(0,2).join(' ') || name;
+      const role = ((prof.role||'')||'').toString().trim().toUpperCase() || 'USER';
+      
+      const nameEl = document.getElementById('profileName'); 
+      const roleEl = document.getElementById('profileRole');
+      const fullNameEl = document.getElementById('profileFullName'); 
+      const fullRoleEl = document.getElementById('profileFullRole');
+      const initialEl = document.getElementById('profileInitial');
+      
+      if(nameEl) nameEl.textContent = shortName; 
+      if(roleEl) roleEl.textContent = role;
+      if(fullNameEl) fullNameEl.textContent = name; 
+      if(fullRoleEl) fullRoleEl.textContent = role;
+      if(initialEl) initialEl.textContent = (shortName[0]||'U').toUpperCase();
+    }
+
+    // Burger Menu Setup
+    function setupBurger(){
+      const burgerBtn = document.getElementById('burgerBtn');
+      const burgerIcon = document.getElementById('burgerIcon');
+      const closeIcon = document.getElementById('closeIcon');
+      const mobile = document.getElementById('mobileMenu');
+      
+      if(!burgerBtn || !mobile) return;
+      
+      burgerBtn.setAttribute('aria-controls', 'mobileMenu');
+      burgerBtn.setAttribute('aria-expanded', 'false');
+      
+      const open = ()=>{
+        mobile.classList.remove('hidden');
+        burgerBtn.setAttribute('aria-expanded','true');
+        if(burgerIcon) burgerIcon.classList.add('hidden');
+        if(closeIcon) closeIcon.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      };
+      
+      const close = ()=>{
+        mobile.classList.add('hidden');
+        burgerBtn.setAttribute('aria-expanded','false');
+        if(burgerIcon) burgerIcon.classList.remove('hidden');
+        if(closeIcon) closeIcon.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      };
+      
+      burgerBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        const wasHidden = mobile.classList.contains('hidden');
+        if(wasHidden) open(); 
+        else close();
+      });
+      
+      document.addEventListener('click', (ev)=>{
+        if(mobile.classList.contains('hidden')) return;
+        if(burgerBtn.contains(ev.target) || mobile.contains(ev.target)) return;
+        close();
+      });
+      
+      document.addEventListener('keydown', (ev)=>{ 
+        if(ev.key === 'Escape') close(); 
+      });
+    }
+
+    // Show/Hide Skeleton Loading
+    function showSkeleton(show){
+      const skeleton = document.getElementById('skeletonLoader');
+      const content = document.getElementById('actualContent');
+      if(skeleton && content){
+        if(show){
+          skeleton.classList.remove('content-hidden');
+          content.classList.add('content-hidden');
+        } else {
+          skeleton.classList.add('content-hidden');
+          content.classList.remove('content-hidden');
+        }
+      }
+    }
+
+    // Data Loading Functions
+    async function loadAllData(){
+      try{
+        showSkeleton(true); // Show skeleton instead of loading overlay
+        const token = localStorage.getItem('auth_token');
+        
+        if(!token){
+          showSkeleton(false);
+          throw new Error('Token tidak ditemukan. Silakan login kembali.');
+        }
+        
+        console.log('Loading all students from PESERTA...'); // Debug
+        
+        // SECURITY: Load all students directly from PESERTA endpoint WITH TOKEN (required for authentication)
+        const pesertaResp = await jsonp(`${BASE}?dataset=peserta&route=all&token=${encodeURIComponent(token)}`);
+        
+        console.log('Peserta all response:', pesertaResp); // Debug
+        
+        if(!pesertaResp || !pesertaResp.ok){
+          throw new Error(pesertaResp?.error || 'Gagal memuat data peserta');
+        }
+        
+        // Map peserta data to users format (now includes username from USERS sheet)
+        const users = (pesertaResp.data || []).map(row => ({
+          username: row.username || row.siswa, // Use actual username from USERS, fallback to siswa
+          nama: row.siswa,
+          kelas: row.kelas || '',
+          mitra: row.mitra || '',
+          role: 'siswa'
+        }));
+        
+        console.log('Total students loaded:', users.length); // Debug
+        
+        // Load all uploads data
+        console.log('Loading uploads data...'); // Debug
+        const uploadsResp = await jsonp(`${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`);
+        
+        console.log('Uploads response:', uploadsResp); // Debug
+        
+        const uploads = (uploadsResp && uploadsResp.ok && Array.isArray(uploadsResp.data)) ? uploadsResp.data : [];
+        
+        console.log('Total uploads:', uploads.length); // Debug
+        
+        // Debug: Show sample of students and uploads for matching verification
+        if(users.length > 0){
+          console.log('=== STUDENTS DATA ===');
+          console.log('Total students:', users.length);
+          console.log('Sample students:', users.slice(0, 5).map(u => ({
+            username: u.username,
+            nama: u.nama,
+            normalized: normalizeName(u.nama || u.username),
+            kelas: u.kelas,
+            mitra: u.mitra
+          })));
+        }
+        if(uploads.length > 0){
+          console.log('=== UPLOADS DATA ===');
+          console.log('Total uploads:', uploads.length);
+          console.log('Sample uploads (first 10):', uploads.slice(0, 10).map(u => ({
+            username: u.username,
+            nama: u.nama,
+            normalizedUser: normalizeName(u.username || u.nama),
+            normalizedNama: normalizeName(u.nama || u.username),
+            category: u.category,
+            categoryLower: (u.category||'').toLowerCase(),
+            fileName: u.fileName
+          })));
+          
+          console.log('=== UPLOADS COUNT BY STUDENT ===');
+          const uploadsByStudent = {};
+          uploads.forEach(u => {
+            const key = normalizeName(u.nama || u.username);
+            if(!uploadsByStudent[key]) uploadsByStudent[key] = { original: u.nama || u.username, pkl: 0, ukk: 0, files: [] };
+            const cat = (u.category||'').toLowerCase().trim();
+            if(cat === 'pkl') uploadsByStudent[key].pkl++;
+            if(cat === 'ukk') uploadsByStudent[key].ukk++;
+            uploadsByStudent[key].files.push({ category: cat, file: u.fileName });
+          });
+          console.log(uploadsByStudent);
+        }
+        
+        // Set global variables
+        ALL_USERS = users;
+        ALL_UPLOADS = uploads;
+        
+        // Build combined data
+        buildCombinedData();
+        populateFilters();
+        updateStatistics();
+        renderTable();
+        
+        showSkeleton(false); // Hide skeleton and show actual content
+      }catch(e){
+        console.error('Error loading data:', e);
+        showSkeleton(false); // Hide skeleton on error
+        toast('err', 'Gagal memuat data: ' + (e.message || 'Unknown error'));
+        
+        // Show error in table
+        const tbody = document.getElementById('monitoringTableBody');
+        if(tbody){
+          tbody.innerHTML = `<tr><td colspan="9" class="monitoring-td text-center text-red-600">
+            <div class="py-8">
+              <i data-lucide="alert-circle" class="w-12 h-12 mx-auto mb-2"></i>
+              <div class="font-semibold">Gagal Memuat Data</div>
+              <div class="text-sm mt-1">${e.message || 'Terjadi kesalahan saat memuat data'}</div>
+              <div class="text-xs mt-2 text-slate-500">Pastikan Anda sudah login dan memiliki akses sebagai guru</div>
+            </div>
+          </td></tr>`;
+          if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+            window.lucide.createIcons(); 
+          }
+        }
+        
+        showLoading(false);
+      }
+    }
+
+    // Helper function to normalize names for matching
+    function normalizeName(name){
+      if(!name) return '';
+      return String(name).trim().replace(/\s+/g, ' ').toLowerCase();
+    }
+
+    function buildCombinedData(){
+      console.log('Building combined data for', ALL_USERS.length, 'students with', ALL_UPLOADS.length, 'uploads'); // Debug
+      
+      FILTERED_DATA = ALL_USERS.map(user => {
+        const username = user.username || user.nama;
+        const nama = user.nama || user.username;
+        
+        // Normalize for matching
+        const normalizedUsername = normalizeName(username);
+        const normalizedNama = normalizeName(nama);
+        
+        // Match uploads by multiple criteria for better accuracy
+        const userUploads = ALL_UPLOADS.filter(u => {
+          const uploadUser = normalizeName(u.username || u.nama || '');
+          const uploadNama = normalizeName(u.nama || u.username || '');
+          
+          // Try to match by username or nama (normalized, case-insensitive, trim spaces)
+          return uploadUser === normalizedUsername || 
+                 uploadUser === normalizedNama ||
+                 uploadNama === normalizedUsername ||
+                 uploadNama === normalizedNama;
+        });
+        
+        // Filter by category (handle case-insensitive and trim)
+        const pklUploads = userUploads.filter(u => {
+          const cat = (u.category || '').toString().trim().toLowerCase();
+          return cat === 'pkl';
+        });
+        const ukkUploads = userUploads.filter(u => {
+          const cat = (u.category || '').toString().trim().toLowerCase();
+          return cat === 'ukk';
+        });
+        
+        const hasPKL = pklUploads.length > 0;
+        const hasUKK = ukkUploads.length > 0;
+        
+        let overallStatus = 'none';
+        if(hasPKL && hasUKK) overallStatus = 'complete';
+        else if(hasPKL || hasUKK) overallStatus = 'partial';
+        
+        // Debug matching for ALL students (to see why some don't match)
+        if(userUploads.length > 0){
+          console.log(`✓ Matched ${userUploads.length} uploads for "${nama}":`, {
+            student: { username, nama, normalizedUsername, normalizedNama },
+            uploads: userUploads.map(u => ({
+              username: u.username,
+              nama: u.nama,
+              category: u.category,
+              categoryLower: (u.category||'').toLowerCase(),
+              fileName: u.fileName
+            })),
+            pklCount: pklUploads.length,
+            ukkCount: ukkUploads.length
+          });
+        } else {
+          // Check if there are uploads that might match but didn't
+          const potentialMatches = ALL_UPLOADS.filter(u => {
+            const uploadUser = (u.username || u.nama || '').toLowerCase();
+            const uploadNama = (u.nama || u.username || '').toLowerCase();
+            return uploadUser.includes(nama.toLowerCase()) || uploadNama.includes(nama.toLowerCase());
+          });
+          if(potentialMatches.length > 0){
+            console.warn(`✗ No exact match but found potential for "${nama}":`, potentialMatches.map(u => ({
+              username: u.username,
+              nama: u.nama,
+              normalizedUser: normalizeName(u.username || u.nama),
+              normalizedNama: normalizeName(u.nama || u.username)
+            })));
+          }
+        }
+        
+        return {
+          username: username,
+          nama: nama,
+          kelas: user.kelas || '',
+          mitra: user.mitra || '',
+          pklStatus: hasPKL,
+          ukkStatus: hasUKK,
+          overallStatus: overallStatus,
+          pklFiles: pklUploads,
+          ukkFiles: ukkUploads,
+          phone: user.phone || user.wa || ''
+        };
+      });
+    }
+
+    function populateFilters(){
+      const kelasSet = new Set();
+      const mitraSet = new Set();
+      
+      FILTERED_DATA.forEach(item => {
+        if(item.kelas) kelasSet.add(item.kelas);
+        if(item.mitra) mitraSet.add(item.mitra);
+      });
+      
+      const kelasSelect = document.getElementById('filterKelas');
+      const mitraSelect = document.getElementById('filterMitra');
+      
+      if(kelasSelect){
+        Array.from(kelasSet).sort().forEach(kelas => {
+          const opt = document.createElement('option');
+          opt.value = kelas;
+          opt.textContent = kelas;
+          kelasSelect.appendChild(opt);
+        });
+      }
+      
+      if(mitraSelect){
+        Array.from(mitraSet).sort().forEach(mitra => {
+          const opt = document.createElement('option');
+          opt.value = mitra;
+          opt.textContent = mitra;
+          mitraSelect.appendChild(opt);
+        });
+      }
+    }
+
+    function updateStatistics(){
+      const total = FILTERED_DATA.length;
+      const complete = FILTERED_DATA.filter(d => d.overallStatus === 'complete').length;
+      const partial = FILTERED_DATA.filter(d => d.overallStatus === 'partial').length;
+      const none = FILTERED_DATA.filter(d => d.overallStatus === 'none').length;
+      
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-complete').textContent = complete;
+      document.getElementById('stat-partial').textContent = partial;
+      document.getElementById('stat-none').textContent = none;
+    }
+
+    function applyFilters(){
+      const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase();
+      const kelasFilter = document.getElementById('filterKelas').value;
+      const mitraFilter = document.getElementById('filterMitra').value;
+      const statusFilter = document.getElementById('filterStatus').value;
+      
+      // Rebuild from ALL_USERS (same logic as buildCombinedData with better matching)
+      let filtered = ALL_USERS.map(user => {
+        const username = user.username || user.nama;
+        const nama = user.nama || user.username;
+        
+        // Normalize for matching
+        const normalizedUsername = normalizeName(username);
+        const normalizedNama = normalizeName(nama);
+        
+        // Match uploads by multiple criteria for better accuracy
+        const userUploads = ALL_UPLOADS.filter(u => {
+          const uploadUser = normalizeName(u.username || u.nama || '');
+          const uploadNama = normalizeName(u.nama || u.username || '');
+          
+          // Try to match by username or nama (normalized, case-insensitive, trim spaces)
+          return uploadUser === normalizedUsername || 
+                 uploadUser === normalizedNama ||
+                 uploadNama === normalizedUsername ||
+                 uploadNama === normalizedNama;
+        });
+        
+        // Filter by category (handle case-insensitive and trim)
+        const pklUploads = userUploads.filter(u => {
+          const cat = (u.category || '').toString().trim().toLowerCase();
+          return cat === 'pkl';
+        });
+        const ukkUploads = userUploads.filter(u => {
+          const cat = (u.category || '').toString().trim().toLowerCase();
+          return cat === 'ukk';
+        });
+        
+        const hasPKL = pklUploads.length > 0;
+        const hasUKK = ukkUploads.length > 0;
+        
+        let overallStatus = 'none';
+        if(hasPKL && hasUKK) overallStatus = 'complete';
+        else if(hasPKL || hasUKK) overallStatus = 'partial';
+        
+        return {
+          username: username,
+          nama: nama,
+          kelas: user.kelas || '',
+          mitra: user.mitra || '',
+          pklStatus: hasPKL,
+          ukkStatus: hasUKK,
+          overallStatus: overallStatus,
+          pklFiles: pklUploads,
+          ukkFiles: ukkUploads,
+          phone: user.phone || user.wa || ''
+        };
+      });
+      
+      // Apply search filter
+      if(searchTerm){
+        filtered = filtered.filter(item => 
+          (item.nama||'').toLowerCase().includes(searchTerm) ||
+          (item.username||'').toLowerCase().includes(searchTerm) ||
+          (item.kelas||'').toLowerCase().includes(searchTerm) ||
+          (item.mitra||'').toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Apply kelas filter
+      if(kelasFilter){
+        filtered = filtered.filter(item => item.kelas === kelasFilter);
+      }
+      
+      // Apply mitra filter
+      if(mitraFilter){
+        filtered = filtered.filter(item => item.mitra === mitraFilter);
+      }
+      
+      // Apply status filter
+      if(statusFilter){
+        filtered = filtered.filter(item => item.overallStatus === statusFilter);
+      }
+      
+      FILTERED_DATA = filtered;
+      currentPage = 1;
+      renderTable();
+    }
+
+    function resetFilters(){
+      document.getElementById('searchInput').value = '';
+      document.getElementById('filterKelas').value = '';
+      document.getElementById('filterMitra').value = '';
+      document.getElementById('filterStatus').value = '';
+      buildCombinedData();
+      currentPage = 1;
+      renderTable();
+    }
+
+    function renderTable(){
+      const tbody = document.getElementById('monitoringTableBody');
+      if(!tbody) return;
+      
+      tbody.innerHTML = '';
+      
+      if(FILTERED_DATA.length === 0){
+        tbody.innerHTML = '<tr><td colspan="9" class="monitoring-td text-center text-slate-500">Tidak ada data</td></tr>';
+        document.getElementById('tableInfo').textContent = 'Menampilkan 0 dari 0 siswa';
+        return;
+      }
+      
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const pageData = FILTERED_DATA.slice(start, end);
+      
+      pageData.forEach((item, index) => {
+        const rowNum = start + index + 1;
+        const tr = document.createElement('tr');
+        
+        const pklBadge = item.pklStatus ? 
+          '<span class="status-badge status-uploaded">✓ Sudah</span>' :
+          '<span class="status-badge status-not-uploaded">✗ Belum</span>';
+          
+        const ukkBadge = item.ukkStatus ? 
+          '<span class="status-badge status-uploaded">✓ Sudah</span>' :
+          '<span class="status-badge status-not-uploaded">✗ Belum</span>';
+          
+        let overallBadge = '';
+        if(item.overallStatus === 'complete'){
+          overallBadge = '<span class="status-badge status-uploaded">✓ Lengkap</span>';
+        } else if(item.overallStatus === 'partial'){
+          overallBadge = '<span class="status-badge status-partial">◐ Sebagian</span>';
+        } else {
+          overallBadge = '<span class="status-badge status-not-uploaded">✗ Belum</span>';
+        }
+        
+        let actionButtons = '<div class="flex gap-1">';
+        
+        // View files button (only if has uploads)
+        if(item.pklFiles.length > 0 || item.ukkFiles.length > 0){
+          actionButtons += `<button class="action-btn view" onclick="viewFiles('${item.username}')" title="Lihat file"><i data-lucide="eye" class="w-3 h-3"></i></button>`;
+        }
+        
+        // Send notification button (smart - based on missing uploads)
+        if(!item.pklStatus && !item.ukkStatus){
+          // Both missing
+          actionButtons += `<button class="action-btn whatsapp" onclick="sendNotification('${item.username}', 'both')" title="Kirim notif untuk PKL & UKK"><i data-lucide="bell" class="w-3 h-3"></i></button>`;
+        } else if(!item.pklStatus){
+          // Only PKL missing
+          actionButtons += `<button class="action-btn whatsapp" onclick="sendNotification('${item.username}', 'pkl')" title="Kirim notif untuk PKL"><i data-lucide="bell" class="w-3 h-3"></i> PKL</button>`;
+        } else if(!item.ukkStatus){
+          // Only UKK missing
+          actionButtons += `<button class="action-btn whatsapp" onclick="sendNotification('${item.username}', 'ukk')" title="Kirim notif untuk UKK"><i data-lucide="bell" class="w-3 h-3"></i> UKK</button>`;
+        }
+        
+        actionButtons += '</div>';
+        
+        tr.innerHTML = `
+          <td class="monitoring-td" data-label="No">${rowNum}</td>
+          <td class="monitoring-td" data-label="Username"><span style="font-family:monospace; font-size:12px; color:#64748b;">${item.username}</span></td>
+          <td class="monitoring-td" data-label="Nama Siswa">${item.nama}</td>
+          <td class="monitoring-td" data-label="Kelas">${item.kelas}</td>
+          <td class="monitoring-td" data-label="Mitra">${item.mitra}</td>
+          <td class="monitoring-td" data-label="Status PKL">${pklBadge}</td>
+          <td class="monitoring-td" data-label="Status UKK">${ukkBadge}</td>
+          <td class="monitoring-td" data-label="Status Keseluruhan">${overallBadge}</td>
+          <td class="monitoring-td" data-label="Aksi">${actionButtons}</td>
+        `;
+        
+        tbody.appendChild(tr);
+      });
+      
+      // Update table info
+      const totalItems = FILTERED_DATA.length;
+      const showingEnd = Math.min(end, totalItems);
+      document.getElementById('tableInfo').textContent = 
+        `Menampilkan ${start + 1}-${showingEnd} dari ${totalItems} siswa`;
+      
+      // Render pagination
+      renderPagination();
+      
+      // Re-init Lucide icons
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+        window.lucide.createIcons(); 
+      }
+    }
+
+    function renderPagination(){
+      const pagination = document.getElementById('pagination');
+      if(!pagination) return;
+      
+      pagination.innerHTML = '';
+      
+      const totalPages = Math.ceil(FILTERED_DATA.length / ITEMS_PER_PAGE);
+      if(totalPages <= 1) return;
+      
+      // Previous button
+      const prevBtn = document.createElement('button');
+      prevBtn.innerHTML = '<i data-lucide="chevron-left" class="w-4 h-4"></i>';
+      prevBtn.className = 'px-3 py-1 rounded-lg border ' + 
+        (currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100');
+      prevBtn.disabled = currentPage === 1;
+      prevBtn.onclick = () => {
+        if(currentPage > 1){
+          currentPage--;
+          renderTable();
+        }
+      };
+      pagination.appendChild(prevBtn);
+      
+      // Page numbers (show max 5)
+      const maxButtons = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+      let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+      
+      if(endPage - startPage < maxButtons - 1){
+        startPage = Math.max(1, endPage - maxButtons + 1);
+      }
+      
+      for(let i = startPage; i <= endPage; i++){
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        pageBtn.className = 'px-3 py-1 rounded-lg border ' + 
+          (i === currentPage ? 'bg-blue-600 text-white' : 'hover:bg-slate-100');
+        pageBtn.onclick = () => {
+          currentPage = i;
+          renderTable();
+        };
+        pagination.appendChild(pageBtn);
+      }
+      
+      // Next button
+      const nextBtn = document.createElement('button');
+      nextBtn.innerHTML = '<i data-lucide="chevron-right" class="w-4 h-4"></i>';
+      nextBtn.className = 'px-3 py-1 rounded-lg border ' + 
+        (currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-100');
+      nextBtn.disabled = currentPage === totalPages;
+      nextBtn.onclick = () => {
+        if(currentPage < totalPages){
+          currentPage++;
+          renderTable();
+        }
+      };
+      pagination.appendChild(nextBtn);
+      
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+        window.lucide.createIcons(); 
+      }
+    }
+
+    // View files function - using modal
+    window.viewFiles = function(username){
+      const item = FILTERED_DATA.find(d => d.username === username);
+      if(!item) return;
+      
+      // Update modal title
+      const titleEl = document.getElementById('modalStudentName');
+      if(titleEl){
+        titleEl.textContent = `File Upload - ${item.nama}`;
+      }
+      
+      // Build file list
+      const fileListEl = document.getElementById('modalFileList');
+      if(!fileListEl) return;
+      
+      let html = '';
+      
+      if(item.pklFiles.length > 0){
+        html += '<div style="margin-bottom:20px"><h4 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:12px">📄 Laporan PKL</h4>';
+        item.pklFiles.forEach((f, i) => {
+          html += `
+            <div class="file-item">
+              <div class="file-icon">
+                <i data-lucide="file-text" class="w-5 h-5 text-blue-600"></i>
+              </div>
+              <div class="file-info">
+                <div class="file-name">${f.fileName}</div>
+                <div class="file-meta">${f.timestamp}</div>
+              </div>
+              <a href="https://drive.google.com/file/d/${f.fileId}/view" target="_blank" class="file-link">
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+                Buka
+              </a>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      if(item.ukkFiles.length > 0){
+        html += '<div><h4 style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:12px">📸 Dokumentasi UKK</h4>';
+        item.ukkFiles.forEach((f, i) => {
+          html += `
+            <div class="file-item">
+              <div class="file-icon">
+                <i data-lucide="image" class="w-5 h-5 text-blue-600"></i>
+              </div>
+              <div class="file-info">
+                <div class="file-name">${f.fileName}</div>
+                <div class="file-meta">${f.timestamp}</div>
+              </div>
+              <a href="https://drive.google.com/file/d/${f.fileId}/view" target="_blank" class="file-link">
+                <i data-lucide="external-link" class="w-3 h-3"></i>
+                Buka
+              </a>
+            </div>
+          `;
+        });
+        html += '</div>';
+      }
+      
+      if(item.pklFiles.length === 0 && item.ukkFiles.length === 0){
+        html = '<div style="text-align:center; padding:40px 20px; color:#94a3b8"><i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i><div style="font-size:14px">Belum ada file yang diupload</div></div>';
+      }
+      
+      fileListEl.innerHTML = html;
+      
+      // Show modal
+      const modal = document.getElementById('filesModal');
+      if(modal){
+        modal.classList.add('active');
+      }
+      
+      // Reinitialize lucide icons
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+        window.lucide.createIcons(); 
+      }
+    };
+
+    // Export to CSV
+    function exportToCSV(){
+      const headers = ['No', 'Username', 'Nama Siswa', 'Kelas', 'Mitra', 'Status PKL', 'Status UKK', 'Status Keseluruhan'];
+      const rows = FILTERED_DATA.map((item, index) => [
+        index + 1,
+        item.username,
+        item.nama,
+        item.kelas,
+        item.mitra,
+        item.pklStatus ? 'Sudah Upload' : 'Belum Upload',
+        item.ukkStatus ? 'Sudah Upload' : 'Belum Upload',
+        item.overallStatus === 'complete' ? 'Lengkap' : 
+          (item.overallStatus === 'partial' ? 'Sebagian' : 'Belum Ada')
+      ]);
+      
+      let csv = headers.join(',') + '\n';
+      rows.forEach(row => {
+        csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+      });
+      
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `monitoring-upload-${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast('ok', 'Data berhasil diexport ke CSV');
+    }
+
+    // Send notification to student via WhatsApp
+    window.sendNotification = async function(username, category){
+      const item = FILTERED_DATA.find(d => d.username === username);
+      if(!item) {
+        toast('err', 'Data siswa tidak ditemukan');
+        return;
+      }
+      
+      // Confirm before sending using modal
+      const categoryText = category === 'pkl' ? 'Laporan PKL' : 
+                          (category === 'ukk' ? 'Dokumentasi UKK' : 'PKL & UKK');
+      
+      showConfirmModal(
+        'Kirim Notifikasi WhatsApp',
+        `Apakah Anda yakin ingin mengirim notifikasi ke ${item.nama} untuk mengingatkan upload ${categoryText}?`,
+        async function(){
+          showLoading(true);
+          
+          try{
+            const token = localStorage.getItem('auth_token');
+            if(!token){
+              throw new Error('Token tidak ditemukan');
+            }
+            
+            // Send POST request
+            console.log('Sending notification for:', {
+              username: username,
+              nama: item.nama,
+              category: category
+            });
+            
+            const formData = new FormData();
+            formData.append('action', 'notify_student');
+            formData.append('token', token);
+            formData.append('username', username);
+            formData.append('category', category);
+            
+            const response = await fetch(BASE, {
+              method: 'POST',
+              body: formData
+            });
+            
+            const result = await response.json();
+            
+            console.log('Notification response:', result);
+            
+            if(result.ok){
+              toast('ok', result.message || 'Notifikasi berhasil dikirim');
+            } else {
+              throw new Error(result.error || 'Gagal mengirim notifikasi');
+            }
+            
+          }catch(e){
+            console.error('Error sending notification:', e);
+            toast('err', 'Gagal mengirim notifikasi: ' + (e.message || 'Unknown error'));
+          }finally{
+            showLoading(false);
+          }
+        }
+      );
+    };
+
+    // Initialize
+    function init(){
+      setupProfileMenu();
+      setupBurger();
+      
+      // Check if BASE URL is configured
+      if(!BASE || BASE.includes('REPLACE_')){
+        toast('err', 'Konfigurasi BASE_URL belum diset di config.js');
+        const tbody = document.getElementById('monitoringTableBody');
+        if(tbody){
+          tbody.innerHTML = `<tr><td colspan="9" class="monitoring-td text-center text-red-600">
+            <div class="py-8">
+              <i data-lucide="alert-circle" class="w-12 h-12 mx-auto mb-2"></i>
+              <div class="font-semibold">Konfigurasi Belum Lengkap</div>
+              <div class="text-sm mt-1">BASE_URL belum dikonfigurasi di config.js</div>
+            </div>
+          </td></tr>`;
+          if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+            window.lucide.createIcons(); 
+          }
+        }
+        return;
+      }
+      
+      console.log('BASE URL:', BASE); // Debug log
+      
+      const token = requireGuru();
+      if(!token) return;
+      
+      // Render from cache first
+      try{ 
+        const cached = JSON.parse(localStorage.getItem('auth_profile')||'null'); 
+        if(cached) CURRENT_PROFILE = cached; 
+      }catch(e){ 
+        CURRENT_PROFILE = null; 
+      }
+      
+      greet();
+      
+      // Show skeleton loading initially
+      showSkeleton(true);
+      
+      loadAllData();
+      
+      // Background validation
+      (async ()=>{
+        try{
+          const profile = await fetchServerProfile(token);
+          if(!profile){ 
+            localStorage.removeItem('auth_token'); 
+            localStorage.removeItem('auth_profile'); 
+            CURRENT_PROFILE = null; 
+            toast('err','Sesi tidak valid. Mengarahkan ke login...'); 
+            setTimeout(()=> location.href='login.html?to='+encodeURIComponent('monitoring-guru.html'),1200); 
+            return; 
+          }
+          
+          if((profile.role||'').toLowerCase() !== 'guru'){ 
+            toast('err','Anda tidak memiliki akses ke halaman ini.'); 
+            setTimeout(()=> location.href='dashboard.html',800); 
+            return; 
+          }
+          
+          CURRENT_PROFILE = profile; 
+          try{ localStorage.setItem('auth_profile', JSON.stringify(profile)); }catch(_){};
+          greet();
+        }catch(e){ 
+          console.warn('Background validation failed', e && e.message); 
+        }
+      })();
+      
+      // Setup event listeners
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
+      document.getElementById('filterKelas').addEventListener('change', applyFilters);
+      document.getElementById('filterMitra').addEventListener('change', applyFilters);
+      document.getElementById('filterStatus').addEventListener('change', applyFilters);
+      document.getElementById('resetFilter').addEventListener('click', resetFilters);
+      document.getElementById('exportBtn').addEventListener('click', exportToCSV);
+      
+      // Init Lucide icons
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+        window.lucide.createIcons(); 
+      }
+    }
+
+    if(document.readyState === 'loading'){ 
+      document.addEventListener('DOMContentLoaded', init); 
+    } else { 
+      init(); 
+    }
+
+    // Set year in footer
+    try{ 
+      var yEl=document.getElementById('year'); 
+      if(yEl){ yEl.textContent = new Date().getFullYear(); } 
+    }catch(e){}
+  </script>
+
+  <!-- Modal for viewing files -->
+  <div id="filesModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalStudentName" class="modal-title">File Upload</h3>
+        <button class="modal-close" onclick="closeFilesModal()">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modalFileList" class="file-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for confirmation -->
+  <div id="confirmModal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 400px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Konfirmasi</h3>
+        <button class="modal-close" onclick="closeConfirmModal()">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; gap:12px; align-items:start; margin-bottom:20px;">
+          <div style="width:48px; height:48px; border-radius:12px; background:#fef3c7; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+            <i data-lucide="bell" class="w-6 h-6" style="color:#f59e0b;"></i>
+          </div>
+          <div style="flex:1;">
+            <h4 id="confirmTitle" style="font-size:16px; font-weight:700; color:#0f172a; margin-bottom:8px;">Kirim Notifikasi</h4>
+            <p id="confirmMessage" style="font-size:14px; color:#64748b; line-height:1.5;"></p>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end;">
+          <button onclick="closeConfirmModal()" style="padding:8px 16px; border:1px solid #cbd5e1; background:white; border-radius:8px; font-size:14px; font-weight:600; color:#475569; cursor:pointer;">
+            Batal
+          </button>
+          <button id="confirmButton" onclick="handleConfirm()" style="padding:8px 16px; border:none; background:#10b981; border-radius:8px; font-size:14px; font-weight:600; color:white; cursor:pointer;">
+            <i data-lucide="send" class="w-4 h-4" style="display:inline-block; vertical-align:middle; margin-right:4px;"></i>
+            Kirim
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Modal functions
+    function closeFilesModal(){
+      const modal = document.getElementById('filesModal');
+      if(modal){
+        modal.classList.remove('active');
+      }
+    }
+
+    function closeConfirmModal(){
+      const modal = document.getElementById('confirmModal');
+      if(modal){
+        modal.classList.remove('active');
+      }
+    }
+
+    // Close modals when clicking outside
+    document.getElementById('filesModal')?.addEventListener('click', function(e){
+      if(e.target === this){
+        closeFilesModal();
+      }
+    });
+
+    document.getElementById('confirmModal')?.addEventListener('click', function(e){
+      if(e.target === this){
+        closeConfirmModal();
+      }
+    });
+
+    // Global confirmation callback
+    let confirmCallback = null;
+
+    function showConfirmModal(title, message, onConfirm){
+      const modal = document.getElementById('confirmModal');
+      const titleEl = document.getElementById('confirmTitle');
+      const messageEl = document.getElementById('confirmMessage');
+      
+      if(titleEl) titleEl.textContent = title;
+      if(messageEl) messageEl.textContent = message;
+      
+      confirmCallback = onConfirm;
+      
+      if(modal){
+        modal.classList.add('active');
+      }
+      
+      // Reinitialize lucide icons
+      if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+        window.lucide.createIcons(); 
+      }
+    }
+
+    function handleConfirm(){
+      closeConfirmModal();
+      if(confirmCallback && typeof confirmCallback === 'function'){
+        confirmCallback();
+      }
+      confirmCallback = null;
+    }
+
+    // Initialize lucide icons for modals
+    if(window.lucide && typeof window.lucide.createIcons === 'function'){ 
+      window.lucide.createIcons(); 
+    }
+  </script>
+</body>
+</html>

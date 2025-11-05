@@ -781,6 +781,41 @@ function peserta_meta() {
   return { ok: true, route: 'meta', updatedAt: _now(), meta: { mitra: Array.from(mitraSet).sort() } };
 }
 
+function peserta_all() {
+  const { header, rows } = _readRowsGeneric(SHEET_PESERTA);
+  const need = ['mitra', 'siswa', 'kelas'];
+  const miss = need.filter(k => !header.includes(k));
+  if (miss.length) throw new Error('Header PESERTA wajib: ' + miss.join(', '));
+  
+  // Get USERS data to match username with nama
+  const usersData = _readRowsGeneric(SHEET_USERS);
+  
+  // Create a map of nama -> username for quick lookup
+  const namaToUsername = {};
+  usersData.rows.forEach(u => {
+    const nama = _norm(u.nama || '').toLowerCase();
+    const username = u.username || '';
+    if(nama && username) {
+      namaToUsername[nama] = username;
+    }
+  });
+  
+  const data = rows.map(r => {
+    const siswa = r.siswa;
+    const normalizedSiswa = _norm(siswa || '').toLowerCase();
+    const username = namaToUsername[normalizedSiswa] || siswa; // Fallback to siswa if username not found
+    
+    return { 
+      mitra: r.mitra, 
+      siswa: siswa, 
+      username: username, // Add username field
+      kelas: r.kelas 
+    };
+  });
+  
+  return { ok: true, route: 'all', updatedAt: _now(), count: data.length, data };
+}
+
 function peserta_by_mitra(mitra) {
   const { header, rows } = _readRowsGeneric(SHEET_PESERTA);
   const data = rows.filter(r => r.mitra === mitra)
@@ -1004,9 +1039,40 @@ function doGet(e) {
 
     // PESERTA
     if(dataset === 'peserta'){
-      if(p.route === 'meta') return _json(peserta_meta());
-      if(p.q)                return _json(peserta_search(p.q));
-      if(p.mitra)            return _json(peserta_by_mitra(p.mitra));
+      if(p.route === 'meta'){
+        const out = peserta_meta();
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.route === 'all'){
+        // SECURITY: Endpoint ini WAJIB autentikasi dan hanya untuk GURU
+        if(!p.token){
+          const outErr = { ok:false, error:'Token required' };
+          return p.callback ? _jsonp(outErr, p.callback) : _json(outErr);
+        }
+        
+        const sess = _auth_check(p.token);
+        if(!sess){
+          const outErr = { ok:false, error:'Invalid token' };
+          return p.callback ? _jsonp(outErr, p.callback) : _json(outErr);
+        }
+        
+        const role = (sess.profile.role || '').toString().toLowerCase();
+        if(role !== 'guru'){
+          const outErr = { ok:false, error:'Access denied. Guru only.' };
+          return p.callback ? _jsonp(outErr, p.callback) : _json(outErr);
+        }
+        
+        const out = peserta_all();
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.q){
+        const out = peserta_search(p.q);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      if(p.mitra){
+        const out = peserta_by_mitra(p.mitra);
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
       return _json({ok:false,error:'Parameter kurang untuk dataset=peserta.'});
     }
 
@@ -1110,6 +1176,75 @@ function doPost(e){
         const resp = HtmlService.createHtmlOutput(html);
         resp.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
         return resp;
+      }
+    } else if(action === 'notify_student'){
+      // SECURITY: Only GURU can send notifications
+      const sess = _auth_check(p.token);
+      if(!sess || (sess.profile.role||'').toLowerCase() !== 'guru') {
+        return _json({ ok:false, error:'Akses ditolak. Hanya guru yang dapat mengirim notifikasi.' });
+      }
+      
+      const username = _norm(p.username);
+      const category = _norm(p.category); // 'pkl' atau 'ukk'
+      
+      if(!username) {
+        return _json({ ok:false, error:'Username siswa tidak ditemukan' });
+      }
+      
+      try{
+        // SECURITY: Get student by username only (more secure)
+        const usersData = _readRowsGeneric(SHEET_USERS);
+        const student = usersData.rows.find(r => r.username === username);
+        
+        if(!student) {
+          // Log for debugging
+          Logger.log('Student not found. Username: ' + username);
+          Logger.log('Available usernames (first 10): ' + usersData.rows.slice(0, 10).map(r => r.username).join(', '));
+          return _json({ ok:false, error:'Siswa dengan username "' + username + '" tidak ditemukan. Pastikan username benar.' });
+        }
+        
+        const phone = student.no_hp || student.phone || student.nohp || '';
+        if(!phone) {
+          return _json({ ok:false, error:'Nomor HP untuk username "' + username + '" tidak tersedia. Silakan lengkapi data no_hp di sheet USERS.' });
+        }
+        
+        const studentName = student.nama || student.username || username;
+        
+        // Build message based on category
+        let message = `Yth. ${studentName},\n\n`;
+        
+        if(category === 'pkl') {
+          message += `Kami mengingatkan bahwa Anda belum mengunggah *Laporan PKL*.\n\n`;
+          message += `Silakan segera upload laporan PKL Anda melalui:\n`;
+          message += `https://pkl.kelastkj.online/\n\n`;
+          message += `Login menggunakan username dan password yang telah diberikan, kemudian pilih menu "Upload Dokumentasi".\n\n`;
+        } else if(category === 'ukk') {
+          message += `Kami mengingatkan bahwa Anda belum mengunggah *Dokumentasi UKK*.\n\n`;
+          message += `Silakan segera upload dokumentasi UKK Anda melalui:\n`;
+          message += `https://pkl.kelastkj.online/\n\n`;
+          message += `Login menggunakan username dan password yang telah diberikan, kemudian pilih menu "Upload Dokumentasi".\n\n`;
+        } else {
+          message += `Kami mengingatkan bahwa Anda belum melengkapi upload dokumentasi.\n\n`;
+          message += `Silakan segera upload laporan PKL dan dokumentasi UKK Anda melalui:\n`;
+          message += `https://pkl.kelastkj.online/\n\n`;
+          message += `Login menggunakan username dan password yang telah diberikan, kemudian pilih menu "Upload Dokumentasi".\n\n`;
+        }
+        
+        message += `Jika ada kendala, silakan hubungi pembimbing Anda.\n\n`;
+        message += `Terima kasih.`;
+        
+        // Send WhatsApp notification
+        const sent = _sendWhatsAppViaFonte(phone, message);
+        
+        if(sent) {
+          return _json({ ok:true, message: `Notifikasi berhasil dikirim ke ${studentName} (${phone})` });
+        } else {
+          return _json({ ok:false, error: 'Gagal mengirim notifikasi WhatsApp. Periksa konfigurasi Fonte API.' });
+        }
+        
+      }catch(e){
+        Logger.log('Error notify_student: ' + e.message);
+        return _json({ ok:false, error: 'Error: ' + e.message });
       }
     }
     return HtmlService.createHtmlOutput('<b>Unknown POST action</b>');
