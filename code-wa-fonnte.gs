@@ -945,7 +945,13 @@ function doGet(e) {
         out = { ok:true, route:'students', count:data.length, data };
         return p.callback ? _jsonp(out, p.callback) : _json(out);
       }
-      return _json({ ok:false, error:'Route tidak dikenal untuk dataset=uploads. Gunakan route=my atau route=students' });
+      if(route === 'all'){
+        // MONITORING: Show ALL uploads for monitoring page (guru only)
+        if(sess.profile.role !== 'guru') return _json({ ok:false, error:'Hanya guru yang dapat melihat monitoring' });
+        out = { ok:true, route:'all', count:rows.length, data: rows };
+        return p.callback ? _jsonp(out, p.callback) : _json(out);
+      }
+      return _json({ ok:false, error:'Route tidak dikenal untuk dataset=uploads. Gunakan route=my, route=students, atau route=all' });
     }
 
     // PENGUJI (BARU)

@@ -925,9 +925,9 @@
         
         console.log('Total students loaded:', users.length); // Debug
         
-        // Load all uploads data
-        console.log('Loading uploads data...'); // Debug
-        const uploadsResp = await jsonp(`${BASE}?dataset=uploads&route=students&token=${encodeURIComponent(token)}`);
+        // Load ALL uploads data for monitoring (no filter by guru)
+        console.log('Loading ALL uploads data for monitoring...'); // Debug
+        const uploadsResp = await jsonp(`${BASE}?dataset=uploads&route=all&token=${encodeURIComponent(token)}`);
         
         console.log('Uploads response:', uploadsResp); // Debug
         
