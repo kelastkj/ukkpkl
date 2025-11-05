@@ -43,6 +43,36 @@
     .toast .msg{ flex:1; font-size:13px; color:#0f172a; }
     .toast .close{ background:transparent; border:0; color:#475569; cursor:pointer; padding:6px; border-radius:8px; }
     .toast .icon{ width:20px; height:20px; flex:0 0 20px; }
+    
+    /* Skeleton Loading Styles */
+    .skeleton-wrapper { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .skeleton {
+      background: linear-gradient(90deg, #f0f4f8 0%, #e2e8f0 20%, #f0f4f8 40%, #f0f4f8 100%);
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite linear;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+    .skeleton::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+      animation: shimmerOverlay 2s infinite;
+    }
+    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @keyframes shimmerOverlay { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+    .skeleton-tabs { height: 40px; width: 200px; border-radius: 8px; margin-bottom: 16px; }
+    .skeleton-table-header { height: 48px; border-radius: 8px 8px 0 0; margin-bottom: 2px; }
+    .skeleton-table-row { height: 60px; margin-bottom: 2px; border-radius: 4px; }
+    .content-hidden { display: none !important; }
+    #actualContent:not(.content-hidden) { animation: fadeIn 0.5s ease-in-out; }
+    
     /* Loading overlay (match dashboard) */
     #loading{ position:fixed; inset:0; z-index:40; background:rgba(0,0,0,0.12); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center; }
     #loading.hidden{ display:none; }
@@ -120,6 +150,25 @@
       <p class="text-sm text-slate-600">Unggahan dari siswa yang Anda bimbing.</p>
     </header>
 
+    <!-- Skeleton Loading -->
+    <div id="skeletonLoader" class="skeleton-wrapper">
+      <div class="card p-5">
+        <div class="skeleton skeleton-tabs"></div>
+        <div class="border border-slate-200 rounded-lg overflow-hidden">
+          <div class="skeleton skeleton-table-header"></div>
+          <div class="p-3 space-y-2">
+            <div class="skeleton skeleton-table-row"></div>
+            <div class="skeleton skeleton-table-row"></div>
+            <div class="skeleton skeleton-table-row"></div>
+            <div class="skeleton skeleton-table-row"></div>
+            <div class="skeleton skeleton-table-row"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actual Content -->
+    <div id="actualContent" class="content-hidden">
     <section class="card p-5 space-y-4">
       <div class="flex items-center justify-between gap-3">
         <div class="tabs" role="tablist" aria-label="Kategori unggahan bimbingan">
@@ -164,6 +213,8 @@
         </div>
       </div>
     </section>
+    </div>
+    <!-- End Actual Content -->
   </main>
   </div>
 
@@ -218,6 +269,21 @@
       };
     })();
     function toast(type, text, opts){ if(window._toast) return window._toast(type, text, opts); }
+
+    // Show/Hide Skeleton Loading
+    function showSkeleton(show){
+      const skeleton = document.getElementById('skeletonLoader');
+      const content = document.getElementById('actualContent');
+      if(skeleton && content){
+        if(show){
+          skeleton.classList.remove('content-hidden');
+          content.classList.add('content-hidden');
+        } else {
+          skeleton.classList.add('content-hidden');
+          content.classList.remove('content-hidden');
+        }
+      }
+    }
 
     function showLoading(v){ const el = document.getElementById('loading'); if(!el) return; if(v) el.classList.remove('hidden'); else el.classList.add('hidden'); }
     function setAllDeleteButtonsDisabled(dis){ document.querySelectorAll('button[data-del]').forEach(b=>{ b.disabled = !!dis; b.classList.toggle('opacity-60', !!dis); b.classList.toggle('cursor-not-allowed', !!dis); }); }
@@ -370,6 +436,7 @@
 
     async function loadBimbingan(){
       try{
+        showSkeleton(true);
         const token = localStorage.getItem('auth_token');
         const guruName = getGuruName();
         const pb = await jsonp(`${BASE}?dataset=pembimbing&pembimbing=${encodeURIComponent(guruName)}`);
@@ -383,7 +450,9 @@
         renderGuruRows('guru-bm-tbody-pkl', bmPKL);
         renderGuruRows('guru-bm-tbody-ukk', bmUKK);
         setTabCounts(bmPKL.length, bmUKK.length);
+        showSkeleton(false);
       }catch(e){
+        showSkeleton(false);
         ['guru-bm-tbody-pkl','guru-bm-tbody-ukk'].forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML = `<tr><td colspan="7" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`; });
       }
     }
