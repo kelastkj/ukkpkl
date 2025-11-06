@@ -105,6 +105,57 @@
       localStorage.setItem('auth_token', resp.token);
       localStorage.setItem('auth_profile', JSON.stringify(resp.profile));
     }
+    
+    // Helper: JSONP with timeout and cleanup
+    function jsonpWithTimeout(url, timeoutMs = 8000){
+      return new Promise((resolve, reject) => {
+        const cb = 'cb_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+        const script = document.createElement('script');
+        let completed = false;
+        
+        // Timeout handler
+        const timeoutId = setTimeout(() => {
+          if(!completed){
+            completed = true;
+            cleanup();
+            reject(new Error('Timeout: Server tidak merespons dalam ' + (timeoutMs/1000) + ' detik'));
+          }
+        }, timeoutMs);
+        
+        // Success handler
+        window[cb] = (data) => {
+          if(!completed){
+            completed = true;
+            clearTimeout(timeoutId);
+            cleanup();
+            resolve(data);
+          }
+        };
+        
+        // Error handler
+        script.onerror = () => {
+          if(!completed){
+            completed = true;
+            clearTimeout(timeoutId);
+            cleanup();
+            reject(new Error('Gagal memuat dari server. Periksa koneksi internet Anda.'));
+          }
+        };
+        
+        // Cleanup function
+        function cleanup(){
+          try{
+            delete window[cb];
+            if(script.parentNode) script.parentNode.removeChild(script);
+          }catch(e){}
+        }
+        
+        // Add callback to URL
+        const separator = url.includes('?') ? '&' : '?';
+        script.src = url + separator + 'callback=' + cb;
+        document.body.appendChild(script);
+      });
+    }
 
     // Init icons
     if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
@@ -131,24 +182,33 @@
     (function(){
       const token = localStorage.getItem('auth_token');
       if(!token) return;
-      const cb = 'cb'+Math.random().toString(36).slice(2);
-      let redirected = false;
-      window[cb] = (resp)=>{
-        if(resp && resp.ok){
-          redirected = true;
-          location.href = to;
+      
+      let userInteracted = false;
+      
+      // Cancel auto-login if user starts typing
+      ['u', 'p'].forEach(id => {
+        const input = document.getElementById(id);
+        if(input){
+          input.addEventListener('input', () => { userInteracted = true; }, { once: true });
         }
-        delete window[cb];
-      };
-      // Call auth check via JSONP; backend should accept dataset=auth&route=check
-      const s = document.createElement('script');
-      s.src = `${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}&callback=${cb}`;
-      s.onerror = ()=>{
-        // If server unreachable, keep login page; user can relogin
-      };
-      document.body.appendChild(s);
-      // Fallback: if no response within 1500ms but token exists, proceed to dashboard
-      setTimeout(()=>{ if(!redirected){ location.href = to; } },1500);
+      });
+      
+      // Check token validity
+      (async () => {
+        try{
+          const resp = await jsonpWithTimeout(`${BASE}?dataset=auth&route=check&token=${encodeURIComponent(token)}`, 5000);
+          if(resp && resp.ok && !userInteracted){
+            location.href = to;
+          } else if(!resp || !resp.ok){
+            // Token invalid, clear it
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('auth_profile');
+          }
+        }catch(err){
+          // Server error or timeout, let user login manually
+          console.warn('Auto-login check failed:', err.message);
+        }
+      })();
     })();
 
     document.getElementById('form').addEventListener('submit', async (e)=>{
@@ -156,6 +216,7 @@
       const btn = document.getElementById('btnSubmit');
       const btnText = document.getElementById('btnText');
       const btnIcon = document.getElementById('btnIcon');
+      const errEl = document.getElementById('err');
 
       function setLoading(on){
         if(on){
@@ -172,28 +233,70 @@
           if(window.lucide){ try{ lucide.createIcons(); }catch(e){} }
         }
       }
+      
+      function showError(msg){
+        errEl.textContent = msg;
+        errEl.classList.remove('hidden');
+      }
+      
+      function hideError(){
+        errEl.classList.add('hidden');
+      }
 
       const u = document.getElementById('u').value.trim();
       const p = document.getElementById('p').value.trim();
+      
+      if(!u || !p){
+        showError('Username dan password harus diisi');
+        return;
+      }
+      
+      hideError();
       setLoading(true);
-      const cb = 'cb'+Math.random().toString(36).slice(2);
-      const url = `${BASE}?dataset=auth&route=login&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}&callback=${cb}`;
-      window[cb] = (resp)=>{
-        if(resp && resp.ok){
-          saveSess(resp);
-          location.href = to;
-        } else {
-          document.getElementById('err').textContent = resp && resp.error ? resp.error : 'Login gagal';
-          document.getElementById('err').classList.remove('hidden');
-          setLoading(false);
+      
+      // Retry mechanism
+      let attempts = 0;
+      const maxAttempts = 2;
+      
+      async function attemptLogin(){
+        attempts++;
+        try{
+          const url = `${BASE}?dataset=auth&route=login&u=${encodeURIComponent(u)}&p=${encodeURIComponent(p)}`;
+          const resp = await jsonpWithTimeout(url, 10000); // 10 second timeout for login
+          
+          if(resp && resp.ok){
+            saveSess(resp);
+            // Add small delay to ensure localStorage is saved
+            await new Promise(resolve => setTimeout(resolve, 100));
+            location.href = to;
+          } else {
+            const errorMsg = resp && resp.error ? resp.error : 'Login gagal. Periksa username dan password Anda.';
+            showError(errorMsg);
+            setLoading(false);
+          }
+        }catch(err){
+          console.error('Login attempt ' + attempts + ' failed:', err);
+          
+          if(attempts < maxAttempts){
+            // Retry
+            btnText.textContent = 'Mencoba lagi...';
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            return attemptLogin();
+          } else {
+            // Final failure
+            let errorMsg = 'Tidak dapat menghubungi server.';
+            if(err.message.includes('Timeout')){
+              errorMsg = 'Server lambat merespons. Periksa koneksi internet Anda dan coba lagi.';
+            } else if(err.message.includes('Gagal memuat')){
+              errorMsg = 'Gagal terhubung ke server. Pastikan Anda terhubung ke internet.';
+            }
+            showError(errorMsg);
+            setLoading(false);
+          }
         }
-        delete window[cb];
-      };
-      const s = document.createElement('script'); s.src = url; s.onerror = ()=>{
-        document.getElementById('err').textContent = 'Tidak dapat menghubungi server';
-        document.getElementById('err').classList.remove('hidden');
-        setLoading(false);
-      }; document.body.appendChild(s);
+      }
+      
+      attemptLogin();
     });
   </script>
 </body>
