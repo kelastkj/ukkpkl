@@ -165,36 +165,89 @@
     <!-- Actual Content -->
     <div id="actualContent" class="content-hidden">
     <section class="card p-5 space-y-4">
-      <div class="flex items-center justify-between gap-3">
+      <!-- Batch Actions & Controls -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div class="flex items-center gap-3 flex-wrap">
-          <button id="generateAllBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2">
+          <button id="generateSelectedBtn" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
             <i data-lucide="file-plus" class="w-4 h-4"></i>
-            <span id="generateAllLabel">Generate Semua Sertifikat</span>
+            <span>Generate Terpilih</span>
+            <span id="selectedCount" class="text-xs font-semibold bg-white/20 px-2 py-0.5 rounded-full">(0)</span>
+          </button>
+          <button id="generateAllBtn" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2">
+            <i data-lucide="zap" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Generate Semua</span>
+            <span class="sm:hidden">Semua</span>
             <span id="generateAllCount" class="text-xs font-semibold text-white/90">(0)</span>
           </button>
           <label class="inline-flex items-center gap-2 text-[13px] text-slate-600 select-none">
             <input id="regenExisting" type="checkbox" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
-            <span>Termasuk yang sudah ada (re-generate)</span>
+            <span class="hidden sm:inline">Termasuk yang sudah ada</span>
+            <span class="sm:hidden">Re-gen</span>
           </label>
         </div>
+        
+        <!-- Search & Items per page -->
+        <div class="flex items-center gap-2 w-full sm:w-auto">
+          <div class="relative flex-1 sm:flex-initial">
+            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input id="searchInput" type="text" placeholder="Cari nama/nisn..." class="pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400 w-full sm:w-64" />
+          </div>
+          <select id="itemsPerPage" class="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400">
+            <option value="10">10</option>
+            <option value="25" selected>25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
       </div>
-      <div class="table-wrap overflow-auto rounded-lg border border-slate-200">
-        <table class="resp-table text-sm">
+
+      <!-- Mobile: Checkbox Select All -->
+      <div class="sm:hidden flex items-center gap-2 pb-2 border-b border-slate-200">
+        <input type="checkbox" id="selectAllMobile" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+        <label for="selectAllMobile" class="text-sm font-medium text-slate-700">Pilih Semua</label>
+      </div>
+
+      <!-- Table Desktop -->
+      <div class="hidden sm:block table-wrap overflow-auto rounded-lg border border-slate-200">
+        <table class="w-full text-sm">
           <thead class="bg-slate-50">
             <tr>
-              <th class="resp-th text-left font-medium text-slate-600">Nama Siswa</th>
-              <th class="resp-th text-left font-medium text-slate-600">NISN</th>
-              <th class="resp-th text-left font-medium text-slate-600">Jurusan</th>
-              <th class="resp-th text-left font-medium text-slate-600">Mitra</th>
-              <th class="resp-th text-left font-medium text-slate-600">Penanggung Jawab</th>
-              <th class="resp-th text-left font-medium text-slate-600">Jabatan</th>
-              <th class="resp-th text-left font-medium text-slate-600">Nomor Surat</th>
-              <th class="resp-th text-left font-medium text-slate-600">Status</th>
-              <th class="resp-th text-left font-medium text-slate-600">Aksi</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">
+                <input type="checkbox" id="selectAll" class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" />
+              </th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Nama Siswa</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">NISN</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Jurusan</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Mitra</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Penguji</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Penanggung Jawab</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Status</th>
+              <th class="px-3 py-3 text-left font-medium text-slate-600">Aksi</th>
             </tr>
           </thead>
-          <tbody id="sertifikat-tbody"><tr><td colspan="9" class="px-3 py-3 text-slate-500">Memuat data...</td></tr></tbody>
+          <tbody id="sertifikat-tbody-desktop"></tbody>
         </table>
+      </div>
+
+      <!-- Cards Mobile -->
+      <div id="sertifikat-cards-mobile" class="sm:hidden space-y-3"></div>
+
+      <!-- Pagination -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-slate-200">
+        <div class="text-sm text-slate-600">
+          Menampilkan <span id="showingStart">0</span> - <span id="showingEnd">0</span> dari <span id="totalItems">0</span> data
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="prevPage" class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1" disabled>
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span class="hidden sm:inline">Sebelumnya</span>
+          </button>
+          <div id="pageNumbers" class="flex items-center gap-1"></div>
+          <button id="nextPage" class="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1" disabled>
+            <span class="hidden sm:inline">Selanjutnya</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
+        </div>
       </div>
     </section>
     </div>
@@ -235,6 +288,11 @@
   <script>
   const BASE = (window.APP_CONFIG||{}).BASE_URL;
   let sertifikatData = [];
+  let filteredData = [];
+  let selectedItems = new Set();
+  let currentPage = 1;
+  let itemsPerPage = 25;
+  
   // In-memory authoritative profile fetched from server; use cached localStorage for fast render
   let CURRENT_PROFILE = null;
   function getProfile(){ try{ return CURRENT_PROFILE || JSON.parse(localStorage.getItem('auth_profile')||'{}'); }catch(e){ return {}; } }
@@ -405,38 +463,174 @@
       document.addEventListener('keydown', (ev)=>{ if(ev.key === 'Escape') close(); });
     }
 
-    function renderSertifikatRows(){
-      const tb = document.getElementById('sertifikat-tbody'); if(!tb) return; tb.innerHTML='';
-      if(!sertifikatData || sertifikatData.length===0){ tb.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-slate-500 text-center">Belum ada data sertifikat</td></tr>`; return; }
-      sertifikatData.forEach(r=>{
-        const status = r.link ? 'generated' : 'pending';
-        const tr = document.createElement('tr'); tr.setAttribute('data-status', status);
-        let cells = '';
-        cells += `<td class="resp-td px-3 py-2" data-label="Nama Siswa">${r.nama_siswa||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="NISN">${r.nisn||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Jurusan">${r.jurusan||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Mitra">${r.mitra||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Penanggung Jawab">${r.penanggung_jawab||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Jabatan">${r.jabatan||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Nomor Surat">${r.nomor_surat||''}</td>`;
-        cells += `<td class="resp-td px-3 py-2" data-label="Status"><span class="badge-status ${status === 'generated' ? 'badge-generated' : 'badge-pending'}">${status === 'generated' ? 'Generated' : 'Pending'}</span></td>`;
-        cells += `<td class="resp-td px-3 py-2 whitespace-nowrap" data-label="Aksi">`;
-        cells += `<div class="flex items-center gap-3">`;
-        if(r.link){
-          cells += `<a class="inline-flex items-center justify-center text-slate-600 hover:text-blue-600" target="_blank" href="${r.link}" aria-label="Buka sertifikat"><i data-lucide="eye" class="w-4 h-4"></i><span class="sr-only">Buka</span></a>`;
-        }
-        cells += `<button data-generate="${r.nama_siswa}" class="inline-flex items-center justify-center text-slate-600 hover:text-emerald-600" type="button" aria-label="Generate sertifikat"><i data-lucide="file-plus" class="w-4 h-4"></i><span class="sr-only">Generate</span></button>`;
-        cells += `</div>`;
-        cells += `</td>`;
-        tr.innerHTML = cells;
-        tb.appendChild(tr);
+    // Pagination & Filtering
+    function applyFilters(){
+      const searchTerm = (document.getElementById('searchInput')?.value || '').toLowerCase().trim();
+      filteredData = sertifikatData.filter(r => {
+        if(!searchTerm) return true;
+        const nama = (r.nama_siswa||'').toLowerCase();
+        const nisn = (r.nisn||'').toLowerCase();
+        const mitra = (r.mitra||'').toLowerCase();
+        return nama.includes(searchTerm) || nisn.includes(searchTerm) || mitra.includes(searchTerm);
       });
-      tb.querySelectorAll('button[data-generate]').forEach(btn=>{ btn.addEventListener('click', (ev)=>{
-        const nama = ev.currentTarget.getAttribute('data-generate');
-        generateSertifikat(nama);
-      }); });
-      if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
-      try{ updateGenerateAllButtonState(); }catch(_){ }
+      currentPage = 1;
+      renderPage();
+    }
+
+    function renderPage(){
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageData = filteredData.slice(start, end);
+      
+      // Render Desktop Table
+      const tbodyDesktop = document.getElementById('sertifikat-tbody-desktop');
+      if(tbodyDesktop){
+        tbodyDesktop.innerHTML = '';
+        if(pageData.length === 0){
+          tbodyDesktop.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-slate-500 text-center">Tidak ada data</td></tr>`;
+        } else {
+          pageData.forEach(r => {
+            const tr = document.createElement('tr');
+            tr.className = 'border-b border-slate-100 hover:bg-slate-50';
+            const status = r.link ? 'generated' : 'pending';
+            const isChecked = selectedItems.has(r.nama_siswa);
+            
+            let html = `<td class="px-3 py-2">
+              <input type="checkbox" class="row-checkbox h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" data-name="${r.nama_siswa}" ${isChecked?'checked':''} />
+            </td>`;
+            html += `<td class="px-3 py-2">${r.nama_siswa||''}</td>`;
+            html += `<td class="px-3 py-2">${r.nisn||''}</td>`;
+            html += `<td class="px-3 py-2">${r.jurusan||''}</td>`;
+            html += `<td class="px-3 py-2 text-xs">${r.mitra||''}</td>`;
+            html += `<td class="px-3 py-2 text-xs">${r.penguji||''}</td>`;
+            html += `<td class="px-3 py-2 text-xs">${r.penanggung_jawab||''}</td>`;
+            html += `<td class="px-3 py-2"><span class="badge-status ${status==='generated'?'badge-generated':'badge-pending'}">${status==='generated'?'Generated':'Pending'}</span></td>`;
+            html += `<td class="px-3 py-2 whitespace-nowrap"><div class="flex items-center gap-2">`;
+            if(r.link){
+              html += `<a href="${r.link}" target="_blank" class="text-slate-600 hover:text-blue-600" title="Lihat"><i data-lucide="eye" class="w-4 h-4"></i></a>`;
+            }
+            html += `<button class="btn-generate text-slate-600 hover:text-emerald-600" data-name="${r.nama_siswa}" title="Generate"><i data-lucide="file-plus" class="w-4 h-4"></i></button>`;
+            html += `</div></td>`;
+            tr.innerHTML = html;
+            tbodyDesktop.appendChild(tr);
+          });
+        }
+      }
+      
+      // Render Mobile Cards
+      const cardsMobile = document.getElementById('sertifikat-cards-mobile');
+      if(cardsMobile){
+        cardsMobile.innerHTML = '';
+        if(pageData.length === 0){
+          cardsMobile.innerHTML = `<div class="text-center text-slate-500 py-8">Tidak ada data</div>`;
+        } else {
+          pageData.forEach(r => {
+            const status = r.link ? 'generated' : 'pending';
+            const isChecked = selectedItems.has(r.nama_siswa);
+            const card = document.createElement('div');
+            card.className = 'bg-white border border-slate-200 rounded-lg p-4 shadow-sm';
+            
+            let html = `
+              <div class="flex items-start gap-3 mb-3">
+                <input type="checkbox" class="row-checkbox h-5 w-5 mt-0.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500" data-name="${r.nama_siswa}" ${isChecked?'checked':''} />
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-800">${r.nama_siswa||''}</div>
+                  <div class="text-sm text-slate-500">${r.nisn||''}</div>
+                </div>
+                <span class="badge-status ${status==='generated'?'badge-generated':'badge-pending'}">${status==='generated'?'Generated':'Pending'}</span>
+              </div>
+              <div class="space-y-1.5 text-sm mb-3">
+                <div class="flex"><span class="text-slate-500 w-24">Jurusan:</span><span class="font-medium">${r.jurusan||''}</span></div>
+                <div class="flex"><span class="text-slate-500 w-24">Mitra:</span><span class="font-medium text-xs">${r.mitra||''}</span></div>
+                <div class="flex"><span class="text-slate-500 w-24">Penguji:</span><span class="font-medium text-xs">${r.penguji||''}</span></div>
+                <div class="flex"><span class="text-slate-500 w-24">PJ:</span><span class="font-medium text-xs">${r.penanggung_jawab||''}</span></div>
+              </div>
+              <div class="flex items-center gap-2 pt-3 border-t border-slate-100">`;
+            if(r.link){
+              html += `<a href="${r.link}" target="_blank" class="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center justify-center gap-2"><i data-lucide="eye" class="w-4 h-4"></i> Lihat</a>`;
+            }
+            html += `<button class="btn-generate flex-1 px-3 py-2 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center justify-center gap-2" data-name="${r.nama_siswa}"><i data-lucide="file-plus" class="w-4 h-4"></i> Generate</button>
+              </div>`;
+            card.innerHTML = html;
+            cardsMobile.appendChild(card);
+          });
+        }
+      }
+      
+      // Event listeners for checkboxes and buttons
+      document.querySelectorAll('.row-checkbox').forEach(cb => {
+        cb.addEventListener('change', function(){
+          const name = this.getAttribute('data-name');
+          if(this.checked) selectedItems.add(name);
+          else selectedItems.delete(name);
+          updateSelectionUI();
+        });
+      });
+      
+      document.querySelectorAll('.btn-generate').forEach(btn => {
+        btn.addEventListener('click', function(){
+          const name = this.getAttribute('data-name');
+          generateSertifikat(name);
+        });
+      });
+      
+      // Render pagination
+      renderPagination();
+      updateSelectionUI();
+      
+      if(window.lucide) lucide.createIcons();
+    }
+
+    function renderPagination(){
+      const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+      const showingStart = filteredData.length === 0 ? 0 : (currentPage - 1) * itemsPerPage + 1;
+      const showingEnd = Math.min(currentPage * itemsPerPage, filteredData.length);
+      
+      document.getElementById('showingStart').textContent = showingStart;
+      document.getElementById('showingEnd').textContent = showingEnd;
+      document.getElementById('totalItems').textContent = filteredData.length;
+      
+      const prevBtn = document.getElementById('prevPage');
+      const nextBtn = document.getElementById('nextPage');
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage >= totalPages;
+      
+      const pageNumbers = document.getElementById('pageNumbers');
+      pageNumbers.innerHTML = '';
+      
+      // Smart pagination: show max 5 page numbers
+      let startPage = Math.max(1, currentPage - 2);
+      let endPage = Math.min(totalPages, startPage + 4);
+      if(endPage - startPage < 4) startPage = Math.max(1, endPage - 4);
+      
+      for(let i = startPage; i <= endPage; i++){
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.className = `px-3 py-1.5 text-sm rounded-lg ${i === currentPage ? 'bg-emerald-600 text-white' : 'border border-slate-200 hover:bg-slate-50'}`;
+        btn.addEventListener('click', () => { currentPage = i; renderPage(); });
+        pageNumbers.appendChild(btn);
+      }
+    }
+
+    function updateSelectionUI(){
+      const count = selectedItems.size;
+      document.getElementById('selectedCount').textContent = `(${count})`;
+      const btn = document.getElementById('generateSelectedBtn');
+      btn.disabled = count === 0;
+      
+      // Update select all checkbox
+      const selectAll = document.getElementById('selectAll');
+      const selectAllMobile = document.getElementById('selectAllMobile');
+      const allChecked = filteredData.length > 0 && filteredData.every(r => selectedItems.has(r.nama_siswa));
+      if(selectAll) selectAll.checked = allChecked;
+      if(selectAllMobile) selectAllMobile.checked = allChecked;
+    }
+
+    function renderSertifikatRows(){
+      filteredData = [...sertifikatData];
+      currentPage = 1;
+      renderPage();
+      updateGenerateAllButtonState();
     }
 
     async function loadSertifikat(){
@@ -461,7 +655,7 @@
         showSkeleton(false);
         console.error('Error in loadSertifikat:', e);
         const tb = document.getElementById('sertifikat-tbody');
-        if(tb) tb.innerHTML = `<tr><td colspan="9" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
+        if(tb) tb.innerHTML = `<tr><td colspan="10" class="px-3 py-3 text-red-600 text-center">${e.message}</td></tr>`;
       }
     }
 
@@ -624,6 +818,47 @@
       })();
 
       document.getElementById('generateAllBtn').addEventListener('click', () => generateSemuaSertifikat());
+      document.getElementById('generateSelectedBtn').addEventListener('click', () => generateSelected());
+      
+      // Search
+      document.getElementById('searchInput').addEventListener('input', () => applyFilters());
+      
+      // Items per page
+      document.getElementById('itemsPerPage').addEventListener('change', function(){
+        itemsPerPage = parseInt(this.value) || 25;
+        currentPage = 1;
+        renderPage();
+      });
+      
+      // Pagination buttons
+      document.getElementById('prevPage').addEventListener('click', () => {
+        if(currentPage > 1){ currentPage--; renderPage(); }
+      });
+      document.getElementById('nextPage').addEventListener('click', () => {
+        const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        if(currentPage < totalPages){ currentPage++; renderPage(); }
+      });
+      
+      // Select All Desktop
+      document.getElementById('selectAll').addEventListener('change', function(){
+        if(this.checked){
+          filteredData.forEach(r => selectedItems.add(r.nama_siswa));
+        } else {
+          filteredData.forEach(r => selectedItems.delete(r.nama_siswa));
+        }
+        renderPage();
+      });
+      
+      // Select All Mobile
+      document.getElementById('selectAllMobile').addEventListener('change', function(){
+        if(this.checked){
+          filteredData.forEach(r => selectedItems.add(r.nama_siswa));
+        } else {
+          filteredData.forEach(r => selectedItems.delete(r.nama_siswa));
+        }
+        renderPage();
+      });
+      
       try{ const cb = document.getElementById('regenExisting'); if(cb){ cb.addEventListener('change', ()=>{ try{ updateGenerateAllButtonState(); }catch(_){ } }); } }catch(_){ }
       if(window.lucide && typeof window.lucide.createIcons === 'function'){ window.lucide.createIcons(); }
     }
@@ -657,6 +892,179 @@
       });
     }
 
+    // Generate selected certificates
+    async function generateSelected(){
+      if(selectedItems.size === 0){
+        toast('err', 'Tidak ada item yang dipilih');
+        return;
+      }
+      
+      const ok = await openConfirmModal({
+        title: 'Generate Sertifikat Terpilih',
+        message: `Generate ${selectedItems.size} sertifikat yang dipilih?`,
+        okText: 'Ya, Generate',
+        cancelText: 'Batal'
+      });
+      
+      if(!ok) return;
+      
+      const names = Array.from(selectedItems);
+      const total = names.length;
+      let done = 0;
+      let success = 0;
+      
+      showLoading(true, { msg: `Memproses 0/${total}...`, percent: 0 });
+      
+      for(const nama of names){
+        try{
+          await generateOne(nama);
+          success++;
+        } catch(e){
+          console.warn(`Gagal generate ${nama}:`, e);
+        } finally {
+          done++;
+          const pct = Math.round((done / total) * 100);
+          showLoading(true, { msg: `Memproses ${done}/${total}...`, percent: pct });
+          if(done < total) await new Promise(r => setTimeout(r, 500));
+        }
+      }
+      
+      showLoading(false);
+      const failedCount = done - success;
+      let toastType = 'ok';
+      let toastMsg = '';
+      
+      if(success === total){
+        // Semua berhasil
+        toastMsg = `Selesai generate ${success}/${total} sertifikat`;
+        toastType = 'ok';
+      } else if(success > 0){
+        // Sebagian berhasil
+        toastMsg = `Selesai generate ${success}/${total} sertifikat (${failedCount} gagal)`;
+        toastType = 'ok';
+      } else {
+        // Semua gagal
+        toastMsg = `Gagal generate semua sertifikat (${failedCount} gagal)`;
+        toastType = 'err';
+      }
+      
+      toast(toastType, toastMsg);
+      selectedItems.clear();
+      await loadSertifikat();
+    }
+    
+    // Helper function to generate one certificate
+    function generateOne(namaSiswa){
+      return new Promise((resolve, reject) => {
+        const token = localStorage.getItem('auth_token');
+        if(!BASE || !token){
+          reject(new Error('Missing config or token'));
+          return;
+        }
+        
+        const iframeName = 'iframe_' + Math.random().toString(36).slice(2);
+        const iframe = document.createElement('iframe');
+        iframe.name = iframeName;
+        iframe.className = 'hidden';
+        document.body.appendChild(iframe);
+        
+        let finished = false;
+        const mainTimeoutMs = 90000; // 90 seconds max total
+        const normName = (s) => String(s||'').trim().toLowerCase();
+        
+        const handler = function(ev){
+          if(!ev || !ev.data || ev.data.type !== 'generate_sertifikat') return;
+          if(finished) return;
+          finished = true;
+          cleanup();
+          console.log(`✅ PostMessage received for ${namaSiswa}`);
+          if(ev.data.ok) resolve(ev.data);
+          else reject(new Error(ev.data.message || 'Generate failed'));
+        };
+        
+        const cleanup = () => {
+          try{ window.removeEventListener('message', handler); }catch(_){}
+          try{ if(mainTimer) clearTimeout(mainTimer); }catch(_){}
+          try{ if(pollTimer) clearTimeout(pollTimer); }catch(_){}
+          try{ iframe.remove(); }catch(_){}
+        };
+        
+        // Aggressive polling: start after 10s, check every 2s
+        let pollAttempts = 0;
+        const maxPollAttempts = 40; // 40 attempts x 2s = 80s of polling
+        let pollTimer = null;
+        
+        const checkIfGenerated = async () => {
+          if(finished) return;
+          pollAttempts++;
+          
+          try{
+            const url = `${BASE}?dataset=sertifikat&token=${encodeURIComponent(token)}`;
+            const resp = await jsonp(url, { timeout: 8000 });
+            
+            if(resp && resp.ok){
+              const list = Array.isArray(resp.data) ? resp.data : [];
+              const row = list.find(r => normName(r.nama_siswa) === normName(namaSiswa));
+              const nowLink = String(row && row.link || '').trim();
+              
+              // Check if link exists (means successfully generated)
+              if(nowLink && nowLink.length > 0){
+                finished = true;
+                cleanup();
+                console.log(`✅ Verified: ${namaSiswa} generated successfully via polling (attempt ${pollAttempts})`);
+                console.log(`   Link: ${nowLink.substring(0, 50)}...`);
+                resolve({ ok: true, verified: true });
+                return;
+              } else {
+                console.log(`🔄 Polling ${pollAttempts}/${maxPollAttempts} for ${namaSiswa} - no link yet`);
+              }
+            }
+          } catch(e){
+            console.warn(`⚠️ Poll ${pollAttempts} failed for ${namaSiswa}:`, e.message);
+          }
+          
+          // Keep polling
+          if(pollAttempts < maxPollAttempts && !finished){
+            pollTimer = setTimeout(checkIfGenerated, 2000); // Poll every 2 seconds
+          } else if(pollAttempts >= maxPollAttempts && !finished){
+            console.error(`❌ Max poll attempts reached for ${namaSiswa}`);
+          }
+        };
+        
+        // Start polling after 10 seconds (earlier than before)
+        setTimeout(() => {
+          if(!finished){
+            console.log(`🔄 Starting polling for ${namaSiswa}...`);
+            checkIfGenerated();
+          }
+        }, 10000);
+        
+        // Final timeout after 90 seconds
+        const mainTimer = setTimeout(() => {
+          if(finished) return;
+          finished = true;
+          cleanup();
+          console.error(`❌ Final timeout for ${namaSiswa} after ${mainTimeoutMs/1000}s`);
+          reject(new Error('Timeout'));
+        }, mainTimeoutMs);
+        
+        window.addEventListener('message', handler);
+        
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = BASE;
+        form.target = iframeName;
+        form.innerHTML = `
+          <input type="hidden" name="action" value="generate_sertifikat" />
+          <input type="hidden" name="token" value="${token}" />
+          <input type="hidden" name="siswa" value="${namaSiswa}" />
+        `;
+        document.body.appendChild(form);
+        form.submit();
+        form.remove();
+      });
+    }
+
     // Generate semua sertifikat secara berurutan agar progres X/Y bisa diperbarui
     async function generateSemuaSertifikat(){
       try{
@@ -676,125 +1084,54 @@
           : (sertifikatData||[]).filter(r => !r.link).map(r => r.nama_siswa).filter(Boolean);
         if(!targets.length){ toast('ok','Semua sertifikat sudah tersedia.'); return; }
 
-        const total = targets.length; let done = 0;
-        const normName = (s) => String(s||'').trim().toLowerCase();
+        const total = targets.length;
+        let done = 0;
+        let success = 0;
         const btnAll = document.getElementById('generateAllBtn');
         const cbRegen = document.getElementById('regenExisting');
         try{ if(btnAll) btnAll.disabled = true; if(cbRegen) cbRegen.disabled = true; }catch(_){ }
 
-        // Helper: kirim POST untuk satu siswa (iframe unik) dan tunggu postMessage (fallback polling bila perlu)
-        const generateOne = (namaSiswa)=> new Promise((resolve)=>{
-          let finished = false; let timeoutTimer = null; const startTs = Date.now();
-          const norm = (s)=>String(s||'').trim().toLowerCase();
-          const prevLink = (sertifikatData||[]).find(r => norm(r.nama_siswa)===norm(namaSiswa))?.link || '';
+        showLoading(true, { msg: `Memproses 0/${total}...`, percent: 0 });
 
-          // dynamic iframe to allow limited concurrency
-          const iframeName = 'upl_iframe_' + Math.random().toString(36).slice(2);
-          const ifr = document.createElement('iframe');
-          ifr.name = iframeName; ifr.title = 'upload'; ifr.loading = 'lazy'; ifr.className = 'hidden';
-          document.body.appendChild(ifr);
-
-          const handler = (ev)=>{
-            if(!ev || !ev.data || ev.data.type !== 'generate_sertifikat') return;
-            // try to match by payload data.nama when available
-            let belongs = false; let newLink = '';
-            try{
-              const arr = Array.isArray(ev.data.data) ? ev.data.data : [];
-              for(const it of arr){ if(norm(it.nama)===norm(namaSiswa)){ belongs = true; newLink = String(it.link||''); break; } }
-            }catch(_){ }
-            if(!belongs) return;
-            if(finished) return; finished = true;
-            try{ window.removeEventListener('message', handler); }catch(_){ }
-            try{ if(timeoutTimer) clearTimeout(timeoutTimer); }catch(_){ }
-            try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
-            if(newLink){
-              // update local cache + UI without refetching
-              const idx = (sertifikatData||[]).findIndex(r => norm(r.nama_siswa)===norm(namaSiswa));
-              if(idx >= 0){ sertifikatData[idx].link = newLink; }
-              try{ renderSertifikatRows(); }catch(_){ }
-            }
-            resolve(!!ev.data.ok);
-          };
-          window.addEventListener('message', handler);
-
-          // Submit form POST ke Apps Script (iframe khusus)
+        // Generate each certificate
+        for(const nama of targets){
           try{
-            const form = document.createElement('form'); form.method='post'; form.target=iframeName; form.action=BASE;
-            const add=(n,v)=>{ const i=document.createElement('input'); i.type='hidden'; i.name=n; i.value=v; form.appendChild(i); };
-            add('action','generate_sertifikat'); add('token', token); add('siswa', namaSiswa);
-            document.body.appendChild(form); form.submit(); form.remove();
-          }catch(_){ /* ignore */ }
+            await generateOne(nama);
+            success++;
+          } catch(e){
+            console.warn(`Gagal generate ${nama}:`, e);
+          } finally {
+            done++;
+            const pct = Math.round((done / total) * 100);
+            showLoading(true, { msg: `Memproses ${done}/${total}...`, percent: pct });
+            if(done < total) await new Promise(r => setTimeout(r, 500));
+          }
+        }
 
-          // Fallback polling if no postMessage quickly
-          timeoutTimer = setTimeout(async ()=>{
-            if(finished) return;
-            const pollUrl = `${BASE}?dataset=sertifikat&token=${encodeURIComponent(token)}`;
-            let attempt = 0;
-            const poll = async ()=>{
-              if(finished) return;
-              attempt++;
-              try{
-                const resp = await jsonp(pollUrl, { timeout: 3500 });
-                if(resp && resp.ok){
-                  const list = Array.isArray(resp.data)?resp.data:[];
-                  const row = list.find(r => norm(r.nama_siswa)===norm(namaSiswa));
-                  const nowLink = String(row && row.link || '').trim();
-                  const changed = !!nowLink && (!prevLink || prevLink !== nowLink);
-                  const unchangedButPresent = !!nowLink && !!prevLink && nowLink === prevLink && (Date.now()-startTs) >= 5000 && attempt >= 3;
-                  if(changed || unchangedButPresent){
-                    finished = true;
-                    try{ window.removeEventListener('message', handler); }catch(_){ }
-                    try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
-                    // update local cache + UI
-                    try{
-                      const idx = (sertifikatData||[]).findIndex(r => norm(r.nama_siswa)===norm(namaSiswa));
-                      if(idx >= 0 && nowLink) { sertifikatData[idx].link = nowLink; renderSertifikatRows(); }
-                    }catch(_){ }
-                    resolve(true); return;
-                  }
-                }
-              }catch(_){ /* ignore */ }
-              if(attempt < 60) setTimeout(poll, 1000); else {
-                finished = true;
-                try{ window.removeEventListener('message', handler); }catch(_){ }
-                try{ if(ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); }catch(_){ }
-                resolve(false);
-              }
-            };
-            poll();
-          }, 5000);
-        });
-
-        // Jalankan dengan concurrency terbatas untuk mempercepat proses sambil tetap stabil
-        const CONCURRENCY = Math.min(4, Math.max(1, includeExisting ? 2 : 3));
-        showLoading(true); updateLoadingProgress(0, `Memproses 0/${total} sertifikat...`);
-        let index = 0; let active = 0; let success = 0;
-        await new Promise((resolveAll)=>{
-          const next = ()=>{
-            while(active < CONCURRENCY && index < targets.length){
-              const nama = targets[index++]; active++;
-              generateOne(nama).then((ok)=>{
-                active--; if(ok) success++;
-                done++;
-                const pct = Math.min(100, Math.round((done/total)*100));
-                updateLoadingProgress(pct, `Memproses ${done}/${total} sertifikat... (${nama})`);
-                if(done >= total && active === 0) return resolveAll();
-                next();
-              }).catch(()=>{
-                active--; done++;
-                const pct = Math.min(100, Math.round((done/total)*100));
-                updateLoadingProgress(pct, `Memproses ${done}/${total} sertifikat... (${nama})`);
-                if(done >= total && active === 0) return resolveAll();
-                next();
-              });
-            }
-            if(done >= total && active === 0) resolveAll();
-          };
-          next();
-        });
-        updateLoadingProgress(100, `Selesai ${done}/${total} sertifikat.`);
+        // Reload data setelah selesai
+        await loadSertifikat();
         showLoading(false);
-        toast('ok', `Selesai generate ${done}/${total} sertifikat.`);
+        
+        // Smart toast message
+        const failedCount = total - success;
+        let toastType = 'ok';
+        let toastMsg = '';
+        
+        if(success === total){
+          // Semua berhasil
+          toastMsg = `Selesai generate ${success}/${total} sertifikat`;
+          toastType = 'ok';
+        } else if(success > 0){
+          // Sebagian berhasil
+          toastMsg = `Selesai generate ${success}/${total} sertifikat (${failedCount} gagal)`;
+          toastType = 'ok';
+        } else {
+          // Semua gagal
+          toastMsg = `Gagal generate semua sertifikat (${failedCount} gagal)`;
+          toastType = 'err';
+        }
+        
+        toast(toastType, toastMsg);
       }catch(e){
         showLoading(false);
         toast('err', 'Gagal generate semua: ' + (e && e.message || e));
